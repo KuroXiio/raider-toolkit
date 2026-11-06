@@ -1,5 +1,23 @@
+<meta charset="utf-8">
 <title>Raider Toolkit</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Workshop planner, weapon calculator with DPS, item finder, maps, keys and a shopping list for ARC Raiders.">
+<meta name="theme-color" content="#62f3ea">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Raider Toolkit">
+<meta property="og:title" content="Raider Toolkit – ARC Raiders fan tools">
+<meta property="og:description" content="Workshop planner, weapon calculator with DPS, item finder, maps, keys and a shopping list.">
+<meta property="og:url" content="{{SITEURL}}">
+<meta property="og:image" content="{{SITEURL}}og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-title" content="Raider Toolkit">
+<link rel="canonical" href="{{SITEURL}}">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Urbanist:wght@500;600;700;800&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
@@ -227,7 +245,7 @@ input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--cream); fl
 .mnone { display: grid; place-items: center; height: 100%; color: var(--dim); text-align: center; padding: 20px; }
 /* ---- review polish ---- */
 body { margin: 0; }
-.stripes { top: 26px; bottom: 26px; height: auto; -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 30%), linear-gradient(to right, transparent 0, #000 22%); -webkit-mask-composite: source-in; mask-image: linear-gradient(to bottom, transparent 0, #000 30%), linear-gradient(to right, transparent 0, #000 22%); mask-composite: intersect; }
+.stripes { top: 0; bottom: 0; height: auto; -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 30%, #000 62%, transparent 100%), linear-gradient(to right, transparent 0, #000 22%); -webkit-mask-composite: source-in; mask-image: linear-gradient(to bottom, transparent 0, #000 30%, #000 62%, transparent 100%), linear-gradient(to right, transparent 0, #000 22%); mask-composite: intersect; }
 button.mchip { cursor: pointer; color: var(--fg); transition: border-color .15s, background .15s; }
 button.mchip:hover, button.mchip:focus-visible { border-color: var(--cream); background: #1a2350; }
 .mlab { display: none; }
@@ -248,7 +266,7 @@ button.mchip:hover, button.mchip:focus-visible { border-color: var(--cream); bac
 }
 @media (max-width: 560px) {
   .hero .meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 20px; margin-top: 34px; }
-  .hero-in { padding-bottom: 70px; }
+  .hero-in { padding-bottom: 120px; }
   .stripes { width: 70vw; opacity: .55; }
 }
 /* ---- v10 features ---- */
@@ -264,7 +282,7 @@ button.mchip:hover, button.mchip:focus-visible { border-color: var(--cream); bac
 .tcmp { border-bottom: 1px solid var(--line); }
 .tcmp summary { cursor: pointer; padding: 16px 20px; font-family: var(--f-mono); font-size: .72rem; letter-spacing: .18em; text-transform: uppercase; color: var(--mint); }
 .tcmp .tw { overflow-x: auto; padding: 0 20px 18px; }
-.tcmp table { border-collapse: collapse; width: 100%; min-width: 520px; font-size: .86rem; }
+.tcmp table { border-collapse: collapse; width: 100%; min-width: 660px; font-size: .86rem; }
 .tcmp th { text-align: left; font-family: var(--f-display); font-weight: 800; font-size: 1rem; color: #fff; padding: 8px 10px; border-bottom: 1px solid var(--line); }
 .tcmp th:first-child, .tcmp td:first-child { font-family: var(--f-mono); font-weight: 500; font-size: .64rem; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); width: 110px; }
 .tcmp td { padding: 8px 10px; border-bottom: 1px solid #1c2140; vertical-align: top; color: #d9d6e6; }
@@ -274,9 +292,128 @@ button.mchip:hover, button.mchip:focus-visible { border-color: var(--cream); bac
 .tcmp ul { margin: 0; padding-left: 16px; }
 .tcmp .na { color: var(--dim); }
 .tcmp .tn { padding: 0 20px 16px; font-size: .78rem; color: var(--dim); }
-footer.foot { display: flex; justify-content: space-between; align-items: center; gap: 10px 20px; flex-wrap: wrap; margin-top: 64px; padding-block: 22px 40px; font-size: .8rem; color: #8a87a0; }
+.statbar { position: relative; min-width: 92px; height: 20px; border-radius: 5px; background: #1a1f3d; overflow: hidden; box-shadow: inset 0 0 0 1px #2a3258; }
+.statbar i { position: absolute; inset: 0; display: block; width: 0; border-radius: 4px; background: linear-gradient(90deg, var(--cyan), var(--purple)); background-size: 200% 100%; background-position: 0% 0; box-shadow: 0 0 10px rgba(63,216,255,.35); }
+.statbar b { position: relative; z-index: 1; display: block; height: 100%; padding: 0 8px; font-family: var(--f-mono); font-weight: 700; font-size: .78rem; line-height: 20px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.75); text-align: right; }
+.tcmp td:has(.statbar) { padding: 5px 10px; }
+.sbw { display: grid; grid-template-columns: minmax(64px, 1fr) auto; align-items: center; gap: 8px; }
+.sbw .statbar { min-width: 0; }
+.sbw em { font-style: normal; font-family: var(--f-mono); font-weight: 700; font-size: .78rem; white-space: nowrap; }
+.sbw em.up { color: #6dffa4; } .sbw em.dn { color: #ff7d7d; }
+.statbar.dps { box-shadow: inset 0 0 0 1px #5a3a1c; }
+.statbar.dps i { background: linear-gradient(90deg, #ffb020, #ff5a3c); box-shadow: 0 0 10px rgba(255,150,40,.35); }
+.tcmp tr.dpsrow td { border-top: 1px solid #3a2f3a; }
+.tcmp tr.dpsrow td:first-child { color: #ffc46b; font-weight: 700; }
+.statline .dpsv { color: #ffc46b; }
+.wpstep { display: flex; align-items: center; gap: 12px; margin: 2px 0 12px; }
+.wpstep b, .wst > b { font-family: var(--f-display); font-weight: 800; font-size: 1.15rem; color: #fff; }
+#v-weapons.wpicked #wtabs, #v-weapons.wpicked .wbar, #v-weapons.wpicked .wstripw, #v-weapons.wpicked .wpstep { display: none; }
+#wDetail.off { display: none; }
+.wstep { display: flex; align-items: center; gap: 14px; padding: 14px 20px; border-bottom: 1px solid var(--line); }
+.wstep.on { align-items: flex-start; padding: 18px 20px 20px; background: rgba(140,130,255,.05); }
+.wsn { flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-family: var(--f-mono); font-weight: 700; font-size: .82rem; color: #fff; background: #232a5c; box-shadow: inset 0 0 0 1px #3d4690; }
+.wstep.done .wsn { color: #6dffa4; background: rgba(109,255,164,.1); box-shadow: inset 0 0 0 1px rgba(109,255,164,.35); }
+.wst { flex: 1; min-width: 0; }
+.wst > b { display: block; margin: 3px 0 14px; }
+.wst > small { display: block; font-family: var(--f-mono); font-size: .62rem; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+.wst .wcnt { margin: -8px 0 0; text-transform: none; letter-spacing: .02em; font-size: .8rem; }
+.wss { margin-top: 3px; color: #fff; font-weight: 700; }
+.wchg { all: unset; box-sizing: border-box; flex: none; cursor: pointer; font-family: var(--f-mono); font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--mint); padding: 7px 11px; border-radius: 8px; border: 1px solid #2f3a5c; }
+.wchg:hover, .wchg:focus-visible { background: rgba(255,255,255,.06); border-color: #8e8aa8; }
+.wch { display: flex; flex-wrap: wrap; gap: 10px; }
+.wopt { font: inherit; cursor: pointer; text-align: left; min-width: 140px; padding: 12px 16px; border-radius: 12px; background: #151a36; border: 1px solid #2f3866; color: #fff; display: flex; flex-direction: column; gap: 3px; transition: border-color .15s, background .15s, transform .15s; }
+.wopt b { font-family: var(--f-display); font-weight: 800; font-size: 1rem; }
+.wopt small { color: var(--dim); font-size: .78rem; }
+.wopt:hover, .wopt:focus-visible { border-color: #8e8aa8; background: #1c2247; transform: translateY(-1px); }
+.wopt.on { border-color: var(--mint); }
+.wampl { flex: none; font-size: .86rem; }
+.wmodd { border-bottom: 1px solid var(--line); }
+.wmodd .dgm-wrap { max-width: 780px; margin: 0 auto; border-bottom: 0; padding-top: 6px; }
+.wstep, .wb-cols.wres { animation: wfade .25s ease; }
+@keyframes wfade { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .wstep, .wb-cols.wres { animation: none; } }
+@media (max-width: 640px) { .wstep { flex-wrap: wrap; } .wopt { min-width: calc(50% - 5px); flex: 1 1 calc(50% - 5px); } .wst { flex-basis: calc(100% - 44px); } }
+.hsec { position: relative; padding: 76px 0; }
+.hsec + .hsec::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(150,140,210,.28) 20%, rgba(150,140,210,.28) 80%, transparent); }
+body { overflow-x: clip; }
+.hguide { margin-top: -40px; padding-top: 116px; padding-bottom: 116px; isolation: isolate; }
+.hguide::after { content: ""; position: absolute; top: 0; bottom: 0; left: -100vmax; right: -100vmax; z-index: -1; pointer-events: none; background: linear-gradient(180deg, rgba(17,14,34,0) 0, #110e22 140px, #110e22 calc(100% - 140px), rgba(17,14,34,0) 100%), radial-gradient(60% 50% at 50% 50%, rgba(95,242,234,.035), transparent 70%); }
+.hguide + .hsec::before { display: none; }
+.htools .cards { padding-block: 0; }
+.faq { padding-bottom: 24px; }
+.shd { text-align: center; margin: 0 auto 40px; max-width: 640px; }
+.shd .stk { display: block; width: 74px; height: 8px; margin: 0 auto 16px; transform: skewX(-38deg); background: linear-gradient(90deg, #ff2d2d 0 22%, transparent 22% 26%, #ffc400 26% 48%, transparent 48% 52%, #22d65f 52% 74%, transparent 74% 78%, #5ff2ea 78% 100%); }
+.shd h2 { font-size: clamp(1.9rem, 4vw, 2.6rem); color: #fff; margin: 8px 0 10px; }
+.shd p { color: var(--dim); margin: 0 auto; max-width: 52ch; }
+@media (max-width: 700px) { .hsec { padding: 56px 0; } .shd { margin-bottom: 30px; } }
+.sec-mini h2 { font-size: clamp(1.8rem, 4vw, 2.4rem); color: #fff; margin: 6px 0 8px; }
+.sec-mini p { color: var(--dim); max-width: 60ch; margin: 0 0 22px; }
+.faq .sec-mini h2 { margin-bottom: 20px; }
+.zz { position: relative; list-style: none; margin: 8px 0 0; padding: 6px 0; }
+.zz::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 22px; transform: translateX(-50%); background: linear-gradient(90deg, #ff2d2d 0 4px, transparent 4px 6px, #ffc400 6px 10px, transparent 10px 12px, #22d65f 12px 16px, transparent 16px 18px, #5ff2ea 18px 22px); -webkit-mask-image: linear-gradient(transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(transparent, #000 10%, #000 90%, transparent); opacity: .9; }
+.zz li { position: relative; width: 50%; padding: 0 64px 0 0; text-align: right; }
+.zz li + li { margin-top: -34px; }
+.zz li:nth-child(even) { margin-left: 50%; padding: 0 0 0 64px; text-align: left; }
+.zz li::before { content: ""; position: absolute; top: 26px; right: 18px; width: 36px; height: 3px; border-radius: 2px; background: var(--c); }
+.zz li:nth-child(even)::before { right: auto; left: 18px; }
+.zz li::after { content: ""; position: absolute; top: 19px; right: -9px; width: 18px; height: 18px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 5px var(--bg), 0 0 18px var(--c); }
+.zz li:nth-child(even)::after { right: auto; left: -9px; }
+.zz .zn { display: block; font-family: var(--f-display); font-weight: 800; font-size: 2.6rem; line-height: 1; color: var(--c); letter-spacing: -.02em; }
+.zz h3 { font-family: var(--f-display); font-weight: 800; font-size: 1.25rem; color: #fff; margin: 6px 0 6px; }
+.zz p { max-width: 42ch; margin-left: auto !important; }
+.zz li:nth-child(even) p { margin-left: 0 !important; }
+@media (max-width: 700px) {
+  .zz::before { left: 11px; transform: none; }
+  .zz li, .zz li:nth-child(even) { width: auto; margin-left: 0; padding: 0 0 0 58px; text-align: left; }
+  .zz li + li { margin-top: 30px; }
+  .zz li::before, .zz li:nth-child(even)::before { right: auto; left: 30px; width: 18px; }
+  .zz li::after, .zz li:nth-child(even)::after { right: auto; left: 2px; }
+  .zz p { margin-left: 0 !important; }
+}
+.zz p, .faql p { margin: 0; color: #cfcbe0; font-size: .92rem; line-height: 1.55; }
+.zz a, .faql a { color: var(--mint); }
+.faql { columns: 2 340px; column-gap: 12px; }
+.faql details { break-inside: avoid; margin-bottom: 12px; }
+.faql summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 15px 18px; font-weight: 700; color: #fff; }
+.faql summary::-webkit-details-marker { display: none; }
+.faql summary::after { content: "+"; flex: none; font: 600 1.2rem var(--f-mono); color: var(--mint); }
+.faql details[open] summary::after { content: "\2212"; }
+.faql summary:hover, .faql summary:focus-visible { color: var(--mint); }
+.faql details p { padding: 0 18px 16px; }
+.howlink { display: inline-block; margin-top: 18px; color: var(--mint); font-family: var(--f-mono); font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; text-decoration: none; border-bottom: 1px solid rgba(168,224,200,.4); padding-bottom: 2px; }
+.howlink:hover, .howlink:focus-visible { border-bottom-color: currentColor; }
+.wsflow { margin-bottom: 22px; overflow: hidden; }
+.wsflow .wstep:last-child { border-bottom: 0; }
+.wsflow .wst .srow:first-of-type { border-top: 0; }
+.wshint { margin: -6px 0 6px; color: var(--dim); font-size: .9rem; max-width: 62ch; }
+.wsmax { font-family: var(--f-display); font-weight: 700; color: var(--mint); }
+.wsnext { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 16px; color: var(--dim); font-size: .86rem; }
+.wschips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; font-weight: 400; }
+#wsList:empty { display: none; }
+@media (max-width: 640px) { .wsflow .wstep.on .wst { flex-basis: 100%; } .wsflow .wstep.on > .wsn { margin-bottom: -4px; } .wsflow .srow .seg { flex-wrap: nowrap; gap: 5px; } .wsflow .srow .seg button { min-width: 36px; padding-inline: 0; } .wsflow .srow .grp { flex-wrap: nowrap; } }
+.mappick button { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; line-height: 1.15; }
+.mlev { display: block; margin-top: 3px; font-family: var(--f-mono); font-weight: 500; font-size: .62rem; letter-spacing: .04em; color: #f2c94c; white-space: nowrap; }
+.mlev b { font-weight: 700; color: var(--mint); font-variant-numeric: tabular-nums; }
+.mcev { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; margin-top: 8px; font-size: .86rem; color: #e4e1f0; }
+.mcev small { font-family: var(--f-mono); font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); margin-right: 6px; }
+.mcev b { font-family: var(--f-mono); color: var(--mint); font-variant-numeric: tabular-nums; }
+.mcev select { font: inherit; font-size: .72rem; color: var(--dim); background: rgba(15,20,48,.8); border: 1px solid #343b66; border-radius: 6px; padding: 2px 4px; }
+.tcmp p.tn { margin: 0; padding: 0 20px 10px; font-size: .76rem; color: var(--dim); }
+footer.foot { display: flex; flex-direction: column; gap: 18px; margin-top: 64px; padding-block: 30px 40px; font-size: .8rem; color: #8a87a0; }
+.footrow { display: flex; justify-content: space-between; align-items: center; gap: 10px 20px; flex-wrap: wrap; }
 .infobtn { font-family: var(--f-display); font-weight: 600; font-size: .8rem; color: #b8b5c9; text-decoration: none; padding: 6px 14px; border-radius: 99px; border: 1px solid #3a3d5c; background: rgba(255,255,255,.03); transition: color .15s, border-color .15s, background .15s; }
 .infobtn:hover, .infobtn:focus-visible { color: #fff; border-color: #8e8aa8; background: rgba(255,255,255,.07); }
+.dcjoin { display: flex; align-items: center; justify-content: space-between; gap: 14px 20px; flex-wrap: wrap; padding: 16px 20px; border-radius: 16px; background: linear-gradient(135deg, rgba(88,101,242,.16), rgba(88,101,242,.04)); border: 1px solid rgba(88,101,242,.35); }
+.dcjoin .dctxt b { display: block; color: #fff; font-family: var(--f-display); font-size: 1rem; font-weight: 700; }
+.dcjoin .dctxt span { color: #b8b5c9; font-size: .84rem; }
+.dcbtn { display: inline-flex; align-items: center; gap: 9px; font-family: var(--f-display); font-weight: 700; font-size: .86rem; color: #fff; text-decoration: none; padding: 10px 18px; border-radius: 99px; background: #5865F2; box-shadow: 0 4px 14px rgba(88,101,242,.4); transition: transform .15s, box-shadow .15s; white-space: nowrap; }
+.dcbtn:hover, .dcbtn:focus-visible { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(88,101,242,.55); }
+.dcbtn svg { width: 20px; height: 20px; fill: #fff; flex-shrink: 0; }
+.dcbtn.ghost { background: transparent; border: 1.5px solid #5865F2; box-shadow: none; }
+.dcbtn.ghost:hover { background: rgba(88,101,242,.14); }
+.credit { font-size: .76rem; color: #6f6c88; }
+.credit a { color: #9c99b8; text-decoration: none; }
+.credit a:hover { color: #fff; }
 .info .ib { padding: 20px 22px; margin-bottom: 18px; }
 .info .ib h3 { font-size: 1.3rem; color: #fff; margin: 0 0 10px; }
 .info .ib p, .info .ib li { color: #d3d0e0; font-size: .92rem; max-width: 90ch; }
@@ -302,6 +439,13 @@ footer.foot { display: flex; justify-content: space-between; align-items: center
 #ktip dt { font-family: var(--f-mono); font-size: .6rem; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); padding-top: .2em; }
 #ktip dd { margin: 0; }
 #ktip .kn { margin-top: 8px; font-size: .72rem; color: var(--dim); }
+#ktip .kl { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+#ktip .kl li { display: flex; gap: 9px; align-items: flex-start; }
+#ktip .kl li .th { flex: none; width: 30px; height: 30px; }
+#ktip .kl li b { display: block; color: #fff; font-size: .84rem; line-height: 1.2; }
+#ktip .kl li span { display: block; font-size: .74rem; color: #c9c5dc; line-height: 1.3; }
+#ktip .kl li.on b { color: #f2c94c; }
+.kcnt { position: absolute; top: -6px; right: -8px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: #f2c94c; color: #0b0f26; font: 800 .7rem/18px var(--f-mono); text-align: center; box-shadow: 0 0 0 2px #0b0f26; }
 .kgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: 18px; margin-top: 18px; }
 .kcard { padding: 18px; display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 16px; align-items: start; }
 .kcard .tile { width: 84px; height: 84px; position: relative; }
@@ -514,6 +658,10 @@ nav { gap: 2px; align-items: center; }
 nav a { padding: 8px 13px; border-radius: 10px; border-bottom: 0; font-size: .95rem; transition: background .15s, color .15s; }
 nav a:hover, nav a:focus-visible { background: rgba(255,255,255,.06); color: #fff; }
 nav a[aria-current="page"] { background: #232a5c; box-shadow: inset 0 0 0 1px #3d4690; }
+#langSel { font: inherit; font-family: var(--f-mono); font-weight: 600; font-size: .78rem; letter-spacing: .06em; color: var(--dim); background: rgba(255,255,255,.04); border: 1px solid #343b66; border-radius: 8px; padding: 6px 8px; margin-left: 8px; cursor: pointer; flex: none; }
+#langSel:hover, #langSel:focus-visible { color: #fff; border-color: #8e8aa8; }
+select { color-scheme: dark; }
+select option, select optgroup { background-color: #0f1430; color: #ece9f6; }
 @media (max-width: 760px) {
   header.top .wrap { min-height: 0; padding-block: 8px 6px; gap: 6px; }
   .brand { font-size: 1.2rem; } .brand i { width: 30px; height: 30px; border-radius: 8px; }
@@ -558,14 +706,17 @@ details.dcg summary .n.ok { color: var(--ok); }
   <div class="wrap">
     <a class="brand" href="#home" aria-label="Raider Toolkit home"><i></i><span>Raider Toolkit<small>ARC Raiders fan tools</small></span></a>
     <nav aria-label="Tools" id="nav">
-      <a href="#home" data-v="home">Home</a>
-      <a href="#workshop" data-v="workshop">Workshop</a>
-      <a href="#weapons" data-v="weapons">Weapons</a>
-      <a href="#items" data-v="items">Items</a>
-      <a href="#maps" data-v="maps">Maps</a>
-      <a href="#keys" data-v="keys">Keys</a>
-      <a href="#list" data-v="list">Shopping list<span class="nb" id="nb"></span></a>
+      <a href="#home" data-v="home" data-i18n="Home">Home</a>
+      <a href="#workshop" data-v="workshop" data-i18n="Workshop">Workshop</a>
+      <a href="#weapons" data-v="weapons" data-i18n="Weapons">Weapons</a>
+      <a href="#items" data-v="items" data-i18n="Items">Items</a>
+      <a href="#maps" data-v="maps" data-i18n="Maps">Maps</a>
+      <a href="#keys" data-v="keys" data-i18n="Keys">Keys</a>
+      <a href="#list" data-v="list"><span data-i18n="Shopping list">Shopping list</span><span class="nb" id="nb"></span></a>
     </nav>
+    <select id="langSel" aria-label="Language">
+      <option value="en">EN</option><option value="pt">PT</option><option value="es">ES</option><option value="fr">FR</option><option value="de">DE</option><option value="sv">SV</option>
+    </select>
   </div>
 </header>
 
@@ -577,32 +728,50 @@ details.dcg summary .n.ok { color: var(--ok); }
     <div class="stripes" aria-hidden="true"></div>
     <div class="hero-in">
       <div class="wrap">
-        <div class="eyebrow">Unofficial fan tools · Speranza</div>
+        <div class="eyebrow" data-i18n="Unofficial fan tools · Speranza">Unofficial fan tools · Speranza</div>
         <h1>Raider<br><span>Toolkit</span></h1>
-        <p>Plan every Workshop and Outpost upgrade, price out a weapon with its attachments, look up any item or key, and build a shopping list before you deploy topside.</p>
+        <p data-i18n="Plan every Workshop and Outpost upgrade, price out a weapon with its attachments, look up any item or key, and build a shopping list before you deploy topside.">Plan every Workshop and Outpost upgrade, price out a weapon with its attachments, look up any item or key, and build a shopping list before you deploy topside.</p>
         <div class="cta">
-          <a class="btn go orb" href="#workshop">Plan my Workshop</a>
-          <a class="btn orb" href="#items">Search an item</a>
+          <a class="btn go orb" href="#workshop" data-i18n="Plan my Workshop">Plan my Workshop</a>
+          <a class="btn orb" href="#items" data-i18n="Search an item">Search an item</a>
+          <a class="dcbtn" href="https://discord.gg/NE3ughZTxn" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.3 4.6A19.7 19.7 0 0 0 15.6 3c-.2.4-.5.9-.6 1.3a18 18 0 0 0-5.9 0A8 8 0 0 0 8.4 3 19.8 19.8 0 0 0 3.7 4.6C1 8.7.3 12.8.6 16.8a19.9 19.9 0 0 0 5.6 2.8c.4-.6.8-1.3 1.1-2a13 13 0 0 1-1.8-.9l.4-.3a14.3 14.3 0 0 0 11.9 0l.4.3c-.6.3-1.2.6-1.8.9.3.7.7 1.4 1.1 2a19.9 19.9 0 0 0 5.6-2.8c.4-4.6-.7-8.6-2.8-12.2zM9.3 14.3c-.9 0-1.6-.9-1.6-1.9s.7-1.9 1.6-1.9 1.6.9 1.6 1.9-.7 1.9-1.6 1.9zm5.4 0c-.9 0-1.6-.9-1.6-1.9s.7-1.9 1.6-1.9 1.6.9 1.6 1.9-.7 1.9-1.6 1.9z"/></svg><span data-i18n="Join the community">Join the community</span></a>
         </div>
+        <a class="howlink" href="#home" data-goto="howto">How does it work?</a>
         <div class="meta">
-          <div><b id="statItems">0</b>items</div>
-          <div><b id="statStations">0</b>upgrade stations</div>
-          <div><b id="statWeapons">0</b>weapons</div>
-          <div><b id="statMaps">0</b>maps</div>
+          <div><b id="statItems">0</b><span data-i18n="items">items</span></div>
+          <div><b id="statStations">0</b><span data-i18n="upgrade stations">upgrade stations</span></div>
+          <div><b id="statWeapons">0</b><span data-i18n="weapons">weapons</span></div>
+          <div><b id="statMaps">0</b><span data-i18n="maps">maps</span></div>
         </div>
         <a class="dbadge" id="dbadgeH" href="#info"><i></i><span class="dbt"></span></a>
       </div>
     </div>
   </div>
   <div class="wrap">
+    <section class="hsec hguide howto" id="howto">
+      <div class="shd"><i class="stk"></i><div class="tag-k">Guide</div><h2>How does it work?</h2><p>Plan your raids in a few clicks. No account needed: everything saves in your browser.</p></div>
+      <ol class="zz">
+        <li style="--c:#ff2d2d"><span class="zn">01</span><h3>Find your keys</h3><p>Open <a href="#keys">Keys</a> to see what every key opens and how to get it. Press <b>Show on map</b> to jump straight to its door.</p></li>
+        <li style="--c:#ffc400"><span class="zn">02</span><h3>Know where loot spawns</h3><p>Search any item in the <a href="#items">Item finder</a> for its value, where it spawns and what it recycles into. <a href="#maps">Map intel</a> shows what each area holds.</p></li>
+        <li style="--c:#22d65f"><span class="zn">03</span><h3>Plan your upgrades</h3><p>Set your stations in the <a href="#workshop">Workshop planner</a>, or pick a gun, tier and attachments in the <a href="#weapons">Weapon calculator</a>. Every material you need is added up for you.</p></li>
+        <li style="--c:#5ff2ea"><span class="zn">04</span><h3>Build your shopping list</h3><p>Press <b>+ Shopping list</b> anywhere. Your <a href="#list">list</a> combines everything, tracks what you already have and exports to Discord, Steam or plain text.</p></li>
+      </ol>
+    </section>
+    <section class="hsec htools" id="tools">
+      <div class="shd"><i class="stk"></i><div class="tag-k">Tools</div><h2>Pick a tool</h2><p>Six tools that work together. Anything you plan can go straight onto your shopping list.</p></div>
     <div class="cards">
-      <a class="panel card orb" href="#workshop"><div class="card-num">01</div><h3>Workshop planner</h3><p>Set your station levels and get a grouped shopping list for the Workshop, Outpost and Research Station.</p><span class="go-l">Open →</span></a>
-      <a class="panel card orb" href="#weapons"><div class="card-num">02</div><h3>Weapon calculator</h3><p>Pick a gun, its tier and attachments, and see every material and blueprint you need.</p><span class="go-l">Open →</span></a>
-      <a class="panel card orb" href="#items"><div class="card-num">03</div><h3>Item finder</h3><p>Value, rarity, vendors, recycling, recipes and where to find every item.</p><span class="go-l">Open →</span></a>
-      <a class="panel card orb" href="#maps"><div class="card-num">04</div><h3>Map intel</h3><p>Zoomable maps with named areas, conditions and the items found there.</p><span class="go-l">Open →</span></a>
-      <a class="panel card orb" href="#keys"><div class="card-num">05</div><h3>Keys &amp; keycards</h3><p>Every key: which door it opens, how to get it, and a pin on the map where known.</p><span class="go-l">Open →</span></a>
-      <a class="panel card orb" href="#list"><div class="card-num">06</div><h3>Shopping list</h3><p>Everything you add from the other tools in one list, ready to export for Discord, Steam or plain text.</p><span class="go-l">Open →</span></a>
+      <a class="panel card orb" href="#workshop"><div class="card-num">01</div><h3 data-i18n="Workshop planner">Workshop planner</h3><p data-i18n="Set your station levels and get a grouped shopping list for the Workshop, Outpost and Research Station.">Set your station levels and get a grouped shopping list for the Workshop, Outpost and Research Station.</p><span class="go-l" data-i18n="Open →">Open →</span></a>
+      <a class="panel card orb" href="#weapons"><div class="card-num">02</div><h3 data-i18n="Weapon calculator">Weapon calculator</h3><p data-i18n="Pick a gun, its tier and attachments, and see every material and blueprint you need.">Pick a gun, its tier and attachments, and see every material and blueprint you need.</p><span class="go-l" data-i18n="Open →">Open →</span></a>
+      <a class="panel card orb" href="#items"><div class="card-num">03</div><h3 data-i18n="Item finder">Item finder</h3><p data-i18n="Value, rarity, vendors, recycling, recipes and where to find every item.">Value, rarity, vendors, recycling, recipes and where to find every item.</p><span class="go-l" data-i18n="Open →">Open →</span></a>
+      <a class="panel card orb" href="#maps"><div class="card-num">04</div><h3 data-i18n="Map intel">Map intel</h3><p data-i18n="Zoomable maps with named areas, conditions and the items found there.">Zoomable maps with named areas, conditions and the items found there.</p><span class="go-l" data-i18n="Open →">Open →</span></a>
+      <a class="panel card orb" href="#keys"><div class="card-num">05</div><h3 data-i18n="Keys &amp; keycards">Keys &amp; keycards</h3><p data-i18n="Every key: which door it opens, how to get it, and a pin on the map where known.">Every key: which door it opens, how to get it, and a pin on the map where known.</p><span class="go-l" data-i18n="Open →">Open →</span></a>
+      <a class="panel card orb" href="#list"><div class="card-num">06</div><h3 data-i18n="Shopping list">Shopping list</h3><p data-i18n="Everything you add from the other tools in one list, ready to export for Discord, Steam or plain text.">Everything you add from the other tools in one list, ready to export for Discord, Steam or plain text.</p><span class="go-l" data-i18n="Open →">Open →</span></a>
     </div>
+    </section>
+    <section class="hsec faq" id="faq">
+      <div class="shd"><i class="stk"></i><div class="tag-k">FAQ</div><h2>Good to know</h2><p>Quick answers to the things people ask most.</p></div>
+      <div class="faql"><details class="panel"><summary>Do I need an account? Where is my stuff saved?</summary><p>No account needed. Your plans, shopping list and settings are saved in this browser on this device. Clearing your browser data or switching to another device starts you fresh.</p></details><details class="panel"><summary>How do I share a weapon build or move it to another device?</summary><p>In the Weapon calculator, press <b>Copy build code</b> and paste it anywhere, for example in Discord. Anyone can open it with <b>Load a build</b>.</p></details><details class="panel"><summary>What does the number on a map pin mean?</summary><p>Several keys open doors in the same building. Hover or tap the pin to see all of them and which door each one opens.</p></details><details class="panel"><summary>Why does one key have several pins?</summary><p>Some keys, like the Blue Gate Cellar Key, open more than one door. Each pin is one of them, so if the first door is already looted, try the next.</p></details><details class="panel"><summary>Is the pin on the exact door?</summary><p>Hover the pin to check. It says whether it marks the door itself or just the building or area.</p></details><details class="panel"><summary>How is DPS calculated?</summary><p>Damage × fire rate. It is meant for comparing weapons with each other, and does not count reloads, headshots or shields.</p></details><details class="panel"><summary>Why do some weapon stats show “—” or a note about sources?</summary><p>Some numbers are missing from the community data set. Where we could, gaps are filled from arcraiders.wiki or arcraidershub.com and marked under the table. “—” means no source has that number yet.</p></details><details class="panel"><summary>Why do the weapon stats only open at the end?</summary><p>The Weapon calculator goes step by step. The stats open once every attachment slot is set; choose <b>None</b> to leave a slot empty, or press <b>Skip to stats</b>.</p></details><details class="panel"><summary>How does the shopping list count items?</summary><p>Everything you add becomes its own group. If two groups need the same item, the <b>Have</b> number is shared between them, so nothing gets counted twice. Tick an item once you have all of it.</p></details><details class="panel"><summary>What do the export options do?</summary><p><b>Combine everything</b> merges all groups into one total list. <b>Include items I've already got</b> keeps finished items in the export, marked as done. Then pick Plain, Discord or Steam formatting and copy.</p></details><details class="panel"><summary>How accurate are the map conditions?</summary><p>They are estimated from a rotation we recorded hour by hour. Most events repeat every 25 hours, so the timers are usually right, but roughly one hour in ten can differ. Pick your server region on the map card, and check the in-game map screen before you count on an event.</p></details><details class="panel"><summary>How up to date is the data?</summary><p>The badge at the bottom of every page shows the game patch and when the data was last updated. The site refreshes its data automatically every day.</p></details><details class="panel"><summary>Why does a map say WIP?</summary><p>Something for that map is still missing, like the map image or key pins. The map card says exactly what.</p></details><details class="panel"><summary>Is this official?</summary><p>No. This is an unofficial fan project and is not affiliated with Embark Studios.</p></details><details class="panel"><summary>I found a mistake or have an idea. Where do I tell you?</summary><p>Drop it in our <a href="https://discord.gg/NE3ughZTxn" target="_blank" rel="noopener">Discord</a>. Corrections are added for everyone.</p></details></div>
+    </section>
   </div>
 </div>
 
@@ -612,8 +781,8 @@ details.dcg summary .n.ok { color: var(--ok); }
     <div class="sec-head">
       <div>
         <div class="tag-k">Tool 01</div>
-        <h2>Workshop <em>planner</em></h2>
-        <p>Tell it where each station is now and where you want it. Costs of every tier in between are added up, grouped by station, with a full list beside them.</p>
+        <h2 data-i18n-html="Workshop &lt;em&gt;planner&lt;/em&gt;">Workshop <em>planner</em></h2>
+        <p data-i18n="Tell it where each station is now and where you want it. Costs of every tier in between are added up, grouped by station, with a full list beside them.">Tell it where each station is now and where you want it. Costs of every tier in between are added up, grouped by station, with a full list beside them.</p>
       </div>
     </div>
     <div id="wsTop"></div>
@@ -625,10 +794,11 @@ details.dcg summary .n.ok { color: var(--ok); }
 <div class="view" id="v-weapons">
   <div class="wrap view-pad">
     <div class="maphead">
-      <div><div class="tag-k">Tool 02</div><h2>Weapon calculator</h2></div>
+      <div><div class="tag-k">Tool 02</div><h2 data-i18n="Weapon calculator">Weapon calculator</h2></div>
       <nav class="mappick wtabs" id="wtabs" aria-label="Weapon type"></nav>
     </div>
-    <div class="wbar"><input id="wq" type="search" placeholder="Search weapons…" autocomplete="off" aria-label="Search weapons"><span class="l" id="wown"></span></div>
+    <div class="wpstep"><span class="wsn">1</span><b>Choose a weapon</b></div>
+    <div class="wbar"><input id="wq" type="search" placeholder="Search weapons…" data-i18n-ph="Search weapons…" autocomplete="off" aria-label="Search weapons"><span class="l" id="wown"></span></div>
     <div class="wstripw"><button type="button" class="wscr l" data-wscr="-1" aria-label="Scroll weapons left">‹</button><div class="wstrip" id="wList"></div><button type="button" class="wscr r" data-wscr="1" aria-label="Scroll weapons right">›</button></div>
     <div class="panel wd wbuild" id="wDetail"></div>
   </div>
@@ -640,23 +810,23 @@ details.dcg summary .n.ok { color: var(--ok); }
     <div class="sec-head">
       <div>
         <div class="tag-k">Tool 03</div>
-        <h2>Item <em>finder</em></h2>
-        <p>Search every item for its value, rarity, vendors, recycling, recipes and where to find it.</p>
+        <h2 data-i18n-html="Item &lt;em&gt;finder&lt;/em&gt;">Item <em>finder</em></h2>
+        <p data-i18n="Search every item for its value, rarity, vendors, recycling, recipes and where to find it.">Search every item for its value, rarity, vendors, recycling, recipes and where to find it.</p>
       </div>
     </div>
     <div class="searchbar">
-      <input id="q" type="search" value="Duck" placeholder="Search: Duck, Toaster, Motor, Snap Hook…" autocomplete="off" aria-label="Search items">
+      <input id="q" type="search" value="Duck" placeholder="Search: Duck, Toaster, Motor, Snap Hook…" data-i18n-ph="Search: Duck, Toaster, Motor, Snap Hook…" autocomplete="off" aria-label="Search items">
     </div>
     <div class="filters">
-      <label class="l" for="fType">Type</label><select id="fType"></select>
-      <label class="l" for="fSort">Sort</label>
-      <select id="fSort"><option value="rel">Best match</option><option value="vd">Value, high to low</option><option value="va">Value, low to high</option><option value="rar">Rarity</option><option value="az">Name A–Z</option></select>
+      <label class="l" for="fType" data-i18n="Type">Type</label><select id="fType"></select>
+      <label class="l" for="fSort" data-i18n="Sort">Sort</label>
+      <select id="fSort"><option value="rel" data-i18n="Best match">Best match</option><option value="vd" data-i18n="Value, high to low">Value, high to low</option><option value="va" data-i18n="Value, low to high">Value, low to high</option><option value="rar" data-i18n="Rarity">Rarity</option><option value="az" data-i18n="Name A–Z">Name A–Z</option></select>
     </div>
     <div class="chips" id="rarChips" style="margin-top:14px"></div>
     <div class="chips" id="useChips" style="margin-top:10px"></div>
     <p class="countline" id="countLine"></p>
     <div class="results" id="results"></div>
-    <div class="more"><button class="btn orb" id="moreBtn" type="button" hidden>Show more</button></div>
+    <div class="more"><button class="btn orb" id="moreBtn" type="button" hidden data-i18n="Show more">Show more</button></div>
   </div>
 </div>
 
@@ -664,7 +834,7 @@ details.dcg summary .n.ok { color: var(--ok); }
 <div class="view" id="v-maps">
   <div class="wrap view-pad">
     <div class="maphead">
-      <div><div class="tag-k">Tool 04</div><h2>Map intel</h2></div>
+      <div><div class="tag-k">Tool 04</div><h2 data-i18n="Map intel">Map intel</h2></div>
       <nav class="mappick" id="maplist" aria-label="Choose a map"></nav>
     </div>
     <div class="mapstage" id="mapstage"></div>
@@ -675,11 +845,11 @@ details.dcg summary .n.ok { color: var(--ok); }
 <!-- INFO -->
 <div class="view" id="v-info">
   <div class="wrap view-pad info">
-    <div class="sec-head"><div><div class="tag-k">About</div><h2>Info, sources <em>&amp; legal</em></h2><p>Where the data comes from, how fresh it is, and what is still missing.</p></div></div>
-    <section class="panel ib"><h3>Legal</h3><p>Raider Toolkit is an unofficial fan project and is not affiliated with or endorsed by Embark Studios. ARC Raiders, its item names, item artwork and map art belong to Embark Studios AB. The home-page scene is original art drawn in code.</p></section>
+    <div class="sec-head"><div><div class="tag-k">About</div><h2 data-i18n-html="Info, sources &lt;em&gt;&amp; legal&lt;/em&gt;">Info, sources <em>&amp; legal</em></h2><p data-i18n="Where the data comes from, how fresh it is, and what is still missing.">Where the data comes from, how fresh it is, and what is still missing.</p></div></div>
+    <section class="panel ib"><h3 data-i18n="Legal">Legal</h3><p>Raider Toolkit is an unofficial fan project and is not affiliated with or endorsed by Embark Studios. ARC Raiders, its item names, item artwork and map art belong to Embark Studios AB. The home-page scene is original art drawn in code.</p><p>Made and maintained by <b>Kuro</b> (Discord: kuro_1). Questions, corrections or ideas: say hi in the <a href="https://discord.gg/NE3ughZTxn" target="_blank" rel="noopener">Discord</a>.</p></section>
     <section class="panel dc" id="dataCheck"></section>
-    <section class="panel ib"><h3>Data sources</h3><div id="srcBody"></div></section>
-    <section class="panel ib"><h3>Notes per tool</h3>
+    <section class="panel ib"><h3 data-i18n="Data sources">Data sources</h3><div id="srcBody"></div></section>
+    <section class="panel ib"><h3 data-i18n="Notes per tool">Notes per tool</h3>
       <p><b>Workshop.</b> Levels 1 to 3 of the six Workshop benches come from the game data (v1.42). Gunsmith IV, the Outpost and the Research Station come from October 2026 guides. Research node costs, and what is unlocked at each level, are only partly published. Stash counts are saved in this browser only.</p>
       <p><b>Weapons.</b> The data set lists the materials for each tier, not the Gunsmith level each upgrade needs, so that is only shown for crafting the weapon and the attachments. Amplification Module counts are not published, so they are shown as unknown, never guessed. Weapon and attachment costs, tier bonuses and repair costs are from the game data (v1.42); a dash in the tier table means the data set has no value for that tier. Blueprint locations are from community guides. Kinetic Converter, Horizontal Grip and Silencer III cannot be crafted: they are found as loot, and the game's quest and project data name a guaranteed source where there is one. Corrections from the 2.0 and 2.3 patch notes are applied: the Anvil is Rare and lost its tech-mod slot (the Anvil Splitter is now part of the Amplified Anvil), Tian Wen no longer sells the Anvil or Hullcracker, creds were removed so cred prices are gone, and six legendary blueprints can drop in any major map condition. The Bantam and Stiletto (new in 2.0) are listed as WIP until their recipes are published. Build codes contain only the weapon, tiers, amplification and attachments.</p>
       <p><b>Maps.</b> Map images are the in-game maps from the data set. Named areas, ziplines and per-map conditions come from community map pages; the full condition list is from the game data. Pendola Pass has no map image or area list in the sources used yet. The interactive-map buttons link to arcraidersmaps.app. Zoomed-in views load the full original images (Buried City 6144 px, Stella Montis 5120 px, Dam 4260 px, the rest about 4000 px). How sharp they look depends on the source: Dam and Spaceport have fine detail but film-grain, Blue Gate is softer, and Riven Tides is the softest; the data set has no sharper versions with area names on them.</p>
@@ -694,8 +864,8 @@ details.dcg summary .n.ok { color: var(--ok); }
 <!-- KEYS -->
 <div class="view" id="v-keys">
   <div class="wrap view-pad">
-    <div class="sec-head"><div><div class="tag-k">Tool 05</div><h2>Keys <em>&amp; keycards</em></h2><p>Every key and keycard: which door it opens, how to get it and what is behind it. Keys with a map pin can be shown on the map.</p></div></div>
-    <div class="searchbar"><input id="kq" type="search" placeholder="Search keys: hotel, tower, hospital…" autocomplete="off" aria-label="Search keys"></div>
+    <div class="sec-head"><div><div class="tag-k">Tool 05</div><h2 data-i18n-html="Keys &lt;em&gt;&amp; keycards&lt;/em&gt;">Keys <em>&amp; keycards</em></h2><p data-i18n="Every key and keycard: which door it opens, how to get it and what is behind it. Keys with a map pin can be shown on the map.">Every key and keycard: which door it opens, how to get it and what is behind it. Keys with a map pin can be shown on the map.</p></div></div>
+    <div class="searchbar"><input id="kq" type="search" placeholder="Search keys: hotel, tower, hospital…" data-i18n-ph="Search keys: hotel, tower, hospital…" autocomplete="off" aria-label="Search keys"></div>
     <div class="chips" id="kChips"></div>
     <p class="countline" id="kCount"></p>
     <div class="kgrid" id="kList"></div>
@@ -706,24 +876,24 @@ details.dcg summary .n.ok { color: var(--ok); }
 <div class="view" id="v-list">
   <div class="wrap view-pad">
     <div class="maphead">
-      <div><div class="tag-k">Tool 06</div><h2>Shopping list</h2></div>
-      <button class="btn orb" id="shopClear" type="button">Clear list</button>
+      <div><div class="tag-k">Tool 06</div><h2 data-i18n="Shopping list">Shopping list</h2></div>
+      <button class="btn orb" id="shopClear" type="button" data-i18n="Clear list">Clear list</button>
     </div>
     <div class="shopgrid">
       <div>
         <div id="shopGroups"></div>
-        <section class="panel sadd"><h4>Add an item</h4><p class="dim" style="margin:0 0 4px;font-size:.84rem">Add the item itself, or the materials needed to craft it.</p><input id="sq" type="search" placeholder="Search items: Shield Recharger, Wires…" autocomplete="off" aria-label="Search items to add"><div class="res" id="sres"></div></section>
+        <section class="panel sadd"><h4 data-i18n="Add an item">Add an item</h4><p class="dim" style="margin:0 0 4px;font-size:.84rem" data-i18n="Add the item itself, or the materials needed to craft it.">Add the item itself, or the materials needed to craft it.</p><input id="sq" type="search" placeholder="Search items: Shield Recharger, Wires…" data-i18n-ph="Search items: Shield Recharger, Wires…" autocomplete="off" aria-label="Search items to add"><div class="res" id="sres"></div></section>
       </div>
       <aside class="panel exp">
-        <h3>Export</h3>
+        <h3 data-i18n="Export">Export</h3>
         <div class="seg" role="group" id="sfmt"></div>
         <div class="opts">
-          <label><input type="checkbox" id="sComb"> Combine everything into one list</label>
-          <label><input type="checkbox" id="sGot"> Include items I've already got</label>
+          <label><input type="checkbox" id="sComb"> <span data-i18n="Combine everything into one list">Combine everything into one list</span></label>
+          <label><input type="checkbox" id="sGot"> <span data-i18n="Include items I've already got">Include items I've already got</span></label>
         </div>
         <textarea id="sOut" readonly aria-label="Export preview"></textarea>
         <p class="hint2" id="sHint"></p>
-        <button class="btn go orb" id="sCopy" type="button">Copy to clipboard</button>
+        <button class="btn go orb" id="sCopy" type="button" data-i18n="Copy to clipboard">Copy to clipboard</button>
       </aside>
     </div>
   </div>
@@ -731,8 +901,14 @@ details.dcg summary .n.ok { color: var(--ok); }
 </main>
 
 <footer class="wrap foot">
-  <span class="fl"><span>Unofficial fan project · not affiliated with Embark Studios</span><a class="dbadge" id="dbadgeF" href="#info" title="When the data was last brought up to date"><i></i><span class="dbt"></span></a></span>
-  <a class="infobtn" href="#info">Info, sources &amp; legal</a>
+  <div class="dcjoin">
+    <div class="dctxt"><b data-i18n="Raiders, assemble.">Raiders, assemble.</b><span data-i18n="Trade tips, swap loadouts and find a squad in our Discord.">Trade tips, swap loadouts and find a squad in our Discord.</span></div>
+    <a class="dcbtn" href="https://discord.gg/NE3ughZTxn" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.3 4.6A19.7 19.7 0 0 0 15.6 3c-.2.4-.5.9-.6 1.3a18 18 0 0 0-5.9 0A8 8 0 0 0 8.4 3 19.8 19.8 0 0 0 3.7 4.6C1 8.7.3 12.8.6 16.8a19.9 19.9 0 0 0 5.6 2.8c.4-.6.8-1.3 1.1-2a13 13 0 0 1-1.8-.9l.4-.3a14.3 14.3 0 0 0 11.9 0l.4.3c-.6.3-1.2.6-1.8.9.3.7.7 1.4 1.1 2a19.9 19.9 0 0 0 5.6-2.8c.4-4.6-.7-8.6-2.8-12.2zM9.3 14.3c-.9 0-1.6-.9-1.6-1.9s.7-1.9 1.6-1.9 1.6.9 1.6 1.9-.7 1.9-1.6 1.9zm5.4 0c-.9 0-1.6-.9-1.6-1.9s.7-1.9 1.6-1.9 1.6.9 1.6 1.9-.7 1.9-1.6 1.9z"/></svg><span data-i18n="Join the Discord">Join the Discord</span></a>
+  </div>
+  <div class="footrow">
+    <span class="fl"><span data-i18n="Unofficial fan project · not affiliated with Embark Studios">Unofficial fan project · not affiliated with Embark Studios</span><a class="dbadge" id="dbadgeF" href="#info" title="When the data was last brought up to date"><i></i><span class="dbt"></span></a></span>
+    <span class="fl"><a class="infobtn" href="#home" data-goto="faq">FAQ</a><a class="infobtn" href="#info" data-i18n="Info, sources &amp; legal">Info, sources &amp; legal</a><span class="credit"><span data-i18n="Made by">Made by</span> <a href="https://discord.gg/NE3ughZTxn" target="_blank" rel="noopener">Kuro</a> · Discord: kuro_1</span></span>
+  </div>
 </footer>
 
 <script>
@@ -747,7 +923,221 @@ details.dcg summary .n.ok { color: var(--ok); }
   /* ---------- Data ---------- */
   var ITEMS = DB.items, STATIONS = DB.stations, GUIDE = DB.guide;
   var IDX = {}; ITEMS.forEach(function (i) { IDX[i.id] = i; });
+  /* ---------- Language ---------- */
+  var I18N = {
+    pt: {
+      "Home": "Início", "Workshop": "Oficina", "Weapons": "Armas", "Items": "Itens", "Maps": "Mapas", "Keys": "Chaves", "Shopping list": "Lista de compras",
+      "Unofficial fan tools · Speranza": "Ferramentas de fã não oficiais · Speranza",
+      "Plan every Workshop and Outpost upgrade, price out a weapon with its attachments, look up any item or key, and build a shopping list before you deploy topside.": "Planeie cada melhoria da Oficina e do Posto Avançado, calcule o custo de uma arma com os seus acessórios, pesquise qualquer item ou chave e monte uma lista de compras antes de ir para a superfície.",
+      "Plan my Workshop": "Planear a minha Oficina", "Search an item": "Pesquisar um item", "Join the community": "Entrar na comunidade",
+      "items": "itens", "upgrade stations": "estações de melhoria", "weapons": "armas", "maps": "mapas",
+      "Raiders, assemble.": "Raiders, reúnam-se.",
+      "Trade tips, swap loadouts and find a squad in our Discord.": "Troque dicas, partilhe configurações de armas e encontre um esquadrão no nosso Discord.",
+      "Join the Discord": "Entrar no Discord",
+      "Unofficial fan project · not affiliated with Embark Studios": "Projeto de fã não oficial · sem afiliação com a Embark Studios",
+      "Info, sources & legal": "Informações, fontes e termos legais", "Made by": "Criado por",
+      "Workshop planner": "Planeador da Oficina",
+      "Set your station levels and get a grouped shopping list for the Workshop, Outpost and Research Station.": "Define os níveis das tuas estações e obtém uma lista de compras agrupada para a Oficina, o Posto Avançado e a Estação de Investigação.",
+      "Weapon calculator": "Calculadora de armas",
+      "Pick a gun, its tier and attachments, and see every material and blueprint you need.": "Escolhe uma arma, o seu nível e os acessórios, e vê todos os materiais e plantas que precisas.",
+      "Item finder": "Pesquisa de itens",
+      "Value, rarity, vendors, recycling, recipes and where to find every item.": "Valor, raridade, vendedores, reciclagem, receitas e onde encontrar cada item.",
+      "Map intel": "Informações dos mapas",
+      "Zoomable maps with named areas, conditions and the items found there.": "Mapas com zoom, com áreas identificadas, condições e os itens que se encontram lá.",
+      "Keys & keycards": "Chaves e cartões-chave",
+      "Every key: which door it opens, how to get it, and a pin on the map where known.": "Cada chave: que porta abre, como a obter e um marcador no mapa quando conhecido.",
+      "Everything you add from the other tools in one list, ready to export for Discord, Steam or plain text.": "Tudo o que adicionares nas outras ferramentas numa só lista, pronta a exportar para Discord, Steam ou texto simples.",
+      "Open →": "Abrir →",
+      "Tell it where each station is now and where you want it. Costs of every tier in between are added up, grouped by station, with a full list beside them.": "Indica onde está cada estação agora e onde a queres levar. Os custos de todos os níveis intermédios são somados, agrupados por estação, com uma lista completa ao lado.",
+      "Search weapons…": "Pesquisar armas…",
+      "Search every item for its value, rarity, vendors, recycling, recipes and where to find it.": "Pesquisa qualquer item para ver o seu valor, raridade, vendedores, reciclagem, receitas e onde o encontrar.",
+      "Search: Duck, Toaster, Motor, Snap Hook…": "Pesquisar: Duck, Toaster, Motor, Snap Hook…",
+      "Type": "Tipo", "Sort": "Ordenar", "Best match": "Melhor correspondência", "Value, high to low": "Valor, do maior para o menor", "Value, low to high": "Valor, do menor para o maior", "Rarity": "Raridade", "Name A–Z": "Nome A–Z", "Show more": "Mostrar mais",
+      "Where the data comes from, how fresh it is, and what is still missing.": "De onde vêm os dados, quão recentes são e o que ainda falta.",
+      "Legal": "Termos legais", "Data sources": "Fontes de dados", "Notes per tool": "Notas por ferramenta",
+      "Every key and keycard: which door it opens, how to get it and what is behind it. Keys with a map pin can be shown on the map.": "Cada chave e cartão-chave: que porta abre, como a obter e o que há do outro lado. As chaves com marcador podem ser mostradas no mapa.",
+      "Search keys: hotel, tower, hospital…": "Pesquisar chaves: hotel, torre, hospital…",
+      "Clear list": "Limpar lista", "Add an item": "Adicionar um item",
+      "Add the item itself, or the materials needed to craft it.": "Adiciona o próprio item, ou os materiais necessários para o fabricar.",
+      "Search items: Shield Recharger, Wires…": "Pesquisar itens: Shield Recharger, Wires…",
+      "Export": "Exportar", "Combine everything into one list": "Combinar tudo numa só lista", "Include items I've already got": "Incluir itens que já tenho", "Copy to clipboard": "Copiar",
+      "Admin password": "Palavra-passe de administrador", "Unlock": "Desbloquear", "Lock admin tools": "Bloquear ferramentas de admin", "Incorrect password.": "Palavra-passe incorreta.",
+      "Admin-only tools for reviewing data gaps. Enter the password to open this panel.": "Ferramentas exclusivas para administradores, para rever lacunas nos dados. Introduz a palavra-passe para abrir este painel.",
+      "Workshop <em>planner</em>": "Planeador da <em>Oficina</em>", "Item <em>finder</em>": "Pesquisa de <em>itens</em>", "Keys <em>& keycards</em>": "Chaves <em>e cartões-chave</em>", "Info, sources <em>& legal</em>": "Informações, fontes <em>e legal</em>"
+    },
+    es: {
+      "Home": "Inicio", "Workshop": "Taller", "Weapons": "Armas", "Items": "Objetos", "Maps": "Mapas", "Keys": "Llaves", "Shopping list": "Lista de la compra",
+      "Unofficial fan tools · Speranza": "Herramientas de fans no oficiales · Speranza",
+      "Plan every Workshop and Outpost upgrade, price out a weapon with its attachments, look up any item or key, and build a shopping list before you deploy topside.": "Planifica cada mejora del Taller y del Puesto Avanzado, calcula el coste de un arma con sus accesorios, busca cualquier objeto o llave y crea una lista de la compra antes de salir a la superficie.",
+      "Plan my Workshop": "Planificar mi Taller", "Search an item": "Buscar un objeto", "Join the community": "Unirse a la comunidad",
+      "items": "objetos", "upgrade stations": "estaciones de mejora", "weapons": "armas", "maps": "mapas",
+      "Raiders, assemble.": "Raiders, reuníos.",
+      "Trade tips, swap loadouts and find a squad in our Discord.": "Comparte consejos, intercambia configuraciones de armas y encuentra un escuadrón en nuestro Discord.",
+      "Join the Discord": "Unirse al Discord",
+      "Unofficial fan project · not affiliated with Embark Studios": "Proyecto de fans no oficial · sin afiliación con Embark Studios",
+      "Info, sources & legal": "Información, fuentes y legal", "Made by": "Creado por",
+      "Workshop planner": "Planificador de Taller",
+      "Set your station levels and get a grouped shopping list for the Workshop, Outpost and Research Station.": "Indica los niveles de tus estaciones y obtén una lista de la compra agrupada para el Taller, el Puesto Avanzado y la Estación de Investigación.",
+      "Weapon calculator": "Calculadora de armas",
+      "Pick a gun, its tier and attachments, and see every material and blueprint you need.": "Elige un arma, su nivel y sus accesorios, y consulta todos los materiales y planos que necesitas.",
+      "Item finder": "Buscador de objetos",
+      "Value, rarity, vendors, recycling, recipes and where to find every item.": "Valor, rareza, vendedores, reciclaje, recetas y dónde encontrar cada objeto.",
+      "Map intel": "Información de mapas",
+      "Zoomable maps with named areas, conditions and the items found there.": "Mapas con zoom, con zonas identificadas, condiciones y los objetos que se encuentran allí.",
+      "Keys & keycards": "Llaves y tarjetas llave",
+      "Every key: which door it opens, how to get it, and a pin on the map where known.": "Cada llave: qué puerta abre, cómo conseguirla y un marcador en el mapa cuando se conoce.",
+      "Everything you add from the other tools in one list, ready to export for Discord, Steam or plain text.": "Todo lo que añadas desde las demás herramientas en una sola lista, lista para exportar a Discord, Steam o texto simple.",
+      "Open →": "Abrir →",
+      "Tell it where each station is now and where you want it. Costs of every tier in between are added up, grouped by station, with a full list beside them.": "Indica dónde está cada estación ahora y adónde quieres llevarla. Se suman los costes de todos los niveles intermedios, agrupados por estación, con una lista completa al lado.",
+      "Search weapons…": "Buscar armas…",
+      "Search every item for its value, rarity, vendors, recycling, recipes and where to find it.": "Busca cualquier objeto para ver su valor, rareza, vendedores, reciclaje, recetas y dónde encontrarlo.",
+      "Search: Duck, Toaster, Motor, Snap Hook…": "Buscar: Duck, Toaster, Motor, Snap Hook…",
+      "Type": "Tipo", "Sort": "Ordenar", "Best match": "Mejor coincidencia", "Value, high to low": "Valor, de mayor a menor", "Value, low to high": "Valor, de menor a mayor", "Rarity": "Rareza", "Name A–Z": "Nombre A–Z", "Show more": "Mostrar más",
+      "Where the data comes from, how fresh it is, and what is still missing.": "De dónde vienen los datos, qué tan recientes son y qué falta aún.",
+      "Legal": "Legal", "Data sources": "Fuentes de datos", "Notes per tool": "Notas por herramienta",
+      "Every key and keycard: which door it opens, how to get it and what is behind it. Keys with a map pin can be shown on the map.": "Cada llave y tarjeta llave: qué puerta abre, cómo conseguirla y qué hay detrás. Las llaves con marcador se pueden mostrar en el mapa.",
+      "Search keys: hotel, tower, hospital…": "Buscar llaves: hotel, torre, hospital…",
+      "Clear list": "Vaciar lista", "Add an item": "Añadir un objeto",
+      "Add the item itself, or the materials needed to craft it.": "Añade el objeto en sí, o los materiales necesarios para fabricarlo.",
+      "Search items: Shield Recharger, Wires…": "Buscar objetos: Shield Recharger, Wires…",
+      "Export": "Exportar", "Combine everything into one list": "Combinar todo en una sola lista", "Include items I've already got": "Incluir objetos que ya tengo", "Copy to clipboard": "Copiar",
+      "Admin password": "Contraseña de administrador", "Unlock": "Desbloquear", "Lock admin tools": "Bloquear herramientas de admin", "Incorrect password.": "Contraseña incorrecta.",
+      "Admin-only tools for reviewing data gaps. Enter the password to open this panel.": "Herramientas solo para administradores, para revisar lagunas en los datos. Introduce la contraseña para abrir este panel.",
+      "Workshop <em>planner</em>": "Planificador del <em>Taller</em>", "Item <em>finder</em>": "Buscador de <em>objetos</em>", "Keys <em>& keycards</em>": "Llaves <em>y tarjetas llave</em>", "Info, sources <em>& legal</em>": "Información, fuentes <em>y legal</em>"
+    },
+    fr: {
+      "Home": "Accueil", "Workshop": "Atelier", "Weapons": "Armes", "Items": "Objets", "Maps": "Cartes", "Keys": "Clés", "Shopping list": "Liste de courses",
+      "Unofficial fan tools · Speranza": "Outils de fans non officiels · Speranza",
+      "Plan every Workshop and Outpost upgrade, price out a weapon with its attachments, look up any item or key, and build a shopping list before you deploy topside.": "Planifiez chaque amélioration de l'Atelier et de l'Avant-poste, calculez le coût d'une arme avec ses accessoires, recherchez n'importe quel objet ou clé, et préparez une liste de courses avant de partir en surface.",
+      "Plan my Workshop": "Planifier mon atelier", "Search an item": "Rechercher un objet", "Join the community": "Rejoindre la communauté",
+      "items": "objets", "upgrade stations": "stations d'amélioration", "weapons": "armes", "maps": "cartes",
+      "Raiders, assemble.": "Raiders, rassemblement.",
+      "Trade tips, swap loadouts and find a squad in our Discord.": "Échangez des astuces, partagez vos configurations d'armes et trouvez une escouade sur notre Discord.",
+      "Join the Discord": "Rejoindre le Discord",
+      "Unofficial fan project · not affiliated with Embark Studios": "Projet de fan non officiel · sans lien avec Embark Studios",
+      "Info, sources & legal": "Infos, sources et mentions légales", "Made by": "Créé par",
+      "Workshop planner": "Planificateur d'Atelier",
+      "Set your station levels and get a grouped shopping list for the Workshop, Outpost and Research Station.": "Indiquez le niveau de vos stations et obtenez une liste de courses groupée pour l'Atelier, l'Avant-poste et la Station de recherche.",
+      "Weapon calculator": "Calculateur d'armes",
+      "Pick a gun, its tier and attachments, and see every material and blueprint you need.": "Choisissez une arme, son palier et ses accessoires, et consultez tous les matériaux et plans nécessaires.",
+      "Item finder": "Recherche d'objets",
+      "Value, rarity, vendors, recycling, recipes and where to find every item.": "Valeur, rareté, marchands, recyclage, recettes et où trouver chaque objet.",
+      "Map intel": "Infos cartes",
+      "Zoomable maps with named areas, conditions and the items found there.": "Cartes zoomables avec zones nommées, conditions et objets qu'on y trouve.",
+      "Keys & keycards": "Clés et cartes-clés",
+      "Every key: which door it opens, how to get it, and a pin on the map where known.": "Chaque clé : quelle porte elle ouvre, comment l'obtenir, et un repère sur la carte si connu.",
+      "Everything you add from the other tools in one list, ready to export for Discord, Steam or plain text.": "Tout ce que vous ajoutez depuis les autres outils dans une seule liste, prête à exporter pour Discord, Steam ou en texte brut.",
+      "Open →": "Ouvrir →",
+      "Tell it where each station is now and where you want it. Costs of every tier in between are added up, grouped by station, with a full list beside them.": "Indiquez où se trouve chaque station actuellement et où vous voulez l'amener. Les coûts de tous les paliers intermédiaires sont additionnés, groupés par station, avec une liste complète à côté.",
+      "Search weapons…": "Rechercher des armes…",
+      "Search every item for its value, rarity, vendors, recycling, recipes and where to find it.": "Recherchez n'importe quel objet pour connaître sa valeur, sa rareté, ses marchands, son recyclage, ses recettes et où le trouver.",
+      "Search: Duck, Toaster, Motor, Snap Hook…": "Rechercher : Duck, Toaster, Motor, Snap Hook…",
+      "Type": "Type", "Sort": "Trier", "Best match": "Meilleure correspondance", "Value, high to low": "Valeur, décroissante", "Value, low to high": "Valeur, croissante", "Rarity": "Rareté", "Name A–Z": "Nom A–Z", "Show more": "Afficher plus",
+      "Where the data comes from, how fresh it is, and what is still missing.": "D'où viennent les données, leur fraîcheur, et ce qui manque encore.",
+      "Legal": "Mentions légales", "Data sources": "Sources des données", "Notes per tool": "Notes par outil",
+      "Every key and keycard: which door it opens, how to get it and what is behind it. Keys with a map pin can be shown on the map.": "Chaque clé et carte-clé : quelle porte elle ouvre, comment l'obtenir et ce qui se trouve derrière. Les clés avec un repère peuvent être affichées sur la carte.",
+      "Search keys: hotel, tower, hospital…": "Rechercher des clés : hôtel, tour, hôpital…",
+      "Clear list": "Vider la liste", "Add an item": "Ajouter un objet",
+      "Add the item itself, or the materials needed to craft it.": "Ajoutez l'objet lui-même, ou les matériaux nécessaires pour le fabriquer.",
+      "Search items: Shield Recharger, Wires…": "Rechercher des objets : Shield Recharger, Wires…",
+      "Export": "Exporter", "Combine everything into one list": "Tout combiner en une seule liste", "Include items I've already got": "Inclure les objets que j'ai déjà", "Copy to clipboard": "Copier",
+      "Admin password": "Mot de passe admin", "Unlock": "Déverrouiller", "Lock admin tools": "Verrouiller les outils admin", "Incorrect password.": "Mot de passe incorrect.",
+      "Admin-only tools for reviewing data gaps. Enter the password to open this panel.": "Outils réservés aux administrateurs pour revoir les lacunes des données. Entrez le mot de passe pour ouvrir ce panneau.",
+      "Workshop <em>planner</em>": "Planificateur d'<em>Atelier</em>", "Item <em>finder</em>": "Recherche d'<em>objets</em>", "Keys <em>& keycards</em>": "Clés <em>et cartes-clés</em>", "Info, sources <em>& legal</em>": "Infos, sources <em>et mentions légales</em>"
+    },
+    de: {
+      "Home": "Start", "Workshop": "Werkstatt", "Weapons": "Waffen", "Items": "Gegenstände", "Maps": "Karten", "Keys": "Schlüssel", "Shopping list": "Einkaufsliste",
+      "Unofficial fan tools · Speranza": "Inoffizielle Fan-Tools · Speranza",
+      "Plan every Workshop and Outpost upgrade, price out a weapon with its attachments, look up any item or key, and build a shopping list before you deploy topside.": "Plane jedes Werkstatt- und Außenposten-Upgrade, berechne die Kosten einer Waffe mit ihren Anbauteilen, suche nach jedem Gegenstand oder Schlüssel und erstelle eine Einkaufsliste, bevor du an die Oberfläche gehst.",
+      "Plan my Workshop": "Meine Werkstatt planen", "Search an item": "Gegenstand suchen", "Join the community": "Community beitreten",
+      "items": "Gegenstände", "upgrade stations": "Ausbaustationen", "weapons": "Waffen", "maps": "Karten",
+      "Raiders, assemble.": "Raiders, versammelt euch.",
+      "Trade tips, swap loadouts and find a squad in our Discord.": "Tauscht Tipps aus, teilt Waffen-Setups und findet ein Team in unserem Discord.",
+      "Join the Discord": "Discord beitreten",
+      "Unofficial fan project · not affiliated with Embark Studios": "Inoffizielles Fanprojekt · nicht mit Embark Studios verbunden",
+      "Info, sources & legal": "Infos, Quellen & Rechtliches", "Made by": "Erstellt von",
+      "Workshop planner": "Werkstatt-Planer",
+      "Set your station levels and get a grouped shopping list for the Workshop, Outpost and Research Station.": "Gib deine Stationsstufen ein und erhalte eine gruppierte Einkaufsliste für Werkstatt, Außenposten und Forschungsstation.",
+      "Weapon calculator": "Waffenrechner",
+      "Pick a gun, its tier and attachments, and see every material and blueprint you need.": "Wähle eine Waffe, ihre Stufe und Anbauteile und sieh alle benötigten Materialien und Baupläne.",
+      "Item finder": "Gegenstandssuche",
+      "Value, rarity, vendors, recycling, recipes and where to find every item.": "Wert, Seltenheit, Händler, Recycling, Rezepte und wo du jeden Gegenstand findest.",
+      "Map intel": "Karteninfos",
+      "Zoomable maps with named areas, conditions and the items found there.": "Zoombare Karten mit benannten Gebieten, Bedingungen und den dort auffindbaren Gegenständen.",
+      "Keys & keycards": "Schlüssel & Schlüsselkarten",
+      "Every key: which door it opens, how to get it, and a pin on the map where known.": "Jeder Schlüssel: welche Tür er öffnet, wie man ihn bekommt, und eine Markierung auf der Karte, wenn bekannt.",
+      "Everything you add from the other tools in one list, ready to export for Discord, Steam or plain text.": "Alles, was du in den anderen Tools hinzufügst, in einer Liste, bereit zum Export für Discord, Steam oder als reinen Text.",
+      "Open →": "Öffnen →",
+      "Tell it where each station is now and where you want it. Costs of every tier in between are added up, grouped by station, with a full list beside them.": "Gib an, wo jede Station jetzt steht und wohin du sie bringen willst. Die Kosten aller Zwischenstufen werden addiert, nach Station gruppiert, mit einer vollständigen Liste daneben.",
+      "Search weapons…": "Waffen suchen…",
+      "Search every item for its value, rarity, vendors, recycling, recipes and where to find it.": "Suche nach jedem Gegenstand für Wert, Seltenheit, Händler, Recycling, Rezepte und Fundorte.",
+      "Search: Duck, Toaster, Motor, Snap Hook…": "Suchen: Duck, Toaster, Motor, Snap Hook…",
+      "Type": "Typ", "Sort": "Sortieren", "Best match": "Beste Übereinstimmung", "Value, high to low": "Wert, absteigend", "Value, low to high": "Wert, aufsteigend", "Rarity": "Seltenheit", "Name A–Z": "Name A–Z", "Show more": "Mehr anzeigen",
+      "Where the data comes from, how fresh it is, and what is still missing.": "Woher die Daten stammen, wie aktuell sie sind und was noch fehlt.",
+      "Legal": "Rechtliches", "Data sources": "Datenquellen", "Notes per tool": "Hinweise je Tool",
+      "Every key and keycard: which door it opens, how to get it and what is behind it. Keys with a map pin can be shown on the map.": "Jeder Schlüssel und jede Schlüsselkarte: welche Tür er öffnet, wie man ihn bekommt und was sich dahinter befindet. Schlüssel mit Kartenmarkierung können auf der Karte angezeigt werden.",
+      "Search keys: hotel, tower, hospital…": "Schlüssel suchen: Hotel, Turm, Krankenhaus…",
+      "Clear list": "Liste leeren", "Add an item": "Gegenstand hinzufügen",
+      "Add the item itself, or the materials needed to craft it.": "Füge den Gegenstand selbst hinzu oder die Materialien, die zum Herstellen nötig sind.",
+      "Search items: Shield Recharger, Wires…": "Gegenstände suchen: Shield Recharger, Wires…",
+      "Export": "Exportieren", "Combine everything into one list": "Alles in einer Liste zusammenfassen", "Include items I've already got": "Bereits vorhandene Gegenstände einschließen", "Copy to clipboard": "In Zwischenablage kopieren",
+      "Admin password": "Admin-Passwort", "Unlock": "Entsperren", "Lock admin tools": "Admin-Tools sperren", "Incorrect password.": "Falsches Passwort.",
+      "Admin-only tools for reviewing data gaps. Enter the password to open this panel.": "Nur für Admins: Werkzeuge zur Überprüfung von Datenlücken. Gib das Passwort ein, um dieses Panel zu öffnen.",
+      "Workshop <em>planner</em>": "Werkstatt-<em>Planer</em>", "Item <em>finder</em>": "Gegenstands<em>suche</em>", "Keys <em>& keycards</em>": "Schlüssel <em>& Schlüsselkarten</em>", "Info, sources <em>& legal</em>": "Infos, Quellen <em>& Rechtliches</em>"
+    },
+    sv: {
+      "Home": "Hem", "Workshop": "Verkstad", "Weapons": "Vapen", "Items": "Föremål", "Maps": "Kartor", "Keys": "Nycklar", "Shopping list": "Inköpslista",
+      "Unofficial fan tools · Speranza": "Inofficiella fanverktyg · Speranza",
+      "Plan every Workshop and Outpost upgrade, price out a weapon with its attachments, look up any item or key, and build a shopping list before you deploy topside.": "Planera varje uppgradering av Verkstaden och Utposten, räkna ut kostnaden för ett vapen med tillbehör, sök upp vilket föremål eller vilken nyckel som helst, och bygg en inköpslista innan du ger dig ut på ytan.",
+      "Plan my Workshop": "Planera min verkstad", "Search an item": "Sök ett föremål", "Join the community": "Gå med i communityt",
+      "items": "föremål", "upgrade stations": "uppgraderingsstationer", "weapons": "vapen", "maps": "kartor",
+      "Raiders, assemble.": "Raiders, samlas.",
+      "Trade tips, swap loadouts and find a squad in our Discord.": "Dela tips, byt vapenuppsättningar och hitta ett lag i vår Discord.",
+      "Join the Discord": "Gå med i Discord",
+      "Unofficial fan project · not affiliated with Embark Studios": "Inofficiellt fanprojekt · inte anknutet till Embark Studios",
+      "Info, sources & legal": "Info, källor & juridik", "Made by": "Skapad av",
+      "Workshop planner": "Verkstadsplanerare",
+      "Set your station levels and get a grouped shopping list for the Workshop, Outpost and Research Station.": "Ange dina stationsnivåer och få en grupperad inköpslista för Verkstaden, Utposten och Forskningsstationen.",
+      "Weapon calculator": "Vapenkalkylator",
+      "Pick a gun, its tier and attachments, and see every material and blueprint you need.": "Välj ett vapen, dess nivå och tillbehör, och se alla material och ritningar du behöver.",
+      "Item finder": "Föremålssökning",
+      "Value, rarity, vendors, recycling, recipes and where to find every item.": "Värde, sällsynthet, handlare, återvinning, recept och var du hittar varje föremål.",
+      "Map intel": "Kartinfo",
+      "Zoomable maps with named areas, conditions and the items found there.": "Zoombara kartor med namngivna områden, förhållanden och föremål som finns där.",
+      "Keys & keycards": "Nycklar & nyckelkort",
+      "Every key: which door it opens, how to get it, and a pin on the map where known.": "Varje nyckel: vilken dörr den öppnar, hur du får den, och en markering på kartan när den är känd.",
+      "Everything you add from the other tools in one list, ready to export for Discord, Steam or plain text.": "Allt du lägger till från de andra verktygen i en enda lista, redo att exportera till Discord, Steam eller vanlig text.",
+      "Open →": "Öppna →",
+      "Tell it where each station is now and where you want it. Costs of every tier in between are added up, grouped by station, with a full list beside them.": "Ange var varje station är nu och var du vill ha den. Kostnaderna för alla mellanliggande nivåer summeras, grupperas per station, med en fullständig lista bredvid.",
+      "Search weapons…": "Sök vapen…",
+      "Search every item for its value, rarity, vendors, recycling, recipes and where to find it.": "Sök upp vilket föremål som helst för dess värde, sällsynthet, handlare, återvinning, recept och var du hittar det.",
+      "Search: Duck, Toaster, Motor, Snap Hook…": "Sök: Duck, Toaster, Motor, Snap Hook…",
+      "Type": "Typ", "Sort": "Sortera", "Best match": "Bästa träff", "Value, high to low": "Värde, högt till lågt", "Value, low to high": "Värde, lågt till högt", "Rarity": "Sällsynthet", "Name A–Z": "Namn A–Ö", "Show more": "Visa fler",
+      "Where the data comes from, how fresh it is, and what is still missing.": "Var datan kommer ifrån, hur färsk den är och vad som fortfarande saknas.",
+      "Legal": "Juridik", "Data sources": "Datakällor", "Notes per tool": "Anteckningar per verktyg",
+      "Every key and keycard: which door it opens, how to get it and what is behind it. Keys with a map pin can be shown on the map.": "Varje nyckel och nyckelkort: vilken dörr den öppnar, hur du får den och vad som finns bakom den. Nycklar med en markering kan visas på kartan.",
+      "Search keys: hotel, tower, hospital…": "Sök nycklar: hotell, torn, sjukhus…",
+      "Clear list": "Rensa lista", "Add an item": "Lägg till ett föremål",
+      "Add the item itself, or the materials needed to craft it.": "Lägg till själva föremålet, eller materialen som behövs för att tillverka det.",
+      "Search items: Shield Recharger, Wires…": "Sök föremål: Shield Recharger, Wires…",
+      "Export": "Exportera", "Combine everything into one list": "Slå ihop allt till en lista", "Include items I've already got": "Inkludera föremål jag redan har", "Copy to clipboard": "Kopiera",
+      "Admin password": "Adminlösenord", "Unlock": "Lås upp", "Lock admin tools": "Lås adminverktyg", "Incorrect password.": "Fel lösenord.",
+      "Admin-only tools for reviewing data gaps. Enter the password to open this panel.": "Verktyg endast för admin, för att granska luckor i datan. Ange lösenordet för att öppna panelen.",
+      "Workshop <em>planner</em>": "Verkstads<em>planerare</em>", "Item <em>finder</em>": "Föremåls<em>sökning</em>", "Keys <em>& keycards</em>": "Nycklar <em>& nyckelkort</em>", "Info, sources <em>& legal</em>": "Info, källor <em>& juridik</em>"
+    }
+  };
+  var LANG = store("rt-lang") || "en";
+  function t(s) { var d = I18N[LANG]; return (d && d[s]) || s; }
+  function applyI18nStatic() {
+    document.querySelectorAll("[data-i18n]").forEach(function (el) { el.textContent = t(el.getAttribute("data-i18n")); });
+    document.querySelectorAll("[data-i18n-html]").forEach(function (el) { el.innerHTML = t(el.getAttribute("data-i18n-html")); });
+    document.querySelectorAll("[data-i18n-ph]").forEach(function (el) { el.setAttribute("placeholder", t(el.getAttribute("data-i18n-ph"))); });
+    document.documentElement.lang = LANG;
+    var sel = $("#langSel"); if (sel) sel.value = LANG;
+  }
+
   var DATA_INFO = /*DATAINFO*/;
+  var ADMIN_HASH = /*ADMINHASH*/;
   var FIX = store("rt-fix") || {};
   var ORIG = {};
   function applyFixes() {
@@ -791,8 +1181,40 @@ details.dcg summary .n.ok { color: var(--ok); }
     pois: ["Old Town", "Old Hamlet", "Commissary Supermarket", "Almatera Station", "Railyard", "Controlled Receiving Facility", "Cielo Sereno Observatory", "Deep-Space Telescope", "Northern Tracks"], events: ["Frigate"] };
   var AMAPS = { dam: "dam", buried: "buried-city", space: "spaceport", gate: "blue-gate", stella: "stella-montis", riven: "riven-tides", pendola: "pendola-pass" };
   var MAP_ORDER = ["dam", "buried", "space", "gate", "stella", "riven", "pendola"];
+  /* ---------- Map conditions (estimated from the recorded rotation) ---------- */
+  var EV = DB.ev, EVREG = [["eu", "Europe", 0], ["na", "North America", 7], ["sa", "South America", 6], ["as", "Asia", -5], ["oc", "Oceania", -9]];
+  var evReg = store("rt-evreg") || "eu";
+  function evOff() { var r = EVREG.filter(function (x) { return x[0] === evReg; })[0]; return r ? r[2] : 0; }
+  function evMod(a, n) { return ((a % n) + n) % n; }
+  function evAt(m, h) {
+    var c = EV && EV.m[m]; if (!c) return "";
+    var per = EV.per, parts = (c[evMod(h - evOff(), per)] || "").split(" + ").filter(function (x) { return x && x !== "Redirection"; });
+    if (m === "pendola" && (c[evMod(h, per)] || "").indexOf("Redirection") > -1) parts.push("Redirection");
+    return parts.join(" + ");
+  }
+  function evClock(sec) { sec = Math.max(0, Math.floor(sec)); var m = Math.floor(sec / 60), s = sec % 60; return (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s; }
+  function evState(m, now) {
+    var t0 = Date.parse(EV.t0), h = Math.floor((now - t0) / 3600000), left = (t0 + (h + 1) * 3600000 - now) / 1000;
+    var cur = evAt(m, h), k = 1, nx = "";
+    while (k <= EV.per && !(nx = evAt(m, h + k))) k++;
+    return { cur: cur, left: left, next: nx, inS: left + (k - 1) * 3600 };
+  }
+  function renderEvents() {
+    if (!EV) return;
+    var now = Date.now();
+    Array.prototype.forEach.call(document.querySelectorAll("[data-evm]"), function (el) {
+      var m = el.dataset.evm; if (!EV.m[m]) { el.hidden = true; return; }
+      var s = evState(m, now); el.hidden = !s.cur;
+      if (s.cur) el.innerHTML = esc(s.cur) + " <b>" + evClock(s.left) + "</b>";
+    });
+    var t = $("#mcevt");
+    if (t) { if (!EV.m[curMap]) t.parentNode.hidden = true; else { var s = evState(curMap, now); t.innerHTML = s.next ? '<small>Next</small>' + esc(s.next) + " <b>in " + evClock(s.inS) + "</b>" : '<small>Next</small>No condition coming up'; } }
+  }
+  setInterval(function () { var v = $("#v-maps"); if (v && v.classList.contains("on") && !document.hidden) renderEvents(); }, 1000);
+  document.addEventListener("change", function (e) { if (e.target && e.target.id === "evReg") { evReg = e.target.value; store("rt-evreg", evReg); renderEvents(); } });
+
   var ALL4 = ["dam", "buried", "space", "gate"];
-  function mapTags(keys) {
+  function mapChips(keys) {
     var all = ALL4.every(function (k) { return keys.indexOf(k) > -1; }) && keys.indexOf("pendola") < 0;
     if (all) return '<span class="pill">All main maps</span>';
     return keys.map(function (k) { return '<button type="button" class="chip orb" data-map="' + k + '">' + esc(MAPS[k].name) + "</button>"; }).join("");
@@ -845,6 +1267,11 @@ details.dcg summary .n.ok { color: var(--ok); }
   /* ---------- Routing ---------- */
   var VIEWS = ["home", "workshop", "weapons", "items", "maps", "keys", "list", "info"];
   var started = {};
+  var VIEW_TITLE = { workshop: "Workshop planner", weapons: "Weapon calculator", items: "Item finder", maps: "Map intel", keys: "Keys & keycards", list: "Shopping list", info: "Info, sources & legal" };
+  function setTitle() {
+    var h = (location.hash || "").replace("#", "");
+    document.title = VIEW_TITLE[h] ? t(VIEW_TITLE[h]) + " · Raider Toolkit" : "Raider Toolkit";
+  }
   function route() {
     var h = (location.hash || "").replace("#", "");
     if (VIEWS.indexOf(h) < 0) h = "home";
@@ -856,9 +1283,17 @@ details.dcg summary .n.ok { color: var(--ok); }
     if (h === "weapons") centerWSel();
     if (h === "items") { renderUseChips(); renderItems(false); }
     if (window.__scene) { if (h === "home") window.__scene.start(); else window.__scene.stop(); }
+    setTitle();
     window.scrollTo(0, 0);
   }
   window.addEventListener("hashchange", route);
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest("[data-goto]"); if (!a) return;
+    e.preventDefault();
+    var id = a.dataset.goto;
+    if (location.hash !== "#home") location.hash = "#home";
+    setTimeout(function () { var el = document.getElementById(id); if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.pageYOffset - 80, behavior: "smooth" }); }, 60);
+  });
   /* auto-hide the top bar: hides while scrolling down, comes back when scrolling up or pointing at the top edge */
   (function () {
     var lastY = window.pageYOffset, hidden = false, bar = document.querySelector("header.top");
@@ -891,31 +1326,56 @@ details.dcg summary .n.ok { color: var(--ok); }
     for (var n = 0; n <= max; n++) out += '<button type="button" class="orb" data-k="' + kind + '" data-s="' + sid + '" data-n="' + n + '" aria-pressed="' + (val === n) + '" aria-label="' + esc(kind === "cur" ? "Current level " : "Goal level ") + n + '">' + n + "</button>";
     return '<div class="seg" role="group">' + out + "</div>";
   }
+  function wsF() { if (!ws.f) ws.f = { st: {} }; if (!ws.f.st) ws.f.st = {}; return ws.f; }
+  function wsIn(s) { var f = wsF(); return f.mode === "max" || !!f.st[s.id]; }
+  function wsGoal(s) {
+    var f = wsF(), c = ws.cur[s.id];
+    if (!f.mode) return c;
+    if (f.mode === "max") return s.max;
+    return f.st[s.id] ? Math.max(ws.goal[s.id], c) : c;
+  }
+  function wsReady() { var f = wsF(); return !!(f.mode && (f.mode === "max" || f.p) && f.l && !f.edit); }
   function renderTop() {
-    var el = $("#wsTop");
-    if (ws.collapsed) {
-      el.innerHTML = '<div class="panel minibar"><div class="chips">' + STATIONS.map(function (s) {
-        var c = ws.cur[s.id], g = Math.max(ws.goal[s.id], c);
-        return g > c ? '<button type="button" class="mchip" data-jump="' + s.id + '" title="Jump to ' + esc(sname(s)) + '">' + esc(sname(s)) + " <b>" + c + " → " + g + "</b></button>" : '<span class="mchip off">' + esc(sname(s)) + " <b>" + c + " · done</b></span>";
-      }).join("") + '</div><button type="button" class="btn orb" id="editLv">Edit levels</button></div>';
-      return;
+    var el = $("#wsTop"), f = wsF(), h = "", n = 2;
+    function out(html) { el.innerHTML = '<div class="panel wsflow">' + html + "</div>"; }
+    if (!f.mode || f.edit === "m") {
+      out(h + stepOpen(1, "What do you want to plan?", '<div class="wch"><button type="button" class="wopt' + (f.mode === "max" ? " on" : "") + '" data-wsm="max"><b>Everything to max</b><small>Every station up to its highest level</small></button><button type="button" class="wopt' + (f.mode === "pick" ? " on" : "") + '" data-wsm="pick"><b>Choose stations</b><small>Only the stations and levels you pick</small></button></div>'));
+      renderList(); return;
     }
-    el.innerHTML = '<div class="panel setup"><h3>Select your current station levels</h3><p class="sub">Level 0 means the station is not built yet. Goal is the level you want to reach. Everything between the two is added to your list.</p>' +
-      '<div class="srow srow-h" style="border-top:0;padding-top:0"><span class="l">Station</span><span class="l">Current level</span><span class="l">Goal level</span></div>' +
-      STATIONS.map(function (s) {
-        return '<div class="srow"><div class="nm">' + esc(sname(s)) + '</div><div class="grp"><span class="l mlab">Now</span>' + seg(s.id, "cur", s.max, ws.cur[s.id]) + '</div><div class="grp"><span class="l mlab">Goal</span>' + seg(s.id, "goal", s.max, ws.goal[s.id]) + "</div></div>";
-      }).join("") +
-      '<div class="acts"><button type="button" class="btn go orb" id="doneLv">Show my list</button><button type="button" class="btn orb" id="maxLv">Plan everything to max</button><button type="button" class="btn orb" id="rstLv">Reset</button></div></div>';
+    h += stepDone("What to plan", f.mode === "max" ? "Everything to max level" : "Chosen stations", "m");
+    if (f.mode === "pick") {
+      var picked = STATIONS.filter(function (s) { return f.st[s.id]; });
+      if (!f.p || f.edit === "p") {
+        out(h + stepOpen(2, "Which stations?", '<div class="wch">' + STATIONS.map(function (s) { return '<button type="button" class="wopt' + (f.st[s.id] ? " on" : "") + '" data-wst="' + s.id + '" aria-pressed="' + !!f.st[s.id] + '"><b>' + esc(sname(s)) + "</b><small>" + (f.st[s.id] ? "Selected" : "Max level " + s.max) + "</small></button>"; }).join("") +
+          '</div><div class="wsnext"><button type="button" class="btn go orb sm" data-wsnext="p"' + (picked.length ? "" : " disabled") + ">Next</button><span>" + picked.length + " selected</span></div>"));
+        renderList(); return;
+      }
+      h += stepDone("Stations", picked.map(function (s) { return esc(sname(s)); }).join(", "), "p");
+      n = 3;
+    }
+    var rows = STATIONS.filter(wsIn);
+    if (!f.l || f.edit === "l") {
+      out(h + stepOpen(n, f.mode === "max" ? "Where are your stations now?" : "Set your levels", '<p class="wshint">' + (f.mode === "max" ? "Pick the level each station is at now. Level 0 means it is not built yet. Everything from there up to max goes on your list." : "Pick where each station is now and the level you want. Everything in between goes on your list.") + "</p>" +
+        '<div class="srow srow-h"><span class="l">Station</span><span class="l">Level now</span><span class="l">' + (f.mode === "pick" ? "Level you want" : "Goal") + "</span></div>" +
+        rows.map(function (s) {
+          return '<div class="srow"><div class="nm">' + esc(sname(s)) + '</div><div class="grp"><span class="l mlab">Now</span>' + seg(s.id, "cur", s.max, ws.cur[s.id]) + '</div><div class="grp"><span class="l mlab">Goal</span>' + (f.mode === "pick" ? seg(s.id, "goal", s.max, wsGoal(s)) : '<span class="wsmax">Level ' + s.max + " (max)</span>") + "</div></div>";
+        }).join("") +
+        '<div class="wsnext"><button type="button" class="btn go orb" data-wsnext="l">Show materials</button><button type="button" class="btn orb sm" id="rstLv">Start over</button></div>'));
+      renderList(); return;
+    }
+    var chips = rows.map(function (s) { var c = ws.cur[s.id], g = wsGoal(s); return g > c ? '<button type="button" class="mchip" data-jump="' + s.id + '" title="Jump to ' + esc(sname(s)) + '">' + esc(sname(s)) + " <b>" + c + " → " + g + "</b></button>" : '<span class="mchip off">' + esc(sname(s)) + " <b>" + c + " · done</b></span>"; }).join("");
+    out(h + stepDone("Levels", '<span class="wschips">' + chips + "</span>", "l"));
+    renderList();
   }
   function outpostWarn() {
     var out = [];
     STATIONS.forEach(function (s) {
       if (!s.req) return;
-      var c = ws.cur[s.id], g = Math.max(ws.goal[s.id], c);
+      var c = ws.cur[s.id], g = wsGoal(s);
       for (var l = c; l < g; l++) {
         var m = s.req[l] && /Outpost level (\d)/.exec(s.req[l]);
         if (!m) continue;
-        var need = +m[1], oc = ws.cur.outpost, og = Math.max(ws.goal.outpost, oc);
+        var need = +m[1], oc = ws.cur.outpost, og = wsGoal(STATIONS.filter(function (x) { return x.id === "outpost"; })[0] || { id: "outpost", max: oc });
         if (og < need) out.push(s.n + " level " + (l + 1) + " needs Outpost level " + need + ", but your Outpost goal is level " + og + ".");
       }
     });
@@ -924,7 +1384,7 @@ details.dcg summary .n.ok { color: var(--ok); }
   function compute() {
     var need = {}, use = {}, groups = [];
     STATIONS.forEach(function (s) {
-      var c = ws.cur[s.id], g = Math.max(ws.goal[s.id], c);
+      var c = ws.cur[s.id], g = wsGoal(s);
       var tiers = [];
       for (var l = c; l < g; l++) {
         var mats = s.lv[l];
@@ -937,6 +1397,7 @@ details.dcg summary .n.ok { color: var(--ok); }
     return { need: need, use: use, groups: groups };
   }
   function renderList() {
+    if (!wsReady()) { $("#wsList").innerHTML = ""; return; }
     var d = compute(), need = d.need;
     var left = d.groups.map(function (gp) {
       var s = gp.s;
@@ -964,7 +1425,7 @@ details.dcg summary .n.ok { color: var(--ok); }
         var have = ws.have[k] || 0, m = Math.max(0, need[k] - have);
         return '<div class="frow" data-id="' + esc(k) + '" style="--rc:' + rcol(IDX[k] && IDX[k].r) + '">' + thumb(k) + '<div class="nm">' + esc(nm(k)) + "<span>×" + need[k] + "</span><small>" + esc(d.use[k].join(" · ")) + '</small></div><input type="number" min="0" inputmode="numeric" value="' + have + '" data-have="' + esc(k) + '" aria-label="' + esc(nm(k)) + ' in stash"><div class="m ' + (m ? "pos" : "zero") + '">' + (m ? m : "✓") + "</div></div>";
       }).join("") : '<div class="frow"><span></span><div class="dim">Nothing to collect. Every goal is already reached.</div></div>') + "</div></aside>";
-    $("#wsList").innerHTML = '<div class="groups">' + (left || '<div class="panel" style="padding:28px;color:var(--dim)">No upgrades planned. Edit your levels to set a goal above your current level.</div>') + "</div>" + right;
+    $("#wsList").innerHTML = '<div class="groups">' + (left || '<div class="panel" style="padding:28px;color:var(--dim)">No upgrades planned. Change your levels to set a goal above where a station is now.</div>') + "</div>" + right;
     renderMath();
     updateSummary();
   }
@@ -989,22 +1450,31 @@ details.dcg summary .n.ok { color: var(--ok); }
   $("#wsTop").addEventListener("click", function (e) {
     var b = e.target.closest("button"); if (!b) return;
     if (b.dataset.jump) { var gEl = document.getElementById("g-" + b.dataset.jump); if (gEl) gEl.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
+    var f = wsF();
+    if (b.dataset.wstep) { f.edit = b.dataset.wstep; saveWs(); renderTop(); return; }
+    if (b.dataset.wsm) { f.mode = b.dataset.wsm; f.edit = null; saveWs(); renderTop(); return; }
+    if (b.dataset.wst) { f.st[b.dataset.wst] = !f.st[b.dataset.wst]; saveWs(); renderTop(); return; }
+    if (b.dataset.wsnext) {
+      f[b.dataset.wsnext] = 1; f.edit = null; saveWs(); renderTop();
+      if (b.dataset.wsnext === "l") wScrollTo($("#wsList"));
+      return;
+    }
     if (b.dataset.k) {
       var sid = b.dataset.s, n = +b.dataset.n;
       if (b.dataset.k === "cur") { ws.cur[sid] = n; if (ws.goal[sid] < n) ws.goal[sid] = n; } else { ws.goal[sid] = Math.max(n, ws.cur[sid]); }
-      saveWs(); renderTop(); renderList(); return;
+      saveWs(); renderTop(); return;
     }
     if (b.id === "doneLv") { ws.collapsed = true; saveWs(); renderTop(); }
     else if (b.id === "editLv") { ws.collapsed = false; saveWs(); renderTop(); }
     else if (b.id === "maxLv") { STATIONS.forEach(function (s) { ws.goal[s.id] = s.max; }); saveWs(); renderTop(); renderList(); }
-    else if (b.id === "rstLv") { STATIONS.forEach(function (s) { ws.cur[s.id] = 0; ws.goal[s.id] = s.id === "scrappy" ? 0 : s.max; }); saveWs(); renderTop(); renderList(); }
+    else if (b.id === "rstLv") { STATIONS.forEach(function (s) { ws.cur[s.id] = 0; ws.goal[s.id] = s.max; }); ws.f = { st: {} }; saveWs(); renderTop(); }
   });
   function shoppingText() {
     var need = compute().need, lines = [];
     Object.keys(need).sort(function (a, b) { return need[b] - need[a] || nm(a).localeCompare(nm(b)); }).forEach(function (k) {
       var m = need[k] - (ws.have[k] || 0); if (m > 0) lines.push("- " + m + "x " + nm(k));
     });
-    var plan = STATIONS.filter(function (s) { return Math.max(ws.goal[s.id], ws.cur[s.id]) > ws.cur[s.id]; }).map(function (s) { return s.n + " " + ws.cur[s.id] + "->" + Math.max(ws.goal[s.id], ws.cur[s.id]); });
+    var plan = STATIONS.filter(function (s) { return wsGoal(s) > ws.cur[s.id]; }).map(function (s) { return s.n + " " + ws.cur[s.id] + "->" + wsGoal(s); });
     return "ARC Raiders shopping list (Raider Toolkit)\n" + (plan.length ? "Plan: " + plan.join(", ") + "\n" : "") + (lines.length ? lines.join("\n") : "Nothing left to collect.");
   }
   function copyText(txt, btn) {
@@ -1023,7 +1493,7 @@ details.dcg summary .n.ok { color: var(--ok); }
     if (e.target.closest("#addWs")) {
       var need = compute().need, items = {};
       Object.keys(need).forEach(function (k) { var m = need[k] - (ws.have[k] || 0); if (m > 0) items[k] = m; });
-      var plan = STATIONS.filter(function (s) { return Math.max(ws.goal[s.id], ws.cur[s.id]) > ws.cur[s.id]; }).length;
+      var plan = STATIONS.filter(function (s) { return wsGoal(s) > ws.cur[s.id]; }).length;
       shopSet("ws", "Workshop plan (" + plan + " station" + (plan === 1 ? "" : "s") + ", stash taken off)", items);
     }
   });
@@ -1092,7 +1562,7 @@ details.dcg summary .n.ok { color: var(--ok); }
     if (i.nd && !i.mine) kv += "<dt>Data</dt><dd>Added in update 2.x. Value and rarity are not in the data set yet, so none is shown.</dd>";
     if (i.mine) kv += '<dt>Your fix</dt><dd>Value or rarity set by you on this device' + (i.myNote ? ": " + esc(i.myNote) : "") + '. <a href="#info" style="color:var(--mint)">Data check</a></dd>';
     var guide = g
-      ? '<div class="guide"><b>Where to find it</b>' + esc(g.w) + '<div class="row" style="margin-top:8px">' + mapTags(g.m) + "</div></div>"
+      ? '<div class="guide"><b>Where to find it</b>' + esc(g.w) + '<div class="row" style="margin-top:8px">' + mapChips(g.m) + "</div></div>"
       : '<div class="guide"><b>Where to find it</b><span class="dim">No confirmed spawn spot in the guides used here.' + (i.f ? " The game data only lists the loot category above." : "") + "</span></div>";
     return '<article class="panel item" style="--rc:' + rcol(i.r) + '">' + tile(i) +
       '<div class="info"><h3>' + esc(i.n) + '</h3><div class="row"><span class="pill">' + esc(i.t) + '</span><span class="pill r">' + esc(i.r || "Rarity not published") + "</span></div>" +
@@ -1137,8 +1607,9 @@ details.dcg summary .n.ok { color: var(--ok); }
   var curMap = "buried";
   function renderMapList() {
     $("#maplist").innerHTML = MAP_ORDER.map(function (k) {
-      return '<button type="button" data-mapsel="' + k + '" aria-pressed="' + (curMap === k) + '">' + esc(MAPS[k].name) + (mapWip(k).length ? '<span class="wip">WIP</span>' : "") + "</button>";
+      return '<button type="button" data-mapsel="' + k + '" aria-pressed="' + (curMap === k) + '">' + esc(MAPS[k].name) + (mapWip(k).length ? '<span class="wip">WIP</span>' : "") + '<small class="mlev" data-evm="' + k + '" hidden></small></button>';
     }).join("");
+    renderEvents();
     var ml = $("#maplist"), sel = ml.querySelector('[aria-pressed="true"]');
     if (sel && ml.scrollWidth > ml.clientWidth) ml.scrollLeft = Math.max(0, sel.offsetLeft - 12);
   }
@@ -1188,6 +1659,7 @@ details.dcg summary .n.ok { color: var(--ok); }
     var m = MAPS[curMap];
     var mk = KEYS.filter(function (k) { return k.m === curMap; });
     $("#mapstage").innerHTML = mapViewHtml();
+    renderEvents();
     $("#mapdetail").innerHTML =
       '<div class="mi-top"><p class="blurb">' + esc(m.blurb) + '</p><div class="facts"><div><b>' + (m.zip || "n/a") + '</b><span class="l">Ziplines</span></div><div><b>' + m.pois.length + '</b><span class="l">Named areas</span></div><div><b>' + mk.length + '</b><span class="l">Keys</span></div></div></div>' +
       '<div class="tagbox"><div class="tagbar"><h4>On this map</h4><div class="chips" id="mtk"></div><div class="tq"><input id="mtq" type="search" placeholder="Filter: hospital, duck, night raid…" value="' + esc(mTagQ) + '" aria-label="Filter this map\'s tags"><button type="button" id="mtclear" class="x" hidden>Clear</button></div></div><div class="mtags" id="mtags"></div><p class="mtn">Hover a tag for details. Areas and conditions filter the list; items open in the item finder; keys jump to their pin.</p></div>';
@@ -1281,12 +1753,12 @@ details.dcg summary .n.ok { color: var(--ok); }
     var m = MAPS[curMap], d = MAPIMG[mapImgKey()];
     var pins = d ? keysOnImg(mapImgKey()) : [];
     var wipw = mapWip(curMap);
-    var card = '<div class="mcard"><div class="tag-k">' + esc(m.unlock) + (wipw.length ? ' <span class="wip">WIP</span>' : "") + "</div><h3>" + esc(m.name) + "</h3>" + (wipw.length ? '<p class="wipn">Work in progress: ' + esc(wipw.join(", ")) + ".</p>" : "") +
+    var card = '<div class="mcard"><div class="tag-k">' + esc(m.unlock) + (wipw.length ? ' <span class="wip">WIP</span>' : "") + "</div><h3>" + esc(m.name) + "</h3>" + (EV && EV.m[curMap] ? '<div class="mcev" title="Estimated from the recorded rotation, can be off"><span id="mcevt"></span><select id="evReg" aria-label="Server region">' + EVREG.map(function (r) { return '<option value="' + r[0] + '"' + (r[0] === evReg ? " selected" : "") + ">" + r[1] + "</option>"; }).join("") + "</select></div>" : "") + (wipw.length ? '<p class="wipn">Work in progress: ' + esc(wipw.join(", ")) + ".</p>" : "") +
       ((curMap === "stella" || pins.length) ? '<div class="mbtns">' + (curMap === "stella" ? '<button type="button" data-layer="u" aria-pressed="' + (MV.layer === "u") + '">Upper</button><button type="button" data-layer="l" aria-pressed="' + (MV.layer === "l") + '">Lower</button>' : "") +
       (pins.length ? '<button type="button" class="mtog" data-ktog="1" aria-pressed="' + MV.keys + '">🔑 Key rooms (' + pins.length + ")</button>" : "") + "</div>" : "") + "</div>";
     var open = '<a class="mopen" href="https://arcraidersmaps.app/' + AMAPS[curMap] + '" target="_blank" rel="noopener">Interactive map ↗</a>';
     if (!d) return '<div class="mview">' + card + '<div class="mnone">No map image is available for ' + esc(m.name) + " yet.</div>" + open + "</div>";
-    return '<div class="mview" id="mview"><div class="mi"><img alt="In-game map of ' + esc(m.name) + '" src="' + d.u + '" draggable="false"><div class="tl" id="tl"></div><div class="pins">' + (MV.keys ? pins.map(function (k) { return pinHtml(k, d); }).join("") : "") + "</div></div>" +
+    return '<div class="mview" id="mview"><div class="mi"><img alt="In-game map of ' + esc(m.name) + '" src="' + d.u + '" draggable="false"><div class="tl" id="tl"></div><div class="pins">' + (MV.keys ? pinGroups(pins, mapImgKey()).map(function (g) { return pinHtml(g, d); }).join("") : "") + "</div></div>" +
       card + '<div class="mctl"><button type="button" class="orb" data-mz="1.5" aria-label="Zoom in">+</button><button type="button" class="orb" data-mz="0.67" aria-label="Zoom out">−</button><button type="button" class="orb" data-mz="0" aria-label="Reset view">⟲</button></div><span class="hd" id="hdb" title="Lights up when full-resolution map tiles are showing">HD</span><div class="mhint">Scroll to zoom · drag to pan</div>' + open + "</div>";
   }
   function mvInit() {
@@ -1330,18 +1802,35 @@ details.dcg summary .n.ok { color: var(--ok); }
   var KEYS = DB.keys || [], KIDX = {}; KEYS.forEach(function (k) { KIDX[k.id] = k; });
   var KMAP = { dam: "Dam Battlegrounds", space: "The Spaceport", buried: "Buried City", gate: "The Blue Gate", stella: "Stella Montis", riven: "Riven Tides", pendola: "Pendola Pass", any: "Any map" };
   var KORDER = ["dam", "buried", "space", "gate", "stella", "riven", "pendola", "any"];
-  function keysOnImg(img) { return KEYS.filter(function (k) { return k.pin && k.pin[0] === img; }); }
-  function pinHtml(k, d) {
-    var it = IDX[k.id], c = rcol(it && it.r);
-    return '<button type="button" class="kpin' + (MV.focus === k.id ? " focus" : "") + '" data-kpin="' + k.id + '" style="left:' + (k.pin[1] / d.w * 100) + "%;top:" + (k.pin[2] / d.h * 100) + '%" aria-label="' + esc(nm(k.id)) + '">' +
+  function keyPins(k) { return k.pin ? [k.pin].concat(k.xp || []) : []; }
+  function keysOnImg(img) { return KEYS.filter(function (k) { return keyPins(k).some(function (p) { return p[0] === img; }); }); }
+  function pinGroups(pins, img) {
+    var gs = [];
+    pins.forEach(function (k) {
+      keyPins(k).filter(function (p) { return p[0] === img; }).forEach(function (p) {
+        var g = gs.filter(function (x) { return Math.abs(x.x - p[1]) < 18 && Math.abs(x.y - p[2]) < 18; })[0];
+        if (g) { if (g.ks.indexOf(k) < 0) g.ks.push(k); } else gs.push({ x: p[1], y: p[2], ks: [k] });
+      });
+    });
+    return gs;
+  }
+  function pinHtml(g, d) {
+    var k = g.ks[0], n = g.ks.length, it = IDX[k.id], c = n > 1 ? "#f2c94c" : rcol(it && it.r);
+    var foc = g.ks.some(function (x) { return x.id === MV.focus; });
+    return '<button type="button" class="kpin' + (foc ? " focus" : "") + '" data-kpin="' + g.ks.map(function (x) { return x.id; }).join(",") + '" style="left:' + (g.x / d.w * 100) + "%;top:" + (g.y / d.h * 100) + '%" aria-label="' + esc(n > 1 ? n + " keys: " + g.ks.map(function (x) { return nm(x.id); }).join(", ") : nm(k.id)) + '">' + (n > 1 ? '<span class="kcnt">' + n + "</span>" : "") +
       '<svg viewBox="0 0 30 38"><path d="M15 37C15 37 2 22 2 14a13 13 0 0 1 26 0c0 8-13 23-13 23z" fill="#0b0f26" stroke="' + c + '" stroke-width="2.5"/><circle cx="11.5" cy="13" r="4" fill="none" stroke="#f2c94c" stroke-width="2.4"/><path d="M15 14.5h8m-3 0v3.5m3-3.5v2.5" stroke="#f2c94c" stroke-width="2.4" fill="none"/></svg></button>';
   }
   var ktip = document.createElement("div"); ktip.id = "ktip"; ktip.hidden = true; document.body.appendChild(ktip);
   var ktipBtn = null;
   function showKTip(b) {
-    var k = KIDX[b.dataset.kpin]; if (!k) return; var it = IDX[k.id];
+    var ids = b.dataset.kpin.split(","), k = KIDX[ids[0]]; if (!k) return; var it = IDX[k.id];
     ktipBtn = b; b.classList.add("on");
-    ktip.innerHTML = '<div class="kh">' + thumb(k.id) + "<div><b>" + esc(nm(k.id)) + '</b><small style="color:' + rcol(it && it.r) + '">' + esc((it && it.r) || "Rarity not published") + " key</small></div></div><dl><dt>Opens</dt><dd>" + esc(k.door) + "</dd><dt>Get it</dt><dd>" + esc(k.get) + "</dd>" + (k.loot ? "<dt>Inside</dt><dd>" + esc(k.loot) + "</dd>" : "") + '</dl><div class="kn">' + (k.pf ? "This pin marks where the code is found. Use it in the Gate Control Room." : "The pin marks the named area on the game map, not the exact door.") + "</div>";
+    if (ids.length > 1) {
+      var ks = ids.map(function (x) { return KIDX[x]; }).filter(Boolean);
+      ktip.innerHTML = '<div class="kh"><div><b>' + ks.length + ' keys in this building</b><small style="color:var(--dim)">Each one opens its own door</small></div></div><ul class="kl">' +
+        ks.map(function (x) { return "<li" + (x.id === MV.focus ? ' class="on"' : "") + ">" + thumb(x.id) + "<div><b>" + esc(nm(x.id)) + "</b><span>" + esc(x.door) + "</span></div></li>"; }).join("") + '</ul><div class="kn">Open a key in the Keys tab for how to get it and what is inside.</div>';
+    } else
+    ktip.innerHTML = '<div class="kh">' + thumb(k.id) + "<div><b>" + esc(nm(k.id)) + '</b><small style="color:' + rcol(it && it.r) + '">' + esc((it && it.r) || "Rarity not published") + " key</small></div></div><dl><dt>Opens</dt><dd>" + esc(k.door) + "</dd><dt>Get it</dt><dd>" + esc(k.get) + "</dd>" + (k.loot ? "<dt>Inside</dt><dd>" + esc(k.loot) + "</dd>" : "") + '</dl><div class="kn">' + (k.pf ? "This pin marks where the code is found. Use it in the Gate Control Room." : (k.xp ? "This key opens several doors. Every pin with this key marks one of them (by area, not the exact door)." : k.pin && k.pin[3] ? "The pin marks the door." : "The pin marks the building or area, not the exact door.")) + "</div>";
     ktip.hidden = false;
     var r = b.getBoundingClientRect(), w = ktip.offsetWidth, h = ktip.offsetHeight;
     var x = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2)), y = r.top - h - 8;
@@ -1515,7 +2004,7 @@ details.dcg summary .n.ok { color: var(--ok); }
   $("#shopClear").addEventListener("click", function () { if (!shop.g.length) return; shop.g = []; shop.have = {}; saveShop(); renderShop(); });
   $("#sCopy").addEventListener("click", function () {
     var btn = this, txt = shopText(); if (!txt) return;
-    function done() { btn.textContent = "Copied!"; setTimeout(function () { btn.textContent = "Copy to clipboard"; }, 1800); }
+    function done() { btn.textContent = "Copied!"; setTimeout(function () { btn.textContent = t("Copy to clipboard"); }, 1800); }
     function legacy() { var ta = $("#sOut"); ta.focus(); ta.select(); try { if (document.execCommand("copy")) { done(); return; } } catch (er) {} btn.textContent = "Select the text and copy it"; }
     try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, legacy); else legacy(); } catch (er) { legacy(); }
   });
@@ -1576,11 +2065,10 @@ details.dcg summary .n.ok { color: var(--ok); }
     });
     $("#wList").innerHTML = arr.map(function (w) {
       var own = !!wp.own[w.id], b = ICONS_BIG[w.id];
-      return '<div class="wcard' + (w.id === wp.sel ? " sel" : "") + '" style="--rc:' + wRc(w) + '"><i class="rb"></i><button type="button" class="wpick" data-pick="' + w.id + '" aria-pressed="' + (w.id === wp.sel) + '">' + (b ? '<img alt="" src="' + b.u + '">' : '<span class="ph">' + big({ t: w.t, n: w.n }) + "</span>") + "<b>" + esc(w.n) + (w.wip ? ' <span class="wip">WIP</span>' : "") + "</b><small>" + esc(w.t) + "</small></button>" +
-        '<label class="own-c' + (own ? " on" : "") + '"><input type="checkbox" data-own="' + w.id + '"' + (own ? " checked" : "") + ' aria-label="I own ' + esc(w.n) + '">Owned</label></div>';
+      return '<div class="wcard' + (w.id === wp.sel ? " sel" : "") + '" style="--rc:' + wRc(w) + '"><i class="rb"></i><button type="button" class="wpick" data-pick="' + w.id + '" aria-pressed="' + (w.id === wp.sel) + '">' + (b ? '<img alt="" src="' + b.u + '">' : '<span class="ph">' + big({ t: w.t, n: w.n }) + "</span>") + "<b>" + esc(w.n) + (w.wip ? ' <span class="wip">WIP</span>' : "") + "</b><small>" + esc(w.t) + "</small></button></div>";
     }).join("") || '<div class="mutedp">No weapon matches.</div>';
     var n = Object.keys(wp.own).filter(function (k) { return wp.own[k]; }).length;
-    $("#wown").textContent = n + " of " + WEAPONS.length + " owned";
+    $("#wown").textContent = "";
     centerWSel();
   }
   function centerWSel() { var sel = $("#wList .wcard.sel"), strip = $("#wList"); if (sel && strip.clientWidth) strip.scrollLeft = Math.max(0, sel.offsetLeft - strip.clientWidth / 2 + sel.offsetWidth / 2); }
@@ -1680,9 +2168,12 @@ details.dcg summary .n.ok { color: var(--ok); }
     catch (err) { if (window.console) console.error(err); openSlot = null; var m = $("#amenu"); if (m) m.remove(); }
   }
   function renderWeaponInner() {
-    var w = WIDX[wp.sel];
+    var w = WIDX[wp.sel], f = flow();
+    $("#v-weapons").classList.toggle("wpicked", !!f.picked);
+    $("#wDetail").classList.toggle("off", !f.picked);
+    if (!f.picked) { $("#wDetail").innerHTML = ""; return; }
     if (w.wip) {
-      $("#wDetail").innerHTML = '<div class="wd-h"><div class="tile" style="--rc:' + wRc(w) + '"><div class="tin"><i class="sw"></i>' + big({ t: w.t, n: w.n }) + '</div></div><div class="grow"><h3>' + esc(w.n) + ' <span class="wip">WIP</span></h3><div class="row"><span class="pill">' + esc(w.t) + '</span><span class="pill r" style="--rc:' + wRc(w) + '">' + esc(w.r) + '</span></div></div></div>' +
+      $("#wDetail").innerHTML = '<div class="wd-h"><div class="tile" style="--rc:' + wRc(w) + '"><div class="tin"><i class="sw"></i>' + big({ t: w.t, n: w.n }) + '</div></div><div class="grow"><h3>' + esc(w.n) + ' <span class="wip">WIP</span></h3><div class="row"><span class="pill">' + esc(w.t) + '</span><span class="pill r" style="--rc:' + wRc(w) + '">' + esc(w.r) + '</span></div></div><div class="wd-acts"><button type="button" class="wchg" data-wstep="pick">Change weapon</button></div></div>' +
         '<div class="wl"><div class="blk"><div class="blk-h"><b>Not in the calculator yet</b><span>New in update 2.0</span></div><div class="mutedp">The crafting recipe, upgrade costs and attachment slots for this weapon have not been published yet, so its costs cannot be calculated. What is known:<ul>' + w.facts.map(function (f) { return "<li>" + esc(f) + "</li>"; }).join("") + "</ul></div></div></div>";
       return;
     }
@@ -1690,12 +2181,36 @@ details.dcg summary .n.ok { color: var(--ok); }
     var b = ICONS_BIG[w.id];
     var head = '<div class="wd-h"><div class="tile" style="--rc:' + wRc(w) + '"><div class="tin"><i class="sw"></i>' + (b ? '<img class="gl" alt="" src="' + b.u + '">' : big({ t: w.t, n: w.n })) + '</div></div>' +
       '<div class="grow"><h3>' + esc(w.n) + '</h3><div class="row"><span class="pill">' + esc(w.t) + '</span><span class="pill r" style="--rc:' + wRc(w) + '">' + esc(w.r) + '</span><span class="chipst ok">Gunsmith ' + (w.lvl || "?") + " to craft</span></div>" +
-      '<div class="statline"><span><small>Tier ' + ROMAN[c.to] + " value</small>" + fmt(w.tv[c.to - 1]) + "</span>" + (w.mag[c.to - 1] != null ? "<span><small>Magazine</small>" + w.mag[c.to - 1] + "</span>" : "") + (w.dur[c.to - 1] ? "<span><small>Durability</small>" + esc(w.dur[c.to - 1]) + "</span>" : "") + "</div></div>" +
-      '<div class="wd-acts"><label class="own"><input type="checkbox" data-ownd="1"' + (own ? " checked" : "") + '>I own this weapon</label><button type="button" class="btn orb sm" data-share="1">Copy build code</button><button type="button" class="btn orb sm" data-load="1">Load a build</button></div></div>' +
+      '<div class="statline"><span><small>Tier ' + ROMAN[c.to] + " value</small>" + fmt(w.tv[c.to - 1]) + "</span>" + (dps(w.ste[c.to - 1]) != null ? '<span class="dpsv" title="Damage × fire rate"><small>DPS</small>' + fmt(dps(w.ste[c.to - 1])) + "</span>" : "") + (w.mag[c.to - 1] != null ? "<span><small>Magazine</small>" + w.mag[c.to - 1] + "</span>" : "") + (w.dur[c.to - 1] ? "<span><small>Durability</small>" + esc(w.dur[c.to - 1]) + "</span>" : "") + "</div></div>" +
+      '<div class="wd-acts"><button type="button" class="wchg" data-wstep="pick">Change weapon</button><button type="button" class="btn orb sm" data-share="1">Copy build code</button><button type="button" class="btn orb sm" data-load="1">Load a build</button></div></div>' +
       (w.note ? '<p class="wnote">' + esc(w.note) + "</p>" : "") + '<div id="loadBox"></div>';
-    var ctl = '<div class="wd-ctl"><div class="c"><span class="l">Tier you have' + (own ? "" : " (tick “I own” first)") + "</span>" + wSeg("from", w, c.from, 1) + '</div><div class="c"><span class="l">Tier you want</span>' + wSeg("to", w, c.to, Math.max(1, c.from)) + "</div>" +
-      (w.amp ? '<div class="c"><span class="l">Amplification</span><label class="own"><input type="checkbox" data-amp="1"' + (wp.amp[w.id] ? " checked" : "") + ">Amplify to Mk. " + ROMAN[w.amp.mk] + "</label></div>" : "") + "</div>";
-    var dgm = renderDiagram(w, c);
+    var n = w.tiers.length, i, steps = "";
+    if (!f.own || f.edit === "own") {
+      var ob = '<div class="wch"><button type="button" class="wopt' + (f.own && !own ? " on" : "") + '" data-wown="0"><b>No</b><small>I need to craft it</small></button>';
+      for (i = 1; i <= n; i++) ob += '<button type="button" class="wopt' + (f.own && own && c.from === i ? " on" : "") + '" data-wown="' + i + '"><b>' + (n > 1 ? "Yes, tier " + ROMAN[i] : "Yes") + "</b><small>I already have it</small></button>";
+      $("#wDetail").innerHTML = head + stepOpen(2, "Do you already own a " + esc(w.n) + "?", ob + "</div>");
+      return;
+    }
+    steps += stepDone("Do you own it?", own ? "Yes, tier " + ROMAN[c.from] : "No, crafting a new one", "own");
+    if (n === 1) f.to = 1;
+    if (!f.to || f.edit === "to") {
+      var tbt = '<div class="wch">';
+      for (i = Math.max(1, c.from); i <= n; i++) { var d = dps(w.ste[i - 1]); tbt += '<button type="button" class="wopt' + (f.to && c.to === i ? " on" : "") + '" data-wto="' + i + '"><b>Tier ' + ROMAN[i] + "</b><small>" + (own && i === c.from ? "Keep what I have" : (d != null ? "DPS " + fmt(d) : "Value " + fmt(w.tv[i - 1]))) + "</small></button>"; }
+      $("#wDetail").innerHTML = head + steps + stepOpen(3, "Which tier do you want?", tbt + "</div>");
+      return;
+    }
+    steps += stepDone("Tier you want", "Tier " + ROMAN[c.to], n > 1 ? "to" : "", w.amp ? '<label class="own wampl"><input type="checkbox" data-amp="1"' + (wp.amp[w.id] ? " checked" : "") + ">Amplify to Mk. " + ROMAN[w.amp.mk] + "</label>" : "");
+    var kinds = SLOT_ORDER.filter(function (k) { return w.slots[k]; });
+    if (!kinds.length) f.done = 1;
+    var picked = kinds.filter(function (k) { return f.sl[k] || (wp.mods[w.id] && wp.mods[w.id][k]); }).length;
+    if (!f.done || f.edit === "mods") {
+      steps += '<div class="wstep on"><span class="wsn">4</span><div class="wst"><b>Pick your attachments</b><small class="wcnt">' + picked + " of " + kinds.length + " slots set" + (picked < kinds.length ? " · the stats open when every slot is set (choose None to leave one empty)" : "") + '</small></div><button type="button" class="btn go orb sm" data-wdone="1">' + (picked === kinds.length ? "Done" : "Skip to stats") + "</button></div>" +
+        '<div class="wmodd">' + renderDiagram(w, c).replace("<h4>Attachments</h4>", "") + "</div>";
+    } else {
+      steps += stepDone("Attachments", c.mods.length ? c.mods.map(function (x) { return esc(x.m.n); }).join(", ") : "None", kinds.length ? "mods" : "");
+    }
+    if (!f.done) { $("#wDetail").innerHTML = head + steps; if (openSlot) placeMenu(w); return; }
+    cmpOpen = f.cmp !== 0;
     var cmp = tierTable(w, c);
     // list
     var top = '<div class="wl-top">' + (c.lvl ? '<span class="chipst">Needs Gunsmith ' + c.lvl + "</span>" : "") + (w.amp && wp.amp[w.id] ? '<span class="chipst">Amplification: Research Station IV + Outpost 4</span>' : "") + "</div>";
@@ -1732,11 +2247,19 @@ details.dcg summary .n.ok { color: var(--ok); }
       (names.length ? names.map(function (k) { var it = IDX[k]; return '<div class="trow" style="--rc:' + rcol(it && it.r) + '">' + thumb(k) + '<div class="nm"><button type="button" class="nm" style="all:unset;cursor:pointer;color:#fff;font-weight:700" data-find="' + esc(nm(k)) + '">' + esc(nm(k)) + "</button><span>×" + c.tot[k] + "</span><small>" + esc(c.use[k].join(" · ")) + "</small></div></div>"; }).join("") : '<div class="mutedp">Nothing to craft for this selection.</div>') + "</div>";
     var note = "";
     var addb = names.length ? '<button type="button" class="addl big" data-addw="1">+ Add these materials to my shopping list</button>' : "";
-    $("#wDetail").innerHTML = head + ctl + '<div class="wb-cols"><div class="wb-left">' + dgm + '<div class="wl">' + wblk + ampblk + mblk + "</div>" + cmp + '</div><aside class="wb-right">' + top + totblk + addb + "</aside></div>";
+    $("#wDetail").innerHTML = head + steps + '<div class="wb-cols wres"><div class="wb-left"><div class="wl">' + wblk + ampblk + mblk + "</div>" + cmp + '</div><aside class="wb-right">' + top + totblk + addb + "</aside></div>";
     if (openSlot) placeMenu(w);
   }
+  function flow() {
+    if (!wp.flow || wp.flow.id !== wp.sel) wp.flow = { id: wp.sel, sl: {} };
+    if (!wp.flow.sl) wp.flow.sl = {};
+    return wp.flow;
+  }
+  function stepOpen(n, title, body) { return '<div class="wstep on"><span class="wsn">' + n + '</span><div class="wst"><b>' + title + "</b>" + body + "</div></div>"; }
+  function stepDone(title, sum, key, extra) { return '<div class="wstep done"><span class="wsn">\u2713</span><div class="wst"><small>' + title + '</small><div class="wss">' + sum + "</div></div>" + (extra || "") + (key ? '<button type="button" class="wchg" data-wstep="' + key + '">Change</button>' : "") + "</div>"; }
+  function wScrollTo(el) { if (!el) return; requestAnimationFrame(function () { var r = el.getBoundingClientRect(); if (r.top < 70 || r.top > innerHeight * 0.7) window.scrollTo({ top: scrollY + r.top - 90, behavior: "smooth" }); }); }
   function recStr(r) { return r ? Object.keys(r).map(function (k) { return r[k] + " " + nm(k); }).join(", ") : ""; }
-  var cmpOpen = store("rt-cmp") !== false;
+  var cmpOpen = true;
   function tierTable(w, c) {
     var n = w.tiers.length, cols = [];
     for (var i = 0; i < n; i++) cols.push(i);
@@ -1749,11 +2272,30 @@ details.dcg summary .n.ok { color: var(--ok); }
       row("Tier bonuses", function (i) { var b = (w.tb || [])[i] || []; return i === 0 ? (b.length ? "<ul><li>" + b.map(esc).join("</li><li>") + "</li></ul>" : "Base weapon") : (b.length ? "<ul><li>" + b.map(esc).join("</li><li>") + "</li></ul>" : ""); }) +
       row("Cost", function (i) { return i === 0 ? "Craft: " + esc(recStr(w.rec)) : esc(recStr(w.up[i])); }) +
       row("Repair cost", function (i) { return esc(recStr((w.rep || [])[i])); });
-    var stat = ["damage", "fireRate", "range", "stability", "agility", "stealth"], lab = { damage: "Damage", fireRate: "Fire rate", range: "Range", stability: "Stability", agility: "Agility", stealth: "Stealth" };
-    stat.forEach(function (s) { if (w.ste.some(function (x) { return x && x[s] != null; })) body += row(lab[s], function (i) { var x = w.ste[i]; return x && x[s] != null ? x[s] : ""; }); });
-    return '<details class="tcmp"' + (cmpOpen ? " open" : "") + ' id="tcmp"><summary>Compare tiers</summary><div class="tw"><table>' + head + body + '</table></div></details>';
+    WSTAT.forEach(function (s) { if (w.ste.some(function (x) { return x && x[s] != null; })) body += row(WSTAT_LAB[s], function (i) { var x = w.ste[i]; if (!x || x[s] == null) return ""; var j = i - 1; while (j >= 0 && !(w.ste[j] && w.ste[j][s] != null)) j--; return statBar(x[s], j >= 0 ? statDelta(w, s, i, j) : "", x[s]); }); });
+    var hasDps = w.ste.some(function (x) { return dps(x) != null; }), mx = dpsMax();
+    if (hasDps) body += row("DPS", function (i) { var d = dps(w.ste[i]); if (d == null) return ""; var p = null; for (var j = i - 1; j >= 0 && p == null; j--) p = dps(w.ste[j]); return statBar(fmt(d), p != null ? sDelta(d - p) : "", d / mx * 100, " dps"); }).replace("<tr>", '<tr class="dpsrow">');
+    var notes = [];
+    if (hasDps) notes.push("DPS is damage × fire rate, to compare weapons with each other. It ignores reloads, headshots and shields.");
+    if (w.frb) notes.push("Fire rate on tiers II to IV includes that tier’s Increased Fire Rate bonus.");
+    if (w.sest) notes.push(STAT_EST);
+    return '<details class="tcmp"' + (cmpOpen ? " open" : "") + ' id="tcmp"><summary>Compare tiers</summary><div class="tw"><table>' + head + body + '</table></div>' + notes.map(function (n) { return '<p class="tn">' + n + "</p>"; }).join("") + '</details>';
   }
-  document.addEventListener("toggle", function (e) { if (e.target.id === "tcmp") { cmpOpen = e.target.open; store("rt-cmp", cmpOpen); } }, true);
+  var WSTAT = ["damage", "fireRate", "range", "stability", "agility", "stealth"], WSTAT_LAB = { damage: "Damage", fireRate: "Fire rate", range: "Range", stability: "Stability", agility: "Agility", stealth: "Stealth" };
+  var STAT_EST = "Some base stats for this weapon are not in the community data set and come from arcraiders.wiki (damage, fire rate, range) or arcraidershub.com (stability, agility, stealth, approximate).";
+  function dps(x) { return x && x.damage != null && x.fireRate != null ? Math.round(x.damage * x.fireRate) : null; }
+  var DPS_MAX = 0;
+  function dpsMax() { if (!DPS_MAX) WEAPONS.forEach(function (w) { (w.ste || []).forEach(function (x) { var d = dps(x); if (d > DPS_MAX) DPS_MAX = d; }); }); return DPS_MAX || 1; }
+  function frBonus(w, i) { var m = /Increased Fire Rate\s*([\d.]+)%/i.exec(((w.tb || [])[i] || []).join(" ")); return m ? +m[1] : 0; }
+  function sDelta(d, pct) { var r = Math.round(d * 10) / 10; if (!r) return ""; return '<em class="' + (r > 0 ? "up" : "dn") + '">' + (r > 0 ? "+" : "\u2212") + fmt(Math.abs(r)) + (pct ? "%" : "") + "</em>"; }
+  function statBar(v, delta, pct, cls) { pct = Math.max(3, Math.min(100, pct)); return '<div class="sbw"><div class="statbar' + (cls || "") + '"><i style="width:' + pct + '%"></i><b>' + v + "</b></div>" + (delta || "<em></em>") + "</div>"; }
+  function statDelta(w, s, i, j) {
+    var a = w.ste[i], b = w.ste[j];
+    if (a && b && a[s] != null && b[s] != null && a[s] !== b[s]) return sDelta(a[s] - b[s]);
+    if (s === "fireRate" && !w.frb) return sDelta(frBonus(w, i) - frBonus(w, j), true);
+    return "";
+  }
+  document.addEventListener("toggle", function (e) { if (e.target.id === "tcmp") { cmpOpen = e.target.open; flow().cmp = cmpOpen ? 1 : 0; saveWp(); } }, true);
   function placeMenu(w) {
     var dgm = $("#dgm"), node = dgm && dgm.querySelector('[data-slot="' + openSlot + '"]');
     if (!node || !w.slots[openSlot]) { openSlot = null; return; }
@@ -1770,7 +2312,7 @@ details.dcg summary .n.ok { color: var(--ok); }
     }
     menu.style.left = left + "px"; menu.style.top = top + "px";
   }
-  function pickWeapon(id) { wp.sel = id; openSlot = null; saveWp(); renderWList(); renderWeapon(); }
+  function pickWeapon(id) { wp.sel = id; openSlot = null; flow().picked = 1; saveWp(); renderWList(); renderWeapon(); wScrollTo($("#wDetail")); }
   $("#wq").addEventListener("input", function () { wFilter.q = this.value; renderWList(); });
   $("#wtabs").addEventListener("click", function (e) { var b = e.target.closest("button[data-wt]"); if (!b) return; wFilter.t = b.dataset.wt; renderWTabs(); renderWList(); });
   document.querySelector(".wstripw").addEventListener("click", function (e) { var b = e.target.closest("button[data-wscr]"); if (b) $("#wList").scrollBy({ left: +b.dataset.wscr * $("#wList").clientWidth * 0.8, behavior: "smooth" }); });
@@ -1790,7 +2332,7 @@ details.dcg summary .n.ok { color: var(--ok); }
       wp.own[w.id] = p[2] === "1"; wp.from[w.id] = Math.min(n, Math.max(1, +p[3] || 1)); wp.to[w.id] = Math.min(n, Math.max(1, +p[4] || n)); wp.amp[w.id] = p[5] === "1" && !!w.amp;
       wp.mods[w.id] = {};
       (p[6] || "").split(",").filter(Boolean).forEach(function (kv) { var a = kv.split("="); if (w.slots[a[0]] && w.slots[a[0]].indexOf(a[1]) > -1 && modOk(a[1])) wp.mods[w.id][a[0]] = a[1]; });
-      wp.sel = w.id; openSlot = null; saveWp(); renderWList(); renderWeapon(); toast("Loaded build: " + w.n);
+      wp.sel = w.id; openSlot = null; wp.flow = { id: w.id, picked: 1, own: 1, to: 1, done: 1, sl: {} }; SLOT_ORDER.forEach(function (k) { if (w.slots[k]) wp.flow.sl[k] = 1; }); saveWp(); renderWList(); renderWeapon(); toast("Loaded build: " + w.n);
       return "";
     } catch (er) { return "That code could not be read. Check that you copied all of it."; }
   }
@@ -1824,7 +2366,19 @@ details.dcg summary .n.ok { color: var(--ok); }
     else if (t.dataset.bp) { wp.bp[t.dataset.bp] = t.checked; saveWp(); renderWeapon(); }
   });
   $("#wDetail").addEventListener("click", function (e) {
-    var w = WIDX[wp.sel];
+    var w = WIDX[wp.sel], f = flow(), t;
+    if ((t = e.target.closest("button[data-wstep]"))) {
+      if (t.dataset.wstep === "pick") { f.picked = 0; openSlot = null; saveWp(); renderWeapon(); centerWSel(); wScrollTo($("#v-weapons .wpstep")); }
+      else { f.edit = t.dataset.wstep; saveWp(); renderWeapon(); }
+      return;
+    }
+    if ((t = e.target.closest("button[data-wown]"))) {
+      var v = +t.dataset.wown; wp.own[w.id] = v > 0;
+      if (v) { wp.from[w.id] = v; if (wTo(w) < v) wp.to[w.id] = v; }
+      f.own = 1; f.edit = null; saveWp(); renderWeapon(); return;
+    }
+    if ((t = e.target.closest("button[data-wto]"))) { wp.to[w.id] = +t.dataset.wto; f.to = 1; f.edit = null; saveWp(); renderWeapon(); return; }
+    if (e.target.closest("button[data-wdone]")) { f.done = 1; f.edit = null; f.cmp = 1; openSlot = null; saveWp(); renderWeapon(); wScrollTo($("#wDetail .wres")); return; }
     var sg = e.target.closest("button[data-wk]");
     if (sg) {
       var n = +sg.dataset.n;
@@ -1834,8 +2388,13 @@ details.dcg summary .n.ok { color: var(--ok); }
     var o = e.target.closest("button[data-set]");
     if (o) {
       wp.mods[w.id] = wp.mods[w.id] || {};
+      var kinds = SLOT_ORDER.filter(function (k) { return w.slots[k]; }), all = function () { return kinds.every(function (k) { return f.sl[k] || wp.mods[w.id][k]; }); };
+      var was = all();
       if (o.dataset.set) wp.mods[w.id][openSlot] = o.dataset.set; else delete wp.mods[w.id][openSlot];
-      openSlot = null; saveWp(); renderWeapon(); return;
+      f.sl[openSlot] = 1;
+      openSlot = null;
+      if (!was && all() && !f.done) { f.done = 1; f.edit = null; f.cmp = 1; saveWp(); renderWeapon(); wScrollTo($("#wDetail .wres")); return; }
+      saveWp(); renderWeapon(); return;
     }
     var nd = e.target.closest("button[data-slot]");
     if (nd) { openSlot = openSlot === nd.dataset.slot ? null : nd.dataset.slot; renderWeapon(); return; }
@@ -1860,7 +2419,21 @@ details.dcg summary .n.ok { color: var(--ok); }
       "<p>Known gaps: Amplification Module quantities and most Research node costs are unpublished; the Gunsmith level for each weapon tier upgrade is not in the data; many 2.x items have no value or rarity yet; the Rascal weapon and some new items have no artwork.</p>";
   }
 
-  /* ---------- Data check ---------- */
+  /* ---------- Data check (admin-gated) ---------- */
+  function sha256hex(s) {
+    try {
+      return crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)).then(function (buf) {
+        return Array.prototype.map.call(new Uint8Array(buf), function (b) { return b.toString(16).padStart(2, "0"); }).join("");
+      });
+    } catch (e) { return Promise.resolve(""); }
+  }
+  var ADMIN_OK = !!ADMIN_HASH && store("rt-admin") === ADMIN_HASH;
+  function adminUnlock(pw) {
+    return sha256hex(pw || "").then(function (h) {
+      if (h && ADMIN_HASH && h === ADMIN_HASH) { store("rt-admin", h); ADMIN_OK = true; return true; }
+      return false;
+    });
+  }
   function dataIssues() {
     var refs = {};
     function ref(id, where) { if (!id || id === "coins" || id === "creds") return; (refs[id] = refs[id] || []).push(where); }
@@ -1876,12 +2449,27 @@ details.dcg summary .n.ok { color: var(--ok); }
     var noPin = KEYS.filter(function (k) { return !k.pin && k.m !== "any"; });
     var conflicts = KEYS.filter(function (k) { return /disagree|KeenGamer|Dexerto/.test(k.door); }).map(function (k) { return { n: nm(k.id), t: k.door }; });
     WEAPONS.forEach(function (w) { if (w.amp && !w.amp.explicit) conflicts.push({ n: w.n + " amplification", t: "Module mark Mk. " + ROMAN[w.amp.mk] + " is worked out from rarity; no guide states it." }); });
+    var evIss = [];
+    if (EV) {
+      var evAge = Math.floor((Date.now() - Date.parse(EV.rec)) / 864e5);
+      if (evAge > 14) evIss.push({ n: "Recorded " + EV.rec, t: evAge + " days old. Compare a few hours with a live tracker and record a new run if they differ." });
+      if (DATA_INFO.patch !== EV.patch) evIss.push({ n: "Patch changed", t: "Recorded on patch " + EV.patch + ", the site is now on patch " + DATA_INFO.patch + ". Rotations often change with patches." });
+    }
     var wipMaps = MAP_ORDER.filter(function (k) { return mapWip(k).length; }).map(function (k) { return { n: MAPS[k].name, t: mapWip(k).join(", ") }; });
-    return { unknown: unknown, noData: noData, noIcon: noIcon, wipW: wipW, noPin: noPin, conflicts: conflicts, wipMaps: wipMaps };
+    return { unknown: unknown, noData: noData, noIcon: noIcon, wipW: wipW, noPin: noPin, conflicts: conflicts, wipMaps: wipMaps, evIss: evIss };
   }
   var RARS = ["Common", "Uncommon", "Rare", "Epic", "Legendary"];
   function renderDataCheck() {
     var d = dataIssues(), nf = Object.keys(FIX).length;
+    var openND = d.noData.filter(function (i) { var f = FIX[i.id]; var o = ORIG[i.id] || { v: i.v, r: i.r }; return !(f && (o.v != null || f.v != null) && (o.r != null || f.r)); }).length;
+    var tot = d.unknown.length + openND + d.noIcon.length + d.wipW.length + d.noPin.length + d.conflicts.length + d.wipMaps.length + d.evIss.length;
+    var warn = openND + d.unknown.length + d.evIss.length > 0;
+    ["#dbadgeF", "#dbadgeH"].forEach(function (s) { var b = $(s); if (b) { b.querySelector(".dbt").textContent = "Data: patch " + DATA_INFO.patch + " · updated " + DATA_INFO.checked; b.classList.toggle("warn", ADMIN_OK && warn); b.title = "When the data was last brought up to date"; } });
+    if (!ADMIN_OK) {
+      $("#dataCheck").innerHTML = '<h3>Data check</h3><p>' + esc(t("Admin-only tools for reviewing data gaps. Enter the password to open this panel.")) + '</p>' +
+        '<div class="dcact"><input type="password" id="admPw" placeholder="' + esc(t("Admin password")) + '" autocomplete="off" aria-label="Admin password"><button type="button" class="btn orb" id="admGo">' + esc(t("Unlock")) + '</button></div><p class="dim" id="admMsg" style="font-size:.84rem;margin-top:8px"></p>';
+      return;
+    }
     function grp(title, n, body, hint) { return '<details class="dcg"' + (n && title.indexOf("Missing value") === 0 ? " open" : "") + "><summary>" + title + '<span class="n' + (n ? "" : " ok") + '">' + (n ? n + " to check" : "all good") + "</span></summary><div class=\"b\">" + (hint ? "<p>" + hint + "</p>" : "") + (body || '<p>Nothing found.</p>') + "</div></details>"; }
     function row(icon, name, sub, fx) { return '<div class="dcrow">' + icon + '<div class="nm">' + esc(name) + (sub ? "<small>" + esc(sub) + "</small>" : "") + '</div><div class="fx">' + (fx || "") + "</div></div>"; }
     var fixRows = d.noData.map(function (i) {
@@ -1890,20 +2478,17 @@ details.dcg summary .n.ok { color: var(--ok); }
         (f.v != null || f.r ? '<span class="fixed">fixed ✓</span>' : "") + '<input type="number" min="0" placeholder="Value" value="' + (f.v != null ? f.v : (cur.v != null ? cur.v : "")) + '" data-fixv="' + i.id + '" aria-label="Value of ' + esc(i.n) + '">' +
         '<select data-fixr="' + i.id + '" aria-label="Rarity of ' + esc(i.n) + '"><option value="">Rarity…</option>' + RARS.map(function (r) { return "<option" + ((f.r || cur.r) === r ? " selected" : "") + ">" + r + "</option>"; }).join("") + "</select>");
     }).join("");
-    var openND = d.noData.filter(function (i) { var f = FIX[i.id]; var o = ORIG[i.id] || { v: i.v, r: i.r }; return !(f && (o.v != null || f.v != null) && (o.r != null || f.r)); }).length;
-    var tot = d.unknown.length + openND + d.noIcon.length + d.wipW.length + d.noPin.length + d.conflicts.length + d.wipMaps.length;
-    $("#dataCheck").innerHTML = '<h3>Data check</h3><p>The site checks its own data every time it loads. Game data is from the community data set of ' + DATA_INFO.baseDate + ", with corrections up to patch " + DATA_INFO.patch + " (" + DATA_INFO.patchDate + "); last rebuilt " + DATA_INFO.checked + (DATA_INFO.auto ? " (the site rebuilds itself every day)" : "") + ". Anything below is missing, estimated or disputed. You can fill in missing values here: fixes apply on this device straight away, and “Copy my fixes” gives you a short text to send so they can be added for everyone.</p>" +
+    $("#dataCheck").innerHTML = '<h3>Data check</h3><button type="button" class="btn orb" id="admLock" style="float:right">' + esc(t("Lock admin tools")) + '</button><p>The site checks its own data every time it loads. Game data is from the community data set of ' + DATA_INFO.baseDate + ", with corrections up to patch " + DATA_INFO.patch + " (" + DATA_INFO.patchDate + "); last rebuilt " + DATA_INFO.checked + (DATA_INFO.auto ? " (the site rebuilds itself every day)" : "") + ". Anything below is missing, estimated or disputed. You can fill in missing values here: fixes apply on this device straight away, and “Copy my fixes” gives you a short text to send so they can be added for everyone.</p>" +
       '<div class="dcsum"><span' + (openND ? "" : ' class="ok"') + "><b>" + openND + "</b>missing value or rarity</span><span" + (d.unknown.length ? "" : ' class="ok"') + "><b>" + d.unknown.length + "</b>unknown item references</span><span><b>" + d.noIcon.length + "</b>no icon</span><span><b>" + d.wipW.length + "</b>WIP weapons</span><span><b>" + d.noPin.length + "</b>keys without pin</span><span><b>" + d.conflicts.length + "</b>disputed or estimated</span>" + (nf ? '<span class="ok"><b>' + nf + "</b>your fixes active</span>" : "") + "</div>" +
       grp("Missing value or rarity", openND, fixRows, "Mostly items added in update 2.x. Enter what the game shows on the item card.") +
       grp("Unknown item references", d.unknown.length, d.unknown.map(function (u) { return row('<span class="th"><i></i></span>', pretty(u.id), "Used in: " + u.where.slice(0, 3).join(", ") + (u.where.length > 3 ? " +" + (u.where.length - 3) + " more" : "")); }).join(""), "An id is used in a recipe, cost or note but the item itself is not in the data. The name shown is a best guess from the id.") +
       grp("Weapons not in the calculator", d.wipW.length, d.wipW.map(function (w) { return row('<span class="th"><i></i></span>', w.n, "Recipe, upgrade costs and slots not published"); }).join("")) +
+      grp("Map event schedule", d.evIss.length, d.evIss.map(function (x) { return row('<span class="th"><i></i></span>', x.n, x.t); }).join(""), "The map conditions on the Maps page are estimated from a rotation recorded by hand. It is flagged here when it gets old or the patch changes.") +
       grp("Maps with missing parts", d.wipMaps.length, d.wipMaps.map(function (m) { return row('<span class="th"><i></i></span>', m.n, m.t); }).join("")) +
       grp("Keys without a map pin", d.noPin.length, d.noPin.map(function (k) { return row(thumb(k.id), nm(k.id), MAPS[k.m] ? MAPS[k.m].name : ""); }).join("")) +
       grp("Disputed or estimated", d.conflicts.length, d.conflicts.map(function (c) { return row('<span class="th"><i></i></span>', c.n, c.t); }).join(""), "Sources disagree, or the value is worked out rather than stated.") +
       grp("Items without an icon", d.noIcon.length, d.noIcon.map(function (i) { return row(thumb(i.id), i.n, i.t); }).join(""), "These show a plain placeholder until artwork is available.") +
       '<div class="dcact"><button type="button" class="btn orb" id="fixCopy"' + (nf ? "" : " disabled") + '>Copy my fixes</button><button type="button" class="btn orb" id="fixReset"' + (nf ? "" : " disabled") + '>Undo my fixes</button><span class="dim" id="fixMsg" style="font-size:.84rem"></span></div><div id="fixOut"></div>';
-    var warn = openND + d.unknown.length > 0;
-    ["#dbadgeF", "#dbadgeH"].forEach(function (s) { var b = $(s); if (b) { b.querySelector(".dbt").textContent = "Data: patch " + DATA_INFO.patch + " · updated " + DATA_INFO.checked; b.classList.toggle("warn", warn); b.title = warn ? tot + " data items to check — open the Data check" : "Data is up to date"; } });
   }
   function saveFix(id, key, val) {
     FIX[id] = FIX[id] || {};
@@ -1918,7 +2503,14 @@ details.dcg summary .n.ok { color: var(--ok); }
     var v = e.target.closest("[data-fixv]"); if (v) { saveFix(v.dataset.fixv, "v", v.value); return; }
     var r = e.target.closest("[data-fixr]"); if (r) saveFix(r.dataset.fixr, "r", r.value);
   });
+  $("#dataCheck").addEventListener("keydown", function (e) { if (e.key === "Enter" && e.target.id === "admPw") { e.preventDefault(); $("#admGo").click(); } });
   $("#dataCheck").addEventListener("click", function (e) {
+    if (e.target.closest("#admGo")) {
+      var pw = $("#admPw").value, msg = $("#admMsg");
+      adminUnlock(pw).then(function (ok) { if (ok) renderDataCheck(); else msg.textContent = t("Incorrect password."); });
+      return;
+    }
+    if (e.target.closest("#admLock")) { ADMIN_OK = false; store("rt-admin", ""); renderDataCheck(); return; }
     if (e.target.closest("#fixReset")) { Object.keys(FIX).forEach(function (id) { var it = IDX[id], o = ORIG[id]; if (it && o) { it.v = o.v; it.r = o.r; delete it.mine; } }); FIX = {}; store("rt-fix", FIX); renderDataCheck(); renderItems(false); return; }
     if (e.target.closest("#fixCopy")) {
       var lines = Object.keys(FIX).map(function (id) { var f = FIX[id]; return "- " + nm(id) + " (" + id + "): " + [f.v != null ? "value " + f.v : "", f.r ? "rarity " + f.r : ""].filter(Boolean).join(", "); });
@@ -1933,9 +2525,19 @@ details.dcg summary .n.ok { color: var(--ok); }
   $("#statStations").textContent = STATIONS.length;
   $("#statWeapons").textContent = WEAPONS.length;
   $("#statMaps").textContent = MAP_ORDER.length;
-  [renderWList, renderWeapon, renderSources, renderTop, renderList, renderRarChips, renderUseChips, function () { renderItems(true); }, renderMapList, renderMapDetail, renderKeyChips, renderKeys, renderShop, renderWTabs, renderDataCheck].forEach(function (fn) {
-    try { fn(); } catch (err) { if (window.console) console.error("init failed:", err); }
-  });
+  function renderAll() {
+    applyI18nStatic();
+    setTitle();
+    [renderWList, renderWeapon, renderSources, renderTop, renderList, renderRarChips, renderUseChips, function () { renderItems(true); }, renderMapList, renderMapDetail, renderEvents, renderKeyChips, renderKeys, renderShop, renderWTabs, renderDataCheck].forEach(function (fn) {
+      try { fn(); } catch (err) { if (window.console) console.error("init failed:", err); }
+    });
+  }
+  var langSel = $("#langSel");
+  if (langSel) {
+    langSel.value = LANG;
+    langSel.addEventListener("change", function () { LANG = this.value; store("rt-lang", LANG); renderAll(); });
+  }
+  renderAll();
 
 /*SCENE*/
 
