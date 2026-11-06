@@ -1,5 +1,6 @@
 {
   "patch": "2.3.0",
   "patchDate": "27 Oct 2026",
-  "dataRepo": "https://github.com/RaidTheory/arcraiders-data.git"
+  "dataRepo": "https://github.com/RaidTheory/arcraiders-data.git",
+  "siteUrl": "https://raidkits.com/"
 }
