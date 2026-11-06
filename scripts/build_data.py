@@ -458,7 +458,15 @@ for k,v in EV_RAW.items():
     a=[x.strip() for x in v.split(',')]
     # later observations win where the two passes disagree
     ev['m'][k]=[('' if a[i]=='-' else a[i]) for i in [s+EV_PER if s+EV_PER<len(a) else s for s in range(EV_PER)]]
-data={'items':out,'stations':stations,'events':events,'guide':guide,'weapons':weapons,'mods':mods,'keys':keys,'ev':ev}
+# ---- quest rewards: item id -> quests that give it (used for blueprints and weapons)
+qr={}
+for f in sorted(os.listdir(R+'quests')) if os.path.isdir(R+'quests') else []:
+    if not f.endswith('.json'): continue
+    q=json.load(open(R+'quests/'+f))
+    for r in (q.get('rewardItemIds') or []):
+        iid=r.get('itemId') if isinstance(r,dict) else r
+        if iid: qr.setdefault(iid,[]).append({'id':q['id'],'n':en(q.get('name') or q['id'])})
+data={'items':out,'stations':stations,'events':events,'guide':guide,'weapons':weapons,'mods':mods,'keys':keys,'qr':qr,'ev':ev}
 js='var DB='+json.dumps(data,separators=(',',':'),ensure_ascii=False)+';'
 open(os.path.join(os.environ.get('OUT','build'),'data.js'),'w').write(js)
 print(len(js),'bytes', len(out),'items', len(guide),'guide entries')
