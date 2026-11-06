@@ -1,7 +1,7 @@
 // Raider Toolkit – ARCTracker relay (Cloudflare Worker)
 //
 // Keeps the site's ARCTracker app key secret. A visitor's browser sends their own personal key,
-// this worker adds the app key and asks ARCTracker for that visitor's stash and hideout levels.
+// this worker adds the app key and asks ARCTracker for that visitor's profile (name and level), stash, hideout levels, blueprints and completed quests.
 //
 // Settings in Cloudflare (Worker → Settings → Variables and Secrets):
 //   ARC_APP_KEY      (Secret)  your app key from ARCTracker's Developer Dashboard, starts with arc_k1_
@@ -33,15 +33,17 @@ export default {
     const headers = { "X-App-Key": env.ARC_APP_KEY, "Authorization": auth, "Accept": "application/json" };
     const path = new URL(req.url).pathname.replace(/\/+$/, "");
 
-    if (path === "/hideout") {
-      const r = await fetch(API + "hideout", { headers });
+    const single = { "/hideout": "hideout", "/quests": "quests?filter=completed", "/profile": "profile" };
+    if (single[path]) {
+      const r = await fetch(API + single[path], { headers });
       return new Response(await r.text(), { status: r.status, headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "no-store" } });
     }
 
-    if (path === "/stash") {
+    const paged = { "/stash": "stash", "/blueprints": "blueprints" };
+    if (paged[path]) {
       let all = [];
       for (let page = 1; page <= MAX_PAGES; page++) {
-        const r = await fetch(API + "stash?per_page=" + PER_PAGE + "&page=" + page, { headers });
+        const r = await fetch(API + paged[path] + "?per_page=" + PER_PAGE + "&page=" + page, { headers });
         if (!r.ok) return new Response(await r.text(), { status: r.status, headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "no-store" } });
         const list = listOf(await r.json());
         all = all.concat(list);

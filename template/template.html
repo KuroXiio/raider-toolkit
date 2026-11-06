@@ -425,6 +425,12 @@ body { overflow-x: clip; }
 .arcpill.bad i { background: #ff8f8f; box-shadow: 0 0 8px #ff8f8f; }
 .arcpill:hover, .arcpill:focus-visible { color: #fff; border-color: #8e8aa8; }
 .arcpill[hidden] { display: none; }
+.arcpill.who { gap: 10px; padding: 2px 8px 2px 2px; background: transparent; border-color: transparent; font-family: var(--f-body); font-size: 1rem; font-weight: 500; letter-spacing: .01em; color: #ece9f6; text-transform: none; }
+.arcpill.who:hover, .arcpill.who:focus-visible { background: rgba(255,255,255,.04); border-color: #343b66; }
+.arcpill.who i { width: 7px; height: 7px; }
+.plvl { display: grid; place-items: center; box-sizing: border-box; width: 34px; height: 34px; border-radius: 50%; border: 3px solid #6e6e74; background: transparent; color: #fff; font-family: var(--f-body); font-weight: 500; font-size: .92rem; letter-spacing: 0; font-variant-numeric: tabular-nums; }
+@media (max-width: 760px) { .arcpill { align-self: flex-start; margin-left: 0; } }
+.pname { max-width: 16ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .arcpop { position: fixed; z-index: 60; top: 74px; right: max(16px, calc((100vw - 1180px) / 2)); width: min(440px, calc(100vw - 32px)); padding: 6px; border-radius: 16px; background: #0b0f26; border: 1px solid #343b66; box-shadow: 0 20px 60px rgba(0,0,0,.6); }
 .arcpop[hidden] { display: none; }
 .arcpop .arcbar { margin: 0; }
@@ -436,6 +442,15 @@ button.arcmini:hover, button.arcmini:focus-visible { background: rgba(95,242,234
 .arctag { display: inline-block; margin-left: 8px; font-family: var(--f-mono); font-size: .62rem; letter-spacing: .08em; text-transform: uppercase; color: #6dffa4; font-weight: 500; }
 .arcdot.bad { background: #ff8f8f; box-shadow: 0 0 10px #ff8f8f; }
 .zz .arcgo { margin-top: 10px; }
+.bpmiss { margin-top: 8px; padding: 10px 12px; border-radius: 10px; border: 1px dashed rgba(242,201,76,.5); background: rgba(242,201,76,.06); font-size: .84rem; line-height: 1.45; color: #e4e1f0; }
+.bpmiss b { display: block; color: #f2c94c; font-size: .86rem; }
+.bpmiss span { display: block; }
+.bpmiss em { font-style: normal; color: var(--dim); }
+.bpmiss .qline { margin-top: 4px; }
+.qline { margin-top: 6px; font-size: .8rem; color: #cfcbe0; }
+.qdone, .qopen { font-family: var(--f-mono); font-size: .62rem; letter-spacing: .08em; text-transform: uppercase; padding: 1px 6px; border-radius: 99px; }
+.qdone { color: #6dffa4; border: 1px solid rgba(109,255,164,.35); }
+.qopen { color: #f2c94c; border: 1px solid rgba(242,201,76,.4); }
 .tcmp p.tn { margin: 0; padding: 0 20px 10px; font-size: .76rem; color: var(--dim); }
 footer.foot { display: flex; flex-direction: column; gap: 18px; margin-top: 64px; padding-block: 30px 40px; font-size: .8rem; color: #8a87a0; }
 .footrow { display: flex; justify-content: space-between; align-items: center; gap: 10px 20px; flex-wrap: wrap; }
@@ -793,8 +808,8 @@ details.dcg summary .n.ok { color: var(--ok); }
         <li style="--c:#ff2d2d"><span class="zn">01</span><h3>Find your keys</h3><p>Open <a href="#keys">Keys</a> to see what every key opens and how to get it. Press <b>Show on map</b> to jump straight to its door.</p></li>
         <li style="--c:#ffc400"><span class="zn">02</span><h3>Know where loot spawns</h3><p>Search any item in the <a href="#items">Item finder</a> for its value, where it spawns and what it recycles into. <a href="#maps">Map intel</a> shows what each area holds.</p></li>
         <li style="--c:#22d65f"><span class="zn">03</span><h3>Plan your upgrades</h3><p>Set your stations in the <a href="#workshop">Workshop planner</a>, or pick a gun, tier and attachments in the <a href="#weapons">Weapon calculator</a>. Every material you need is added up for you.</p></li>
-        <li style="--c:#5ff2ea"><span class="zn">04</span><h3>Build your shopping list</h3><p>Press <b>+ Shopping list</b> anywhere. Your <a href="#list">list</a> combines everything, tracks what you already have and exports to Discord, Steam or plain text.</p></li>
-        <li class="arc-only" style="--c:#2f3ee0" hidden><span class="zn">05</span><h3>Link ARCTracker <small style="color:var(--dim);font-weight:500">(optional)</small></h3><p>Already use ARCTracker? Link it once and the site keeps itself up to date: your stash fills in the <b>Have</b> counts in the shopping list and Workshop materials, your station levels fill in the Workshop planner, and the Weapon calculator knows which tiers you own. It syncs every hour by itself.</p><button type="button" class="btn orb sm arcgo" data-arc="open">Link ARCTracker</button></li>
+        <li class="arc-only" style="--c:#5ff2ea" hidden><span class="zn">04</span><h3>Link ARCTracker <small style="color:var(--dim);font-weight:500">(optional)</small></h3><p>Already use ARCTracker? Link it once and the site keeps itself up to date: your stash fills in the <b>Have</b> counts in the shopping list and Workshop materials, your station levels fill in the Workshop planner, and the Weapon calculator knows which tiers and blueprints you already have. It syncs every hour by itself.</p><button type="button" class="btn orb sm arcgo" data-arc="open">Link ARCTracker</button></li>
+        <li style="--c:#2f3ee0"><span class="zn">05</span><h3>Build your shopping list</h3><p>Press <b>+ Shopping list</b> anywhere. Your <a href="#list">list</a> combines everything, tracks what you already have and exports to Discord, Steam or plain text.</p></li>
       </ol>
     </section>
     <section class="hsec htools" id="tools">
@@ -810,7 +825,7 @@ details.dcg summary .n.ok { color: var(--ok); }
     </section>
     <section class="hsec faq" id="faq">
       <div class="shd"><i class="stk"></i><div class="tag-k">FAQ</div><h2>Good to know</h2><p>Quick answers to the things people ask most.</p></div>
-      <div class="faql"><details class="panel"><summary>Do I need an account? Where is my stuff saved?</summary><p>No account needed. Your plans, shopping list and settings are saved in this browser on this device. Clearing your browser data or switching to another device starts you fresh.</p></details><details class="panel"><summary>How do I share a weapon build or move it to another device?</summary><p>In the Weapon calculator, press <b>Copy build code</b> and paste it anywhere, for example in Discord. Anyone can open it with <b>Load a build</b>.</p></details><details class="panel"><summary>What does the number on a map pin mean?</summary><p>Several keys open doors in the same building. Hover or tap the pin to see all of them and which door each one opens.</p></details><details class="panel"><summary>Why does one key have several pins?</summary><p>Some keys, like the Blue Gate Cellar Key, open more than one door. Each pin is one of them, so if the first door is already looted, try the next.</p></details><details class="panel"><summary>Is the pin on the exact door?</summary><p>Hover the pin to check. It says whether it marks the door itself or just the building or area.</p></details><details class="panel"><summary>How is DPS calculated?</summary><p>Damage × fire rate. It is meant for comparing weapons with each other, and does not count reloads, headshots or shields.</p></details><details class="panel"><summary>Why do some weapon stats show “—” or a note about sources?</summary><p>Some numbers are missing from the community data set. Where we could, gaps are filled from arcraiders.wiki or arcraidershub.com and marked under the table. “—” means no source has that number yet.</p></details><details class="panel"><summary>Why do the weapon stats only open at the end?</summary><p>The Weapon calculator goes step by step. The stats open once every attachment slot is set; choose <b>None</b> to leave a slot empty, or press <b>Skip to stats</b>.</p></details><details class="panel"><summary>How does the shopping list count items?</summary><p>Everything you add becomes its own group. If two groups need the same item, the <b>Have</b> number is shared between them, so nothing gets counted twice. Tick an item once you have all of it.</p></details><details class="panel"><summary>What do the export options do?</summary><p><b>Combine everything</b> merges all groups into one total list. <b>Include items I've already got</b> keeps finished items in the export, marked as done. Then pick Plain, Discord or Steam formatting and copy.</p></details><details class="panel"><summary>How accurate are the map conditions?</summary><p>They are estimated from a rotation we recorded hour by hour. Most events repeat every 25 hours, so the timers are usually right, but roughly one hour in ten can differ. Pick your server region on the map card, and check the in-game map screen before you count on an event.</p></details><details class="panel"><summary>How up to date is the data?</summary><p>The badge at the bottom of every page shows the game patch and when the data was last updated. The site refreshes its data automatically every day.</p></details><details class="panel"><summary>Why does a map say WIP?</summary><p>Something for that map is still missing, like the map image or key pins. The map card says exactly what.</p></details><details class="panel arc-only" hidden><summary>How do I link my ARCTracker account?</summary><p>Press <b>Link ARCTracker</b> at the top of the page. In ARCTracker, open <b>Settings → Developer Access</b>, create a personal key with <b>stash read</b> and <b>hideout read</b>, and paste it in. From then on, your stash fills in the <b>Have</b> counts in the shopping list and Workshop materials, your station levels fill in the Workshop planner, and the Weapon calculator answers “Do you own it?” for you. You can still change anything by hand.</p></details><details class="panel arc-only" hidden><summary>How often does ARCTracker sync, and is my key safe?</summary><p>It syncs by itself once an hour while the site is open, and you can press <b>Refresh</b> up to 2 more times per hour (a countdown shows when the next one is available). Your key is saved only in this browser and only sent to ARCTracker. <b>Unlink</b> deletes it; your Have counts stay.</p></details><details class="panel"><summary>Is this official?</summary><p>No. This is an unofficial fan project and is not affiliated with Embark Studios.</p></details><details class="panel"><summary>I found a mistake or have an idea. Where do I tell you?</summary><p>Drop it in our <a href="https://discord.gg/NE3ughZTxn" target="_blank" rel="noopener">Discord</a>. Corrections are added for everyone.</p></details></div>
+      <div class="faql"><details class="panel"><summary>Do I need an account? Where is my stuff saved?</summary><p>No account needed. Your plans, shopping list and settings are saved in this browser on this device. Clearing your browser data or switching to another device starts you fresh.</p></details><details class="panel"><summary>How do I share a weapon build or move it to another device?</summary><p>In the Weapon calculator, press <b>Copy build code</b> and paste it anywhere, for example in Discord. Anyone can open it with <b>Load a build</b>.</p></details><details class="panel"><summary>What does the number on a map pin mean?</summary><p>Several keys open doors in the same building. Hover or tap the pin to see all of them and which door each one opens.</p></details><details class="panel"><summary>Why does one key have several pins?</summary><p>Some keys, like the Blue Gate Cellar Key, open more than one door. Each pin is one of them, so if the first door is already looted, try the next.</p></details><details class="panel"><summary>Is the pin on the exact door?</summary><p>Hover the pin to check. It says whether it marks the door itself or just the building or area.</p></details><details class="panel"><summary>How is DPS calculated?</summary><p>Damage × fire rate. It is meant for comparing weapons with each other, and does not count reloads, headshots or shields.</p></details><details class="panel"><summary>Why do some weapon stats show “—” or a note about sources?</summary><p>Some numbers are missing from the community data set. Where we could, gaps are filled from arcraiders.wiki or arcraidershub.com and marked under the table. “—” means no source has that number yet.</p></details><details class="panel"><summary>Why do the weapon stats only open at the end?</summary><p>The Weapon calculator goes step by step. The stats open once every attachment slot is set; choose <b>None</b> to leave a slot empty, or press <b>Skip to stats</b>.</p></details><details class="panel"><summary>How does the shopping list count items?</summary><p>Everything you add becomes its own group. If two groups need the same item, the <b>Have</b> number is shared between them, so nothing gets counted twice. Tick an item once you have all of it.</p></details><details class="panel"><summary>What do the export options do?</summary><p><b>Combine everything</b> merges all groups into one total list. <b>Include items I've already got</b> keeps finished items in the export, marked as done. Then pick Plain, Discord or Steam formatting and copy.</p></details><details class="panel"><summary>How accurate are the map conditions?</summary><p>They are estimated from a rotation we recorded hour by hour. Most events repeat every 25 hours, so the timers are usually right, but roughly one hour in ten can differ. Pick your server region on the map card, and check the in-game map screen before you count on an event.</p></details><details class="panel"><summary>How up to date is the data?</summary><p>The badge at the bottom of every page shows the game patch and when the data was last updated. The site refreshes its data automatically every day.</p></details><details class="panel"><summary>Why does a map say WIP?</summary><p>Something for that map is still missing, like the map image or key pins. The map card says exactly what.</p></details><details class="panel arc-only" hidden><summary>How do I link my ARCTracker account?</summary><p>Press <b>Link ARCTracker</b> at the top of the page. In ARCTracker, open <b>Settings → Developer Access</b>, create a personal key with <b>profile</b>, <b>stash</b>, <b>hideout</b>, <b>blueprints</b> and <b>quests</b> read access, and paste it in. Your raider name and level then show in the top corner. From then on, your stash fills in the <b>Have</b> counts in the shopping list and Workshop materials, your station levels fill in the Workshop planner, and the Weapon calculator answers “Do you own it?” for you. If you have not learned a blueprint yet, its materials are left out and the site shows where to find it, including quests you have not done that give it. You can still change anything by hand.</p></details><details class="panel arc-only" hidden><summary>How often does ARCTracker sync, and is my key safe?</summary><p>It syncs by itself once an hour while the site is open, and you can press <b>Refresh</b> up to 2 more times per hour (a countdown shows when the next one is available). Your key is saved only in this browser and only sent to ARCTracker. <b>Unlink</b> deletes it; your Have counts stay.</p></details><details class="panel"><summary>Is this official?</summary><p>No. This is an unofficial fan project and is not affiliated with Embark Studios.</p></details><details class="panel"><summary>I found a mistake or have an idea. Where do I tell you?</summary><p>Drop it in our <a href="https://discord.gg/NE3ughZTxn" target="_blank" rel="noopener">Discord</a>. Corrections are added for everyone.</p></details></div>
     </section>
   </div>
 </div>
@@ -2129,7 +2144,7 @@ details.dcg summary .n.ok { color: var(--ok); }
     var from = wFrom(w), to = wTo(w), own = !!wp.own[w.id];
     var parts = [], tot = {}, use = {};
     function add(rec, label) { Object.keys(rec).forEach(function (k) { tot[k] = (tot[k] || 0) + rec[k]; (use[k] = use[k] || []).push(label + " ×" + rec[k]); }); }
-    if (!own) { parts.push({ label: w.n + " (tier I)", rec: w.rec }); add(w.rec, w.n + " I"); }
+    if (!own) { var wMiss = !!w.bp && arcBpMissing(w.id); parts.push({ label: w.n + " (tier I)", rec: w.rec, bpMiss: wMiss }); if (!wMiss) add(w.rec, w.n + " I"); }
     for (var t = Math.max(from, 1) + 1; t <= to; t++) {
       var u = w.up[t - 1];
       if (u) { parts.push({ label: "Upgrade to tier " + ROMAN[t], rec: u }); add(u, w.n + " " + ROMAN[t]); }
@@ -2137,7 +2152,7 @@ details.dcg summary .n.ok { color: var(--ok); }
     var mods = [];
     SLOT_ORDER.forEach(function (sl) {
       var id = wp.mods[w.id] && wp.mods[w.id][sl];
-      if (id && w.slots[sl] && w.slots[sl].indexOf(id) > -1 && modOk(id)) { mods.push({ id: id, slot: sl, m: MODS[id] }); add(MODS[id].rec || {}, MODS[id].n); }
+      if (id && w.slots[sl] && w.slots[sl].indexOf(id) > -1 && modOk(id)) { var mm = MODS[id], miss = !mm.loot && !!mm.bp && arcBpMissing(id); mods.push({ id: id, slot: sl, m: mm, bpMiss: miss }); if (!miss) add(mm.rec || {}, mm.n); }
     });
     var lvl = 0;
     if (!own) lvl = w.lvl || 0;
@@ -2269,7 +2284,7 @@ details.dcg summary .n.ok { color: var(--ok); }
       c.parts.forEach(function (p, i) {
         var base = i === 0 && !own;
         if (base) {
-          wblk += '<div class="arow wbase">' + gunThumb(w) + '<div><div class="nm">' + esc(p.label) + "</div><small>" + (w.bp ? "Needs the blueprint, craft at Gunsmith " + (w.lvl || "?") : "Craft at Gunsmith " + (w.lvl || "?")) + (w.ve && w.ve.length ? " · Vendor: " + esc(vendStr(w.ve)) : "") + "</small>" + chips(p.rec) + '</div><div class="bpcell">' + bpBlock("w:" + w.id, w.n, w.bpl, w.bp) + "</div></div>" + bpLoc("w:" + w.id, w.bpl, w.bp);
+          wblk += '<div class="arow wbase">' + gunThumb(w) + '<div><div class="nm">' + esc(p.label) + "</div><small>" + (w.bp ? "Needs the blueprint, craft at Gunsmith " + (w.lvl || "?") : "Craft at Gunsmith " + (w.lvl || "?")) + (w.ve && w.ve.length ? " · Vendor: " + esc(vendStr(w.ve)) : "") + "</small>" + (p.bpMiss ? bpMissBox(w.n, w.bpl, [w.id + "_blueprint"]) : chips(p.rec)) + questLine([w.tiers[0]], "A " + w.n) + '</div><div class="bpcell">' + bpBlock("w:" + w.id, w.n, w.bpl, w.bp) + "</div></div>" + bpLoc("w:" + w.id, w.bpl, w.bp);
         } else {
           wblk += '<div class="tier-h">' + esc(p.label) + "</div>" + chips(p.rec);
         }
@@ -2287,7 +2302,7 @@ details.dcg summary .n.ok { color: var(--ok); }
     if (c.mods.length) {
       mblk = '<div class="blk"><div class="blk-h"><b>Attachments</b><span>' + c.mods.length + " chosen</span></div>" + c.mods.map(function (x) {
         var m = x.m;
-        return '<div class="arow" style="--rc:' + rcol(m.r) + '">' + modThumb(x.id) + '<div><div class="nm">' + esc(m.n) + ' <span class="dim">· ' + SLOT_NAME[x.slot] + "</span></div><small>" + esc(efStr(m.ef)) + (efStr(m.ef) ? " · " : "") + (m.loot ? "Loot only" : "Gunsmith " + (m.lvl || "?")) + (m.ve && m.ve.length ? " · Vendor: " + esc(vendStr(m.ve)) : "") + "</small>" + (m.loot ? '<div class="lootn">' + esc((m.bpl && m.bpl[0]) || "Found as loot; cannot be crafted.") + "</div>" : chips(m.rec)) + '</div><div class="bpcell">' + (m.loot ? '<span class="bpnone">Loot only</span>' : bpBlock("m:" + x.id, m.n, m.bpl, m.bp)) + "</div></div>" + bpLoc("m:" + x.id, m.bpl, m.bp);
+        return '<div class="arow" style="--rc:' + rcol(m.r) + '">' + modThumb(x.id) + '<div><div class="nm">' + esc(m.n) + ' <span class="dim">· ' + SLOT_NAME[x.slot] + "</span></div><small>" + esc(efStr(m.ef)) + (efStr(m.ef) ? " · " : "") + (m.loot ? "Loot only" : "Gunsmith " + (m.lvl || "?")) + (m.ve && m.ve.length ? " · Vendor: " + esc(vendStr(m.ve)) : "") + "</small>" + (m.loot ? '<div class="lootn">' + esc((m.bpl && m.bpl[0]) || "Found as loot; cannot be crafted.") + "</div>" : x.bpMiss ? bpMissBox(m.n, m.bpl, [x.id + "_blueprint"]) : chips(m.rec)) + questLine([x.id], m.n) + '</div><div class="bpcell">' + (m.loot ? '<span class="bpnone">Loot only</span>' : bpBlock("m:" + x.id, m.n, m.bpl, m.bp)) + "</div></div>" + bpLoc("m:" + x.id, m.bpl, m.bp);
       }).join("") + "</div>";
     }
     var names = Object.keys(c.tot).sort(function (a, z) { return c.tot[z] - c.tot[a] || nm(a).localeCompare(nm(z)); });
@@ -2578,7 +2593,23 @@ details.dcg summary .n.ok { color: var(--ok); }
   var HOUR = 3600000, ARC_MANUAL = 2;
   var arc = store("rt-arc") || {};
   function arcOn() { return !!(ARC_PROXY && arc.key); }
-  function arcSave() { store("rt-arc", { key: arc.key, stash: arc.stash, ids: arc.ids, n: arc.n, miss: arc.miss, lv: arc.lv, at: arc.at, last: arc.last, man: arc.man, err: arc.err }); }
+  function arcSave() { store("rt-arc", { key: arc.key, pn: arc.pn, pl: arc.pl, stash: arc.stash, bp: arc.bp, qd: arc.qd, ids: arc.ids, n: arc.n, miss: arc.miss, lv: arc.lv, at: arc.at, last: arc.last, man: arc.man, err: arc.err }); }
+  function arcBpMissing(id) { return arcOn() && !!arc.bp && !arc.bp[id] && !arc.bp[id + "_blueprint"]; }
+  function questsFor(ids) {
+    var out = [], seen = {};
+    ids.forEach(function (id) { ((DB.qr || {})[id] || []).forEach(function (q) { if (!seen[q.id]) { seen[q.id] = 1; out.push(q); } }); });
+    return out;
+  }
+  function questLine(ids, what) {
+    var qs = questsFor(ids); if (!qs.length) return "";
+    return '<div class="qline">' + esc(what) + " is a reward from " + qs.map(function (q) {
+      var st = arcOn() && arc.qd ? (arc.qd[arcNorm(q.id)] || arc.qd[arcNorm(q.n)] ? ' <span class="qdone">done</span>' : ' <span class="qopen">not done yet</span>') : "";
+      return "the quest <b>" + esc(q.n) + "</b>" + st;
+    }).join(" and ") + ".</div>";
+  }
+  function bpMissBox(name, loc, qids) {
+    return '<div class="bpmiss"><b>Blueprint not learned yet</b><span>The materials are left out until you have it.</span><span><em>Where to find it:</em> ' + esc(loc && loc[0] ? loc[0] : "No location is listed in the guides used here.") + "</span>" + questLine(qids, name + " blueprint") + "</div>";
+  }
   function arcHas(id) { return arcOn() && arc.stash && (arc.stash[id] || 0) > 0; }
   function arcTier(w) { if (!arcOn() || !arc.at) return -1; var t = 0; (w.tiers || []).forEach(function (id, i) { if (arcHas(id)) t = i + 1; }); return t; }
   function arcNorm(s) { return String(s == null ? "" : s).toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, ""); }
@@ -2619,7 +2650,7 @@ details.dcg summary .n.ok { color: var(--ok); }
     if (!arcOn() || arcBusy) return;
     if (kind === "manual") { if (arcManualLeft() <= 0) return; arc.man.push(Date.now()); }
     arcBusy = true; arc.last = Date.now(); arcSave(); renderArc();
-    Promise.all([arcGet("/stash"), arcGet("/hideout").catch(function () { return null; })]).then(function (res) {
+    Promise.all([arcGet("/stash"), arcGet("/hideout").catch(function () { return null; }), arcGet("/blueprints").catch(function () { return null; }), arcGet("/quests").catch(function () { return null; }), arcGet("/profile").catch(function () { return null; })]).then(function (res) {
       var st = {}, miss = 0, lv = 0;
       arcList(res[0]).forEach(function (o) { var id = arcItemId(o); if (!id) { miss++; return; } st[id] = (st[id] || 0) + arcQty(o); });
       (arc.ids || []).forEach(function (k) { if (!(k in st)) { ws.have[k] = 0; shop.have[k] = 0; } });
@@ -2628,6 +2659,27 @@ details.dcg summary .n.ok { color: var(--ok); }
         var s = arcStation(o), L = arcLevel(o); if (!s || L == null || isNaN(L)) return;
         ws.cur[s.id] = Math.max(0, Math.min(s.max, L)); if ((ws.goal[s.id] || 0) < ws.cur[s.id]) ws.goal[s.id] = ws.cur[s.id]; lv++;
       });
+      if (res[2]) { var bp = {}; arcList(res[2]).forEach(function (o) {
+        if (o.learned === false || o.unlocked === false || o.owned === false) return;
+        var it = o.item || o.blueprint || {}, c = [o.item_id, o.itemId, o.blueprint_id, o.blueprintId, o.slug, o.id, it.id, it.item_id, it.slug];
+        var k = ""; for (var i = 0; i < c.length; i++) { k = arcNorm(c[i]); if (k) break; }
+        if (!k) k = arcByName(o.name || it.name) || ""; if (!k) return;
+        bp[k] = 1; bp[k.replace(/_blueprint$/, "")] = 1;
+      }); arc.bp = bp; } else arc.bp = null;
+      if (res[3]) { var qd = {}; arcList(res[3]).forEach(function (o) {
+        var done = o.completed === true || o.is_completed === true || o.done === true || /^(complete|completed|done|finished)$/i.test(String(o.status || o.state || ""));
+        if (o.completed === false || o.is_completed === false) done = false;
+        if (o.completed == null && o.is_completed == null && o.done == null && o.status == null && o.state == null) done = true;
+        var q = o.quest || {}, k = arcNorm(o.quest_id || o.questId || o.slug || o.id || q.id || q.slug || o.name || q.name);
+        if (k && done) qd[k] = 1;
+      }); arc.qd = qd; } else arc.qd = null;
+      if (res[4]) {
+        var pf = res[4].data || res[4].profile || res[4].user || res[4];
+        if (Array.isArray(pf)) pf = pf[0] || {};
+        var pn = [pf.raider_name, pf.raiderName, pf.display_name, pf.displayName, pf.name, pf.username, pf.player_name, pf.playerName, pf.embark_id, pf.embarkId].filter(function (x) { return typeof x === "string" && x.trim(); })[0];
+        var pl = [pf.level, pf.raider_level, pf.raiderLevel, pf.player_level, pf.playerLevel, pf.xp_level, pf.rank].filter(function (x) { return x != null && !isNaN(parseInt(x, 10)); })[0];
+        arc.pn = pn ? String(pn).trim().slice(0, 32) : ""; arc.pl = pl != null ? parseInt(pl, 10) : null;
+      }
       arc.stash = st; arc.ids = Object.keys(st); arc.n = arc.ids.length; arc.miss = miss; arc.lv = lv; arc.at = Date.now(); arc.err = "";
       saveWs(); saveShop();
       if (kind !== "auto") toast("Synced " + arc.n + " items" + (lv ? " and " + lv + " station level" + (lv === 1 ? "" : "s") : "") + " from ARCTracker");
@@ -2643,25 +2695,27 @@ details.dcg summary .n.ok { color: var(--ok); }
       var wait = arcManualWait(), auto = arcAutoIn();
       return '<div class="arcin on"><span class="arcdot' + (arc.err ? " bad" : "") + '"></span><div class="arct"><b>ARCTracker linked</b><small>' +
         (arcBusy ? "Syncing…" : arc.at ? arc.n + " items from your stash" + (arc.lv ? ", " + arc.lv + " station level" + (arc.lv === 1 ? "" : "s") : "") + " · synced " + arcAgo(arc.at) : "Not synced yet") +
-        (arc.miss && !arcBusy ? " · " + arc.miss + " not recognised" : "") +
+        (arc.miss && !arcBusy ? " · " + arc.miss + " not recognised" : "") + (arc.at && !arcBusy && !arc.bp ? " · blueprints not shared (give the key blueprints read access)" : "") +
         (!arcBusy && auto > 0 ? " · next auto-sync in " + evClock(auto) : "") + "</small>" +
         (arc.err ? '<small class="arcerr">' + esc(arc.err) + "</small>" : "") + "</div>" +
         '<button type="button" class="btn orb sm" data-arc="sync"' + (arcBusy || wait > 0 ? " disabled" : "") + ">" + (wait > 0 ? "Refresh in " + evClock(wait) : "Refresh (" + arcManualLeft() + " left)") + "</button>" +
         '<button type="button" class="wchg" data-arc="off">Unlink</button></div>';
     }
-    if (full) return '<div class="arcin"><div class="arct"><b>Link ARCTracker</b><small>In ARCTracker, open <b>Settings → Developer Access</b> and create a personal key with <b>stash read</b> and <b>hideout read</b> only. Paste it here. It stays in this browser and is only sent to ARCTracker.</small>' +
+    if (full) return '<div class="arcin"><div class="arct"><b>Link ARCTracker</b><small>In ARCTracker, open <b>Settings → Developer Access</b> and create a personal key with <b>profile</b>, <b>stash</b>, <b>hideout</b>, <b>blueprints</b> and <b>quests</b> read access only. Paste it here. It stays in this browser and is only sent to ARCTracker.</small>' +
       '<div class="arcf"><input type="password" id="arcKey" placeholder="arc_u1_…" autocomplete="off" aria-label="ARCTracker personal API key"><button type="button" class="btn go orb sm" data-arc="go">Link</button></div>' +
       (arc.err ? '<small class="arcerr">' + esc(arc.err) + "</small>" : "") + '<small>Syncs once an hour while the site is open, plus up to ' + ARC_MANUAL + " manual refreshes per hour.</small></div></div>";
     return '<div class="arcin"><div class="arct"><b>Use your ARCTracker stash</b><small>Link ARCTracker and what you own, plus your station levels, fills in by itself.</small></div><button type="button" class="btn orb sm" data-arc="open">Link ARCTracker</button></div>';
   }
   function renderArc() {
     Array.prototype.forEach.call(document.querySelectorAll(".arc-only"), function (el) { el.hidden = !ARC_PROXY; });
+    var zn = 0; Array.prototype.forEach.call(document.querySelectorAll(".zz > li"), function (li) { if (li.hidden) return; zn++; var z = li.querySelector(".zn"); if (z) z.textContent = (zn < 10 ? "0" : "") + zn; li.style.setProperty("--c", ["#ff2d2d", "#ffc400", "#22d65f", "#5ff2ea", "#2f3ee0"][zn - 1] || "#5ff2ea"); });
     var pill = $("#arcPill");
     if (pill) {
       pill.hidden = !ARC_PROXY;
       pill.className = "arcpill" + (arcOn() ? (arc.err ? " bad" : " on") : "");
-      pill.innerHTML = '<i></i><span>' + (arcOn() ? (arcBusy ? "Syncing…" : "ARCTracker") : "Link ARCTracker") + "</span>";
-      pill.title = arcOn() ? (arc.at ? "ARCTracker linked · synced " + arcAgo(arc.at) : "ARCTracker linked") : "Link your ARCTracker stash";
+      pill.innerHTML = arcOn() && arc.pn ? (arc.pl != null ? '<b class="plvl">' + arc.pl + "</b>" : "") + '<span class="pname">' + esc(arc.pn) + "</span>" + (arc.err ? "<i></i>" : "") : '<i></i><span>' + (arcOn() ? (arcBusy ? "Syncing…" : "ARCTracker") : "Link ARCTracker") + "</span>";
+      pill.classList.toggle("who", !!(arcOn() && arc.pn));
+      pill.title = arcOn() ? (arc.pn ? arc.pn + (arc.pl != null ? " · level " + arc.pl : "") + " · " : "") + (arc.at ? "ARCTracker linked · synced " + arcAgo(arc.at) : "ARCTracker linked") : "Link your ARCTracker stash";
     }
     var pop = $("#arcPop"), keep = pop && !pop.hidden && !arcOn() ? (($("#arcKey") || {}).value || "") : null;
     Array.prototype.forEach.call(document.querySelectorAll("[data-arcbar]"), function (el) {
