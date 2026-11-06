@@ -1,6 +1,6 @@
 <meta charset="utf-8">
 <title>Raider Toolkit</title>
-<meta name="description" content="Workshop planner, weapon calculator with DPS, item finder, maps, keys and a shopping list for ARC Raiders.">
+<meta name="description" content="Workshop planner, weapon calculator with DPS, blueprint tracker, item finder, maps, keys and a shopping list for ARC Raiders.">
 <meta name="theme-color" content="#62f3ea">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Raider Toolkit">
@@ -34,6 +34,7 @@
 .view { display: none; }
 .view.on { display: block; }
 nav a[aria-current="page"] { color: #fff; }
+@media (min-width: 761px) { header.top nav a { padding-inline: 9px; } header.top .wrap { gap: 14px; } }
 .view-pad { padding-block: 44px 24px; }
 .cards { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; padding-block: 56px 8px; grid-auto-rows: 1fr; }
 @media (min-width: 640px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
@@ -434,14 +435,29 @@ button.arcmini i { background: #ff4d4d; box-shadow: 0 0 6px #ff4d4d; }
 .arctip > div { padding: 12px 14px; border-radius: 12px; background: #0b0f26; border: 1px solid rgba(255,159,67,.45); box-shadow: 0 14px 40px rgba(0,0,0,.55); font-size: .86rem; line-height: 1.45; color: #d9d6ea; }
 .arctip b { display: block; color: #ffb877; margin-bottom: 4px; }
 .arctip a, .arcnd a { color: #ffb877; font-weight: 600; }
-.arcwrap.warn:hover .arctip, .arcwrap.warn:focus-within .arctip { display: block; }
+.arcwrap.tip:hover .arctip, .arcwrap.tip:focus-within .arctip { display: block; }
+.arctip.ok > div { border-color: #343b66; }
+.arctip.ok b { color: #fff; }
+.arctip.bad > div { border-color: rgba(255,77,77,.5); }
+.arctip.bad b { color: #ff8f8f; }
+.arctip ul { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 3px; }
+.arctip li { color: #cfcbe0; }
+.arctip li em { font-style: normal; color: var(--dim); }
+.arctip .tipx { display: block; margin-top: 8px; font-family: var(--f-mono); font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; color: var(--mint); }
+.arctip .xpbar { display: block; height: 4px; margin: 6px 0 2px; border-radius: 4px; background: #2a2f4d; overflow: hidden; }
+.arctip .xpbar i { display: block; height: 100%; background: #f6c400; }
 .arcwrap.popopen .arctip { display: none !important; }
 .arcpill:hover, .arcpill:focus-visible { color: #fff; border-color: #8e8aa8; }
 .arcpill[hidden] { display: none; }
 .arcpill.who { gap: 10px; padding: 2px 8px 2px 2px; background: transparent; border-color: transparent; font-family: var(--f-body); font-size: 1rem; font-weight: 500; letter-spacing: .01em; color: #ece9f6; text-transform: none; }
 .arcpill.who:hover, .arcpill.who:focus-visible { background: rgba(255,255,255,.04); border-color: #343b66; }
 .arcpill.who i { width: 7px; height: 7px; }
-.plvl { display: grid; place-items: center; box-sizing: border-box; width: 34px; height: 34px; border-radius: 50%; border: 3px solid #6e6e74; background: transparent; color: #fff; font-family: var(--f-body); font-weight: 500; font-size: .92rem; letter-spacing: 0; font-variant-numeric: tabular-nums; }
+.plvl { position: relative; display: block; flex: none; width: 34px; height: 34px; color: #fff; }
+.plvl svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.plvl circle { fill: none; stroke-width: 3; }
+.plvl .trk { stroke: #6e6e74; }
+.plvl .xpf { stroke: #f6c400; transition: stroke-dasharray .6s ease; }
+.plvl b { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--f-body); font-weight: 500; font-size: .92rem; line-height: 1; letter-spacing: 0; font-variant-numeric: proportional-nums lining-nums; text-indent: 0; }
 @media (max-width: 760px) { .arcpill, .arcwrap { align-self: flex-start; margin-left: 0; } .arctip { right: auto; left: 0; } }
 .pname { max-width: 16ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .arcpop { position: fixed; z-index: 60; top: 74px; right: max(16px, calc((100vw - 1180px) / 2)); width: min(440px, calc(100vw - 32px)); padding: 6px; border-radius: 16px; background: #0b0f26; border: 1px solid #343b66; box-shadow: 0 20px 60px rgba(0,0,0,.6); }
@@ -771,6 +787,173 @@ details.dcg summary .n.ok { color: var(--ok); }
 .dcact textarea { width: 100%; min-height: 120px; font-family: var(--f-mono); font-size: .78rem; background: #070a1a; color: #dfe2f5; border: 1px solid #2a3258; border-radius: 10px; padding: 10px; }
 .mybadge { display: inline-block; margin-left: 6px; font-family: var(--f-mono); font-size: .58rem; letter-spacing: .1em; text-transform: uppercase; padding: 2px 6px; border-radius: 5px; color: #8ef0b0; border: 1px solid rgba(142,240,176,.4); vertical-align: middle; }
 @media (max-width: 560px) { .dcrow { grid-template-columns: 34px minmax(0, 1fr); } .dcrow .fx { grid-column: 1 / -1; justify-content: flex-start; } }
+
+/* ---- blueprint tracker ---- */
+.bpstats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.bpsx { padding: 14px 16px; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid var(--line); }
+.bpsx b { display: block; font-family: var(--f-display); font-weight: 800; font-size: 1.9rem; line-height: 1.05; color: #fff; }
+.bpsx b small { font-size: 1rem; color: var(--dim); font-weight: 700; }
+.bpsx span { font-family: var(--f-mono); font-size: .66rem; letter-spacing: .12em; text-transform: uppercase; color: var(--mint); }
+.bpsrcl { margin: 10px 0 0; font-size: .86rem; }
+.bpcards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 18px; }
+.bpcard { padding: 18px 20px; }
+.bpcard h3 { margin: 0 0 8px; font-family: var(--f-display); font-weight: 800; font-size: 1.5rem; color: #fff; }
+.bpcard h3 small { font-family: var(--f-body); font-weight: 500; font-size: .82rem; margin-left: 6px; }
+.bpcard p { margin: 0 0 8px; font-size: .92rem; color: #cfcbe0; }
+.bpcard .cm-row.tight { padding: 4px 0 10px; }
+.cm-row.tight { padding: 6px 0 8px; gap: 6px; }
+.cm-row.tight .cm { font-size: .84rem; padding: 2px 10px 2px 2px; }
+.cm-row.tight .cm .th { width: 24px; height: 24px; }
+.bpbtns { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.bpreq { font-size: .84rem !important; }
+.bprpin { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 4px 0 8px; font-size: .88rem; color: var(--dim); }
+.bprpin input { width: 120px; padding: 7px 10px; border-radius: 9px; font-family: var(--f-display); font-weight: 700; font-size: 1rem; }
+.bpeq { font-size: .86rem !important; }
+.bpfr { font-size: .88rem !important; }
+.bprpd summary { cursor: pointer; font-family: var(--f-mono); font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; color: var(--mint); padding: 6px 0; }
+.bprpl { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 8px; }
+.bprpl li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; font-size: .9rem; }
+.bprpl li b { font-family: var(--f-display); font-weight: 800; color: var(--mint); }
+.bprpl li small { grid-column: 1 / -1; color: var(--dim); font-size: .8rem; padding-left: 34px; }
+.bprpn { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+.bprpn .th { width: 26px; height: 26px; border-radius: 7px; }
+.bpnow { color: #6dffa4; font-weight: 600; }
+.bpc b { color: #fff; font-weight: 600; }
+.bpcost { margin-top: 16px; }
+.bpcost summary { cursor: pointer; list-style: none; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; padding: 14px 20px; }
+.bpcost summary::-webkit-details-marker { display: none; }
+.bpcost summary::before { content: "+"; font-family: var(--f-mono); color: var(--mint); width: 12px; }
+.bpcost[open] summary::before { content: "–"; }
+.bpcost summary span { font-family: var(--f-mono); font-size: .74rem; letter-spacing: .14em; text-transform: uppercase; color: var(--mint); }
+.bpcost summary small { font-size: .82rem; }
+.rpv { font-family: var(--f-display); font-weight: 800; color: #fff; white-space: nowrap; }
+.bpcb { padding: 0 20px 18px; }
+.bpseg { margin-bottom: 12px; }
+.bpseg button { height: 36px; font-size: .9rem; }
+.bpcr { padding: 10px 0 2px; border-top: 1px solid var(--line); }
+.bpcrh { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+.bpcrh b:first-child { font-family: var(--f-display); font-weight: 800; color: #fff; }
+.bpcrh .rpv { margin-left: auto; }
+.bpcrt { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid var(--line); }
+.bpcrt .btn { margin-left: auto; }
+.bpbar { margin: 22px 0 6px; display: grid; gap: 10px; }
+.bpcats .chip { font-size: .88rem; padding: 5px 12px; }
+.bpcats .chip small { font-family: var(--f-mono); font-size: .7rem; color: var(--mint); margin-left: 4px; }
+.bpbar2 { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+.bpbar2 input[type=search] { flex: 1 1 220px; max-width: 360px; padding: 9px 14px; border-radius: 10px; font-family: var(--f-display); font-weight: 600; }
+.bptog { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; }
+.bptog input { width: 18px; height: 18px; accent-color: #6dffa4; }
+.bpnote { font-size: .78rem; }
+.bpgrp { margin-top: 22px; }
+.bpgh { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; padding: 0 4px 8px; border-bottom: 1px solid var(--line); }
+.bpgh h3 { margin: 0; font-family: var(--f-display); font-weight: 800; font-size: 1.3rem; color: #fff; }
+.bpgh span { font-size: .86rem; }
+.bpgh .rpv { margin-left: auto; font-size: .9rem; color: #cfcbe0; font-weight: 700; }
+.bpck { all: unset; box-sizing: border-box; width: 26px; height: 26px; border-radius: 8px; border: 1.5px solid #3a4272; display: grid; place-items: center; cursor: pointer; color: transparent; }
+.bpck svg { width: 15px; height: 15px; }
+.bpck:hover { border-color: #6dffa4; }
+.bpck[aria-pressed="true"] { background: rgba(109,255,164,.14); border-color: #6dffa4; color: #6dffa4; }
+.bpck:disabled { cursor: default; opacity: .85; }
+.bpck:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
+.bpn { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.bpn .th { width: 34px; height: 34px; }
+.bpn b { display: block; font-family: var(--f-display); font-weight: 700; font-size: .98rem; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bpn .arctag { margin: 0; font-size: .56rem; }
+.bps { display: inline-block; font-family: var(--f-mono); font-size: .62rem; letter-spacing: .08em; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; border: 1px solid; white-space: nowrap; }
+.bps.ok { color: #6dffa4; border-color: rgba(109,255,164,.45); }
+.bps.own { color: var(--mint); border-color: rgba(180,220,200,.35); }
+.bps.miss { color: #ffb877; border-color: rgba(255,159,67,.45); }
+.bphow { font-size: .88rem; color: #cfcbe0; min-width: 0; }
+.bphow .bpf { display: inline; }
+.bpor { display: block; margin-top: 2px; font-size: .78rem; }
+.bpwarn { color: #ffb877; }
+.bptag { display: inline-block; margin-right: 6px; font-family: var(--f-mono); font-size: .58rem; letter-spacing: .1em; text-transform: uppercase; padding: 2px 7px; border-radius: 6px; vertical-align: 1px; }
+.bptag.res { background: rgba(109,255,164,.14); color: #6dffa4; }
+.bptag.find { background: rgba(95,242,234,.12); color: #5ff2ea; }
+.bptag.q { background: rgba(255,196,0,.13); color: #ffd34d; }
+.bptag.up { background: rgba(255,159,67,.14); color: #ffb877; }
+.bprp { font-family: var(--f-display); font-weight: 800; color: #fff; white-space: nowrap; }
+.bprp small { font-family: var(--f-mono); font-weight: 500; font-size: .6rem; color: var(--dim); }
+.bpchev { width: 8px; height: 8px; border-right: 2px solid var(--dim); border-bottom: 2px solid var(--dim); transform: rotate(45deg); justify-self: center; margin-top: -4px; transition: transform .15s; }
+.bpdet { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px 22px; padding: 6px 14px 16px 52px; margin-bottom: 4px; background: rgba(255,255,255,.035); border-radius: 0 0 10px 10px; border-bottom: 1px solid rgba(38,43,77,.6); }
+.bpd h5 { margin: 6px 0 4px; font-family: var(--f-mono); font-weight: 500; font-size: .64rem; letter-spacing: .14em; text-transform: uppercase; color: var(--mint); }
+.bpd p { margin: 0 0 6px; font-size: .88rem; color: #cfcbe0; }
+.bpd small { display: block; font-size: .76rem; margin-top: 4px; }
+.bpd .chips.tight { gap: 6px; margin: 4px 0; }
+.bpd .chips.tight .chip { font-size: .8rem; padding: 3px 10px; }
+.bpcl { list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 3px; font-size: .86rem; }
+.bpempty { padding: 30px 0; text-align: center; }
+.cards:has(.wide) { grid-auto-rows: auto; }
+a.card.wide { grid-column: 1 / -1; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 6px 26px; align-items: center; }
+a.card.wide h3 { margin: 0 0 4px; }
+a.card.wide p { margin: 0; }
+a.card.wide .go-l { margin: 0; }
+a.card.wide .newb { display: inline-block; margin-left: 10px; font-family: var(--f-mono); font-size: .6rem; letter-spacing: .12em; padding: 2px 7px; border-radius: 6px; background: rgba(109,255,164,.14); color: #6dffa4; vertical-align: 4px; }
+.arcdiag { all: unset; cursor: pointer; display: block; margin-top: 6px; font-size: .78rem; color: var(--dim); text-decoration: underline; text-underline-offset: 3px; }
+.arcdiag:hover { color: #fff; }
+@media (max-width: 900px) {
+  .bpstats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bpcards { grid-template-columns: minmax(0, 1fr); }
+  .bpdet { padding-left: 14px; }
+  a.card.wide { grid-template-columns: minmax(0, 1fr); }
+  a.card.wide .go-l { margin-top: 8px; }
+}
+@media (max-width: 560px) {
+  .bpsx b { font-size: 1.5rem; }
+  .bpgh .rpv { margin-left: 0; }
+  .bpcrt .btn { margin-left: 0; }
+}
+
+.bptw { margin-top: 10px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: rgba(13,17,40,.55); }
+.bpt { width: 100%; min-width: 0; border-collapse: collapse; table-layout: fixed; }
+.bpt col.bcc { width: 52px; } .bpt col.bcn { width: 25%; } .bpt col.bcs { width: 128px; } .bpt col.bcr { width: 128px; } .bpt col.bcx { width: 40px; }
+.bpt th { text-align: left; padding: 10px 14px; font-family: var(--f-mono); font-weight: 500; font-size: .6rem; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); background: #10142b; border-bottom: 1px solid var(--line); }
+.bpt td { padding: 9px 14px; border-bottom: 1px solid rgba(38,43,77,.75); vertical-align: middle; }
+.bpt th + th, .bpt td + td { border-left: 1px solid rgba(38,43,77,.5); }
+.bpt th.bcx, .bpt td.bcx { border-left: 0; text-align: center; padding-inline: 0; }
+.bpt .r { text-align: right; }
+.bpt tbody tr:last-child td { border-bottom: 0; }
+.bpt tr.bpr { cursor: pointer; }
+.bpt tr.bpr:hover td { background: rgba(255,255,255,.025); }
+.bpt tr.bpr.open td { background: rgba(255,255,255,.045); border-bottom-color: transparent; }
+.bpt tr.bpr.own .bpn b { color: #d8d4ea; }
+.bpt tr.bpdr td { background: rgba(255,255,255,.045); padding: 2px 16px 16px 66px; }
+.bpt .bpdet { padding: 0; margin: 0; background: none; border: 0; border-radius: 0; }
+.bpt .bcr { font-family: var(--f-display); font-weight: 800; color: #fff; white-space: nowrap; }
+.bpt .bcr small { font-family: var(--f-mono); font-weight: 500; font-size: .6rem; color: var(--dim); }
+.bpt .bch { font-size: .88rem; color: #cfcbe0; }
+.bpt tr.bpr.open .bpchev { transform: rotate(-135deg); margin-top: 4px; }
+.bpt .bpchev { display: inline-block; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (max-width: 900px) {
+  .bpt, .bpt tbody { display: block; width: 100%; }
+  .bpt tr.bpr, .bpt tr.bpdr { width: 100%; box-sizing: border-box; }
+  .bpt td.bcs, .bpt td.bcx { align-self: center; } .bpt thead, .bpt colgroup { display: none; }
+  .bpt tr.bpr { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto 14px; grid-template-areas: "ck n st ch" ". how rp rp"; gap: 6px 10px; padding: 10px 12px; border-bottom: 1px solid rgba(38,43,77,.75); }
+  .bpt tr.bpr td { display: block; padding: 0; border: 0; background: none !important; }
+  .bpt tr.bpr.open { background: rgba(255,255,255,.045); border-bottom-color: transparent; }
+  .bpt td.bcc { grid-area: ck; } .bpt td.bcn { grid-area: n; min-width: 0; } .bpt td.bcs { grid-area: st; } .bpt td.bch { grid-area: how; } .bpt td.bcr { grid-area: rp; align-self: start; } .bpt td.bcx { grid-area: ch; }
+  .bpt tr.bpdr { display: block; } .bpt tr.bpdr td { display: block; padding: 2px 12px 14px; border-bottom: 1px solid rgba(38,43,77,.75); }
+}
+
+.bpopts { margin-top: 16px; padding: 14px 18px; display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; }
+.bpoh { flex: 1 1 100%; display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+.bpoh b { font-family: var(--f-mono); font-weight: 500; font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--mint); }
+.bpoh span { font-size: .84rem; }
+.bpopts .bptog { font-weight: 500; font-size: .92rem; }
+.bpsel { display: inline-flex; gap: 8px; align-items: center; font-size: .92rem; }
+.bpsel { flex-wrap: wrap; max-width: 100%; }
+.bpsel select { max-width: 100%; min-width: 0; padding: 6px 10px; border-radius: 9px; font-family: var(--f-body); font-size: .9rem; }
+.bpopts .btn { margin-left: auto; }
+.bpgh .bpaddc { align-self: center; padding: 5px 10px; font-size: .62rem; }
+button.bprpn { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; text-decoration: underline; text-decoration-color: rgba(180,220,200,.35); text-underline-offset: 3px; }
+button.bprpn:hover { color: #fff; text-decoration-color: currentColor; }
+.bpql { margin: 2px 0 6px; padding-left: 18px; font-size: .84rem; color: #cfcbe0; }
+.snotes { list-style: none; margin: 0; padding: 10px 18px; display: grid; gap: 4px; border-bottom: 1px solid var(--line); font-size: .88rem; color: #d9d6ea; }
+.snotes li { padding-left: 14px; position: relative; }
+.bpt .bpfree { font-family: var(--f-mono); font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; color: #ffd34d; }
+.snotes li::before { content: ""; position: absolute; left: 0; top: .6em; width: 6px; height: 6px; border-radius: 50%; background: #ffd34d; }
+@media (max-width: 560px) { .bpopts .btn { margin-left: 0; } }
 </style>
 
 <header class="top">
@@ -780,12 +963,13 @@ details.dcg summary .n.ok { color: var(--ok); }
       <a href="#home" data-v="home" data-i18n="Home">Home</a>
       <a href="#workshop" data-v="workshop" data-i18n="Workshop">Workshop</a>
       <a href="#weapons" data-v="weapons" data-i18n="Weapons">Weapons</a>
+      <a href="#blueprints" data-v="blueprints" data-i18n="Blueprints">Blueprints</a>
       <a href="#items" data-v="items" data-i18n="Items">Items</a>
       <a href="#maps" data-v="maps" data-i18n="Maps">Maps</a>
       <a href="#keys" data-v="keys" data-i18n="Keys">Keys</a>
       <a href="#list" data-v="list"><span data-i18n="Shopping list">Shopping list</span><span class="nb" id="nb"></span></a>
     </nav>
-    <span class="arcwrap" id="arcWrap"><button type="button" id="arcPill" class="arcpill" hidden></button><div class="arctip" id="arcTip" role="tooltip"><div><b>No game data found</b>Your key works, but ARCTracker has nothing from the game for this account yet. Install <b style="display:inline;color:inherit">ARC Tracker Link</b> on your PC, link your ARC Raiders account there and press Sync now. <a href="https://arctracker.io/app#download" target="_blank" rel="noopener">Open the install guide</a></div></div></span>
+    <span class="arcwrap" id="arcWrap"><button type="button" id="arcPill" class="arcpill" hidden></button><div class="arctip" id="arcTip" role="tooltip"><div></div></div></span>
     <select id="langSel" aria-label="Language">
       <option value="en">EN</option><option value="pt">PT</option><option value="es">ES</option><option value="fr">FR</option><option value="de">DE</option><option value="sv">SV</option>
     </select>
@@ -825,13 +1009,13 @@ details.dcg summary .n.ok { color: var(--ok); }
       <ol class="zz">
         <li style="--c:#ff2d2d"><span class="zn">01</span><h3>Find your keys</h3><p>Open <a href="#keys">Keys</a> to see what every key opens and how to get it. Press <b>Show on map</b> to jump straight to its door.</p></li>
         <li style="--c:#ffc400"><span class="zn">02</span><h3>Know where loot spawns</h3><p>Search any item in the <a href="#items">Item finder</a> for its value, where it spawns and what it recycles into. <a href="#maps">Map intel</a> shows what each area holds.</p></li>
-        <li style="--c:#22d65f"><span class="zn">03</span><h3>Plan your upgrades</h3><p>Set your stations in the <a href="#workshop">Workshop planner</a>, or pick a gun, tier and attachments in the <a href="#weapons">Weapon calculator</a>. Every material you need is added up for you.</p></li>
-        <li class="arc-only" style="--c:#5ff2ea" hidden><span class="zn">04</span><h3>Link ARCTracker <small style="color:var(--dim);font-weight:500">(optional)</small></h3><p>Already use ARCTracker? Link it once and the site keeps itself up to date: your stash fills in the <b>Have</b> counts in the shopping list and Workshop materials, your station levels fill in the Workshop planner, and the Weapon calculator knows which tiers and blueprints you already have. It syncs every hour by itself. ARCTracker gets your game data from its <a href="https://arctracker.io/app#download" target="_blank" rel="noopener">ARC Tracker Link</a> app, so install that first.</p><button type="button" class="btn orb sm arcgo" data-arc="open">Link ARCTracker</button></li>
+        <li style="--c:#22d65f"><span class="zn">03</span><h3>Plan your upgrades</h3><p>Set your stations in the <a href="#workshop">Workshop planner</a>, or pick a gun, tier and attachments in the <a href="#weapons">Weapon calculator</a>. Every material you need is added up for you. Missing a blueprint? The <a href="#blueprints">Blueprint tracker</a> tells you whether to research it or where to find it.</p></li>
+        <li class="arc-only" style="--c:#5ff2ea" hidden><span class="zn">04</span><h3>Link ARCTracker <small style="color:var(--dim);font-weight:500">(optional)</small></h3><p>Already use ARCTracker? Link it once and the site keeps itself up to date: your stash fills in the <b>Have</b> counts in the shopping list and Workshop materials, your station levels fill in the Workshop planner, the Weapon calculator knows which tiers you already have, and the Blueprint tracker ticks off every blueprint you have learned. It syncs every hour by itself. ARCTracker gets your game data from its <a href="https://arctracker.io/app#download" target="_blank" rel="noopener">ARC Tracker Link</a> app, so install that first.</p><button type="button" class="btn orb sm arcgo" data-arc="open">Link ARCTracker</button></li>
         <li style="--c:#2f3ee0"><span class="zn">05</span><h3>Build your shopping list</h3><p>Press <b>+ Shopping list</b> anywhere. Your <a href="#list">list</a> combines everything, tracks what you already have and exports to Discord, Steam or plain text.</p></li>
       </ol>
     </section>
     <section class="hsec htools" id="tools">
-      <div class="shd"><i class="stk"></i><div class="tag-k">Tools</div><h2>Pick a tool</h2><p>Six tools that work together. Anything you plan can go straight onto your shopping list.</p></div>
+      <div class="shd"><i class="stk"></i><div class="tag-k">Tools</div><h2>Pick a tool</h2><p>Seven tools that work together. Anything you plan can go straight onto your shopping list.</p></div>
     <div class="cards">
       <a class="panel card orb" href="#workshop"><div class="card-num">01</div><h3 data-i18n="Workshop planner">Workshop planner</h3><p data-i18n="Set your station levels and get a grouped shopping list for the Workshop, Outpost and Research Station.">Set your station levels and get a grouped shopping list for the Workshop, Outpost and Research Station.</p><span class="go-l" data-i18n="Open →">Open →</span></a>
       <a class="panel card orb" href="#weapons"><div class="card-num">02</div><h3 data-i18n="Weapon calculator">Weapon calculator</h3><p data-i18n="Pick a gun, its tier and attachments, and see every material and blueprint you need.">Pick a gun, its tier and attachments, and see every material and blueprint you need.</p><span class="go-l" data-i18n="Open →">Open →</span></a>
@@ -839,11 +1023,12 @@ details.dcg summary .n.ok { color: var(--ok); }
       <a class="panel card orb" href="#maps"><div class="card-num">04</div><h3 data-i18n="Map intel">Map intel</h3><p data-i18n="Zoomable maps with named areas, conditions and the items found there.">Zoomable maps with named areas, conditions and the items found there.</p><span class="go-l" data-i18n="Open →">Open →</span></a>
       <a class="panel card orb" href="#keys"><div class="card-num">05</div><h3 data-i18n="Keys &amp; keycards">Keys &amp; keycards</h3><p data-i18n="Every key: which door it opens, how to get it, and a pin on the map where known.">Every key: which door it opens, how to get it, and a pin on the map where known.</p><span class="go-l" data-i18n="Open →">Open →</span></a>
       <a class="panel card orb" href="#list"><div class="card-num">06</div><h3 data-i18n="Shopping list">Shopping list</h3><p data-i18n="Everything you add from the other tools in one list, ready to export for Discord, Steam or plain text.">Everything you add from the other tools in one list, ready to export for Discord, Steam or plain text.</p><span class="go-l" data-i18n="Open →">Open →</span></a>
+      <a class="panel card orb wide" href="#blueprints"><div class="card-num">07</div><div><h3><span data-i18n="Blueprint tracker">Blueprint tracker</span><span class="newb">NEW</span></h3><p data-i18n="Which blueprints you have and miss, what you can craft, and whether to research or hunt for the rest.">Which blueprints you have and miss, what you can craft, and whether to research or hunt for the rest.</p></div><span class="go-l" data-i18n="Open →">Open →</span></a>
     </div>
     </section>
     <section class="hsec faq" id="faq">
       <div class="shd"><i class="stk"></i><div class="tag-k">FAQ</div><h2>Good to know</h2><p>Quick answers to the things people ask most.</p></div>
-      <div class="faql"><details class="panel"><summary>Do I need an account? Where is my stuff saved?</summary><p>No account needed. Your plans, shopping list and settings are saved in this browser on this device. Clearing your browser data or switching to another device starts you fresh.</p></details><details class="panel"><summary>How do I share a weapon build or move it to another device?</summary><p>In the Weapon calculator, press <b>Copy build code</b> and paste it anywhere, for example in Discord. Anyone can open it with <b>Load a build</b>.</p></details><details class="panel"><summary>What does the number on a map pin mean?</summary><p>Several keys open doors in the same building. Hover or tap the pin to see all of them and which door each one opens.</p></details><details class="panel"><summary>Why does one key have several pins?</summary><p>Some keys, like the Blue Gate Cellar Key, open more than one door. Each pin is one of them, so if the first door is already looted, try the next.</p></details><details class="panel"><summary>Is the pin on the exact door?</summary><p>Hover the pin to check. It says whether it marks the door itself or just the building or area.</p></details><details class="panel"><summary>How is DPS calculated?</summary><p>Damage × fire rate. It is meant for comparing weapons with each other, and does not count reloads, headshots or shields.</p></details><details class="panel"><summary>Why do some weapon stats show “—” or a note about sources?</summary><p>Some numbers are missing from the community data set. Where we could, gaps are filled from arcraiders.wiki or arcraidershub.com and marked under the table. “—” means no source has that number yet.</p></details><details class="panel"><summary>Why do the weapon stats only open at the end?</summary><p>The Weapon calculator goes step by step. The stats open once every attachment slot is set; choose <b>None</b> to leave a slot empty, or press <b>Skip to stats</b>.</p></details><details class="panel"><summary>How does the shopping list count items?</summary><p>Everything you add becomes its own group. If two groups need the same item, the <b>Have</b> number is shared between them, so nothing gets counted twice. Tick an item once you have all of it.</p></details><details class="panel"><summary>What do the export options do?</summary><p><b>Combine everything</b> merges all groups into one total list. <b>Include items I've already got</b> keeps finished items in the export, marked as done. Then pick Plain, Discord or Steam formatting and copy.</p></details><details class="panel"><summary>How accurate are the map conditions?</summary><p>They are estimated from a rotation we recorded hour by hour. Most events repeat every 25 hours, so the timers are usually right, but roughly one hour in ten can differ. Pick your server region on the map card, and check the in-game map screen before you count on an event.</p></details><details class="panel"><summary>How up to date is the data?</summary><p>The badge at the bottom of every page shows the game patch and when the data was last updated. The site refreshes its data automatically every day.</p></details><details class="panel"><summary>Why does a map say WIP?</summary><p>Something for that map is still missing, like the map image or key pins. The map card says exactly what.</p></details><details class="panel arc-only" hidden><summary>How do I link my ARCTracker account?</summary><p>Press <b>Link ARCTracker</b> at the top of the page. In ARCTracker, open <b>Settings → Developer Access</b>, create a personal key with <b>profile</b>, <b>stash</b>, <b>hideout</b>, <b>blueprints</b> and <b>quests</b> read access, and paste it in. Your raider name and level then show in the top corner. From then on, your stash fills in the <b>Have</b> counts in the shopping list and Workshop materials, your station levels fill in the Workshop planner, and the Weapon calculator answers “Do you own it?” for you. If you have not learned a blueprint yet, its materials are left out and the site shows where to find it, including quests you have not done that give it. You can still change anything by hand.</p></details><details class="panel arc-only" hidden><summary>How often does ARCTracker sync, and is my key safe?</summary><p>It syncs by itself once an hour while the site is open, and you can press <b>Refresh</b> up to 2 more times per hour (a countdown shows when the next one is available). Your key is saved only in this browser and only sent to ARCTracker. <b>Unlink</b> deletes it; your Have counts stay.</p></details><details class="panel arc-only" hidden><summary>ARCTracker is linked but nothing fills in?</summary><p>If the dot turns <b style="color:#ff9f43">orange</b>, your key works but ARCTracker has no game data for your account yet. ARCTracker gets your stash, stations, blueprints and quests from its own PC app, ARC Tracker Link. <a href="https://arctracker.io/app#download" target="_blank" rel="noopener">Install it from ARCTracker</a>, link your ARC Raiders account there, press Sync now, then press Refresh here.</p></details><details class="panel"><summary>Is this official?</summary><p>No. This is an unofficial fan project and is not affiliated with Embark Studios.</p></details><details class="panel"><summary>I found a mistake or have an idea. Where do I tell you?</summary><p>Drop it in our <a href="https://discord.gg/NE3ughZTxn" target="_blank" rel="noopener">Discord</a>. Corrections are added for everyone.</p></details></div>
+      <div class="faql"><details class="panel"><summary>Do I need an account? Where is my stuff saved?</summary><p>No account needed. Your plans, shopping list and settings are saved in this browser on this device. Clearing your browser data or switching to another device starts you fresh.</p></details><details class="panel"><summary>How do I share a weapon build or move it to another device?</summary><p>In the Weapon calculator, press <b>Copy build code</b> and paste it anywhere, for example in Discord. Anyone can open it with <b>Load a build</b>.</p></details><details class="panel"><summary>What does the number on a map pin mean?</summary><p>Several keys open doors in the same building. Hover or tap the pin to see all of them and which door each one opens.</p></details><details class="panel"><summary>Why does one key have several pins?</summary><p>Some keys, like the Blue Gate Cellar Key, open more than one door. Each pin is one of them, so if the first door is already looted, try the next.</p></details><details class="panel"><summary>Is the pin on the exact door?</summary><p>Hover the pin to check. It says whether it marks the door itself or just the building or area.</p></details><details class="panel"><summary>How is DPS calculated?</summary><p>Damage × fire rate. It is meant for comparing weapons with each other, and does not count reloads, headshots or shields.</p></details><details class="panel"><summary>Why do some weapon stats show “—” or a note about sources?</summary><p>Some numbers are missing from the community data set. Where we could, gaps are filled from arcraiders.wiki or arcraidershub.com and marked under the table. “—” means no source has that number yet.</p></details><details class="panel"><summary>Why do the weapon stats only open at the end?</summary><p>The Weapon calculator goes step by step. The stats open once every attachment slot is set; choose <b>None</b> to leave a slot empty, or press <b>Skip to stats</b>.</p></details><details class="panel"><summary>How does the shopping list count items?</summary><p>Everything you add becomes its own group. If two groups need the same item, the <b>Have</b> number is shared between them, so nothing gets counted twice. Tick an item once you have all of it.</p></details><details class="panel"><summary>What do the export options do?</summary><p><b>Combine everything</b> merges all groups into one total list. <b>Include items I've already got</b> keeps finished items in the export, marked as done. Then pick Plain, Discord or Steam formatting and copy.</p></details><details class="panel"><summary>How accurate are the map conditions?</summary><p>They are estimated from a rotation we recorded hour by hour. Most events repeat every 25 hours, so the timers are usually right, but roughly one hour in ten can differ. Pick your server region on the map card, and check the in-game map screen before you count on an event.</p></details><details class="panel"><summary>How up to date is the data?</summary><p>The badge at the bottom of every page shows the game patch and when the data was last updated. The site refreshes its data automatically every day.</p></details><details class="panel"><summary>Why does a map say WIP?</summary><p>Something for that map is still missing, like the map image or key pins. The map card says exactly what.</p></details><details class="panel arc-only" hidden><summary>How do I link my ARCTracker account?</summary><p>Press <b>Link ARCTracker</b> at the top of the page. In ARCTracker, open <b>Settings → Developer Access</b>, create a personal key with <b>profile</b>, <b>stash</b>, <b>hideout</b>, <b>blueprints</b> and <b>quests</b> read access, and paste it in. Your raider name and level then show in the top corner. From then on, your stash fills in the <b>Have</b> counts in the shopping list and Workshop materials, your station levels fill in the Workshop planner, the Weapon calculator answers “Do you own it?” for you, and the Blueprint tracker ticks off what you have learned. If you have not learned a blueprint yet, its materials are left out and the site shows where to find it, including quests you have not done that give it. You can still change anything by hand.</p></details><details class="panel arc-only" hidden><summary>How often does ARCTracker sync, and is my key safe?</summary><p>It syncs by itself once an hour while the site is open, and you can press <b>Refresh</b> up to 2 more times per hour (a countdown shows when the next one is available). Your key is saved only in this browser and only sent to ARCTracker. <b>Unlink</b> deletes it; your Have counts stay.</p></details><details class="panel arc-only" hidden><summary>ARCTracker is linked but nothing fills in?</summary><p>If the dot turns <b style="color:#ff9f43">orange</b>, your key works but ARCTracker has no game data for your account yet. ARCTracker gets your stash, stations, blueprints and quests from its own PC app, ARC Tracker Link. <a href="https://arctracker.io/app#download" target="_blank" rel="noopener">Install it from ARCTracker</a>, link your ARC Raiders account there, press Sync now, then press Refresh here.</p><p>If only something is off, like your level or one station, open the ARCTracker box at the top, press <b>Copy sync details</b> and send it to us in <a href="https://discord.gg/NE3ughZTxn" target="_blank" rel="noopener">Discord</a>. It shows how ARCTracker sends your data, without your key.</p></details><details class="panel"><summary>How does the Blueprint tracker choose between researching and finding?</summary><p>If a quest you have not finished gives the blueprint, it suggests the quest first, because quest rewards are guaranteed (you can turn this off). Next comes researching it, if your Research Station is high enough, and otherwise the best place to find it, with the map condition and a live timer for when that condition is next up. The + buttons add it all to your shopping list: research materials, the quest and anything it asks you to hand in, research items to cover the Research Points if you pick one, and the materials to craft each item. Your Research Station level comes from the Workshop planner, or from ARCTracker when linked.</p></details><details class="panel"><summary>Where do I get Research Points?</summary><p>Study research items after you extract: Battered Paperback (50), Raider Logbook (100), Exodus Technical Handbook (150), ARC Data Module (200) and Frigate Diagnostic Node (1,000, only on the ARC Frigate). The Blueprint tracker shows how many you still need and when the next Frigate is up.</p></details><details class="panel"><summary>Is this official?</summary><p>No. This is an unofficial fan project and is not affiliated with Embark Studios.</p></details><details class="panel"><summary>I found a mistake or have an idea. Where do I tell you?</summary><p>Drop it in our <a href="https://discord.gg/NE3ughZTxn" target="_blank" rel="noopener">Discord</a>. Corrections are added for everyone.</p></details></div>
     </section>
   </div>
 </div>
@@ -874,6 +1059,16 @@ details.dcg summary .n.ok { color: var(--ok); }
     <div class="wbar"><input id="wq" type="search" placeholder="Search weapons…" data-i18n-ph="Search weapons…" autocomplete="off" aria-label="Search weapons"><span class="l" id="wown"></span></div>
     <div class="wstripw"><button type="button" class="wscr l" data-wscr="-1" aria-label="Scroll weapons left">‹</button><div class="wstrip" id="wList"></div><button type="button" class="wscr r" data-wscr="1" aria-label="Scroll weapons right">›</button></div>
     <div class="panel wd wbuild" id="wDetail"></div>
+  </div>
+</div>
+
+<!-- BLUEPRINTS -->
+<div class="view" id="v-blueprints">
+  <div class="wrap view-pad">
+    <div class="sec-head"><div><div class="tag-k">Tool 07</div><h2 data-i18n-html="Blueprint &lt;em&gt;tracker&lt;/em&gt;">Blueprint <em>tracker</em></h2><p data-i18n="See which blueprints you have and which are missing, what you can already craft, and the quickest way to get the rest: research them or go find them.">See which blueprints you have and which are missing, what you can already craft, and the quickest way to get the rest: research them or go find them.</p></div></div>
+    <div class="arcbar" data-arcbar hidden></div>
+    <div id="bpTop"></div>
+    <div id="bpBody"></div>
   </div>
 </div>
 
@@ -927,6 +1122,7 @@ details.dcg summary .n.ok { color: var(--ok); }
       <p><b>Weapons.</b> The data set lists the materials for each tier, not the Gunsmith level each upgrade needs, so that is only shown for crafting the weapon and the attachments. Amplification Module counts are not published, so they are shown as unknown, never guessed. Weapon and attachment costs, tier bonuses and repair costs are from the game data (v1.42); a dash in the tier table means the data set has no value for that tier. Blueprint locations are from community guides. Kinetic Converter, Horizontal Grip and Silencer III cannot be crafted: they are found as loot, and the game's quest and project data name a guaranteed source where there is one. Corrections from the 2.0 and 2.3 patch notes are applied: the Anvil is Rare and lost its tech-mod slot (the Anvil Splitter is now part of the Amplified Anvil), Tian Wen no longer sells the Anvil or Hullcracker, creds were removed so cred prices are gone, and six legendary blueprints can drop in any major map condition. The Bantam and Stiletto (new in 2.0) are listed as WIP until their recipes are published. Build codes contain only the weapon, tiers, amplification and attachments.</p>
       <p><b>Maps.</b> Map images are the in-game maps from the data set. Named areas, ziplines and per-map conditions come from community map pages; the full condition list is from the game data. Pendola Pass has no map image or area list in the sources used yet. The interactive-map buttons link to arcraidersmaps.app. Zoomed-in views load the full original images (Buried City 6144 px, Stella Montis 5120 px, Dam 4260 px, the rest about 4000 px). How sharp they look depends on the source: Dam and Spaceport have fine detail but film-grain, Blue Gate is softer, and Riven Tides is the softest; the data set has no sharper versions with area names on them.</p>
       <p><b>Keys.</b> What each key opens comes from the game's item descriptions, with door details, how to get it and what is inside from the community guides listed above. Guides sometimes disagree; where they do, both versions are shown. Map pins mark the named area printed on the game map, not the exact door, and only keys whose area is labelled on the map have a pin. Riven Tides and Pendola Pass keys have no pins: the Riven Tides map image has no area labels and there is no Pendola Pass map image yet.</p>
+      <p><b>Blueprints.</b> The blueprint list is every blueprint-locked item in the game data, plus the Bantam, Stiletto, Grappling Hook, Tether Launcher and Yank Grenade from update 2.x. Research Station costs (level, Research Points and materials) are from ARCTracker's research list. Where to find each blueprint is from the community guides listed above; map conditions use the estimated rotation, so the timers can be off. Research Point values are from launch-day guides for Frozen Trail and may change with balance updates. Outpost furniture designs and Amplified weapon perks are not included.</p>
       <p><b>Shopping list.</b> Saved in this browser only. “Have” counts are shared across all groups and taken off the first groups first; the export lists what is still missing. Materials to craft an item come from the game data recipes.</p>
       <p><b>Items.</b> Stats, values, vendors, recycling and recipes are game data. Where-to-find notes come from the community guides listed above. Items added in update 2.x have no value or rarity in the data yet.</p>
     </section>
@@ -1001,6 +1197,10 @@ details.dcg summary .n.ok { color: var(--ok); }
   /* ---------- Language ---------- */
   var I18N = {
     pt: {
+      "free": "grátis",
+      "Add to shopping list": "Adicionar à lista", "Add all to shopping list": "Adicionar tudo à lista", "All missing blueprints": "Todos os projetos em falta", "What the + buttons add for missing blueprints": "O que os botões + adicionam para projetos em falta", "Use a quest when one gives the blueprint": "Usar uma missão quando ela dá o projeto", "Include crafting materials": "Incluir materiais de fabrico", "Research Points as": "Pontos de pesquisa como", "Research Points only": "Só pontos de pesquisa", "Show where it spawns": "Ver onde aparece", "Comes after": "Vem depois de", "A quest always gives the blueprint.": "Uma missão dá sempre o projeto.",
+      "Research cost": "Custo de pesquisa",
+      "Blueprints": "Projetos", "Blueprint tracker": "Registo de projetos", "Blueprint <em>tracker</em>": "Registo de <em>projetos</em>", "See which blueprints you have and which are missing, what you can already craft, and the quickest way to get the rest: research them or go find them.": "Veja que projetos tem e quais faltam, o que já pode fabricar e a forma mais rápida de obter o resto: pesquisar ou ir procurá-los.", "Which blueprints you have and miss, what you can craft, and whether to research or hunt for the rest.": "Que projetos tem e lhe faltam, o que pode fabricar e se deve pesquisar ou procurar o resto.", "not in the recorded rotation": "fora da rotação atual", "now on": "agora em", "left": "restantes", "next on": "próximo em", "in": "dentro de", "Recipe not published yet": "Receita ainda não publicada", "Needs": "Requer", "you have": "tem", "Research": "Pesquisar", "Research Station": "Estação de Pesquisa", "Quest": "Missão", "not done yet": "ainda não feita", "Upgrade": "Melhorar", "Find it": "Procurar", "No source listed yet": "Sem fonte listada", "or research at Research Station": "ou pesquise na Estação de Pesquisa", "unlocked": "desbloqueado", "you have level": "tem o nível", "Where to find it": "Onde encontrar", "Source": "Fonte", "Quest reward": "Recompensa de missão", "Craft": "Fabricar", "ready": "pronto", "Materials to shopping list": "Materiais para a lista de compras", "from your ARCTracker": "do seu ARCTracker", "Tick the blueprints you have, or link ARCTracker to fill this in.": "Marque os projetos que tem, ou ligue o ARCTracker para preencher isto.", "Learned": "Aprendido", "Can craft now": "Pode fabricar já", "Research now": "Pesquisar já", "To find or quest": "Procurar ou missão", "Every blueprint you are missing can be researched at your level.": "Todos os projetos em falta podem ser pesquisados no seu nível.", "You have no missing blueprints that need research.": "Não lhe falta nenhum projeto que precise de pesquisa.", "Level": "Nível", "level": "nível", "unlocks research for": "desbloqueia a pesquisa de", "of your missing blueprints.": "dos projetos em falta.", "Build it to research blueprints instead of hunting for them. Level 1 unlocks": "Construa-a para pesquisar projetos em vez de os procurar. O nível 1 desbloqueia", "Add upgrade to shopping list": "Adicionar melhoria à lista", "Open Workshop planner": "Abrir planeador da Oficina", "Not built yet": "Ainda não construída", "from your Workshop planner": "do seu planeador da Oficina", "Research points": "Pontos de pesquisa", "RP still to collect": "RP ainda por juntar", "Nothing to research at your level right now": "Nada para pesquisar no seu nível agora", "Research points you have": "Pontos de pesquisa que tem", "That is about": "Isso equivale a cerca de", "or": "ou", "Where to farm research points": "Onde farmar pontos de pesquisa", "All": "Todos", "Attachments": "Acessórios", "Grenades & mines": "Granadas e minas", "Healing": "Cura", "Gadgets": "Utilitários", "Augments": "Aumentos", "Gun parts": "Peças de armas", "Missing only": "Só em falta", "Search blueprints…": "Pesquisar projetos…", "Counts show how many you are still missing.": "Os números mostram quantos ainda faltam.", "blueprint": "projeto", "blueprints": "projetos", "Combined research cost": "Custo total de pesquisa", "materials": "materiais", "Researchable now": "Pesquisável já", "All missing": "Todos em falta", "Nothing left to research.": "Nada mais para pesquisar.", "Total": "Total", "Add materials to shopping list": "Adicionar materiais à lista", "Can craft": "Pode fabricar", "Missing": "Em falta", "Learned, from your ARCTracker": "Aprendido, do seu ARCTracker", "Untick if you have not learned it": "Desmarque se não o aprendeu", "Tick if you have learned it": "Marque se já o aprendeu", "learned": "aprendidos", "to research the rest": "para pesquisar o resto", "Blueprint": "Projeto", "Status": "Estado", "Best way to get it": "Melhor forma de obter", "Cost": "Custo", "Nothing missing here. Nice.": "Não falta nada aqui. Boa.", "No blueprint matches that search.": "Nenhum projeto corresponde à pesquisa.", "Blueprint research": "Pesquisa de projetos",
       "Home": "Início", "Workshop": "Oficina", "Weapons": "Armas", "Items": "Itens", "Maps": "Mapas", "Keys": "Chaves", "Shopping list": "Lista de compras",
       "Unofficial fan tools · Speranza": "Ferramentas de fã não oficiais · Speranza",
       "Plan every Workshop and Outpost upgrade, price out a weapon with its attachments, look up any item or key, and build a shopping list before you deploy topside.": "Planeie cada melhoria da Oficina e do Posto Avançado, calcule o custo de uma arma com os seus acessórios, pesquise qualquer item ou chave e monte uma lista de compras antes de ir para a superfície.",
@@ -1041,6 +1241,10 @@ details.dcg summary .n.ok { color: var(--ok); }
       "Workshop <em>planner</em>": "Planeador da <em>Oficina</em>", "Item <em>finder</em>": "Pesquisa de <em>itens</em>", "Keys <em>& keycards</em>": "Chaves <em>e cartões-chave</em>", "Info, sources <em>& legal</em>": "Informações, fontes <em>e legal</em>"
     },
     es: {
+      "free": "gratis",
+      "Add to shopping list": "Añadir a la lista", "Add all to shopping list": "Añadir todo a la lista", "All missing blueprints": "Todos los planos que faltan", "What the + buttons add for missing blueprints": "Lo que añaden los botones + para los planos que faltan", "Use a quest when one gives the blueprint": "Usar una misión cuando da el plano", "Include crafting materials": "Incluir materiales de fabricación", "Research Points as": "Puntos de investigación como", "Research Points only": "Solo puntos de investigación", "Show where it spawns": "Ver dónde aparece", "Comes after": "Viene después de", "A quest always gives the blueprint.": "Una misión siempre da el plano.",
+      "Research cost": "Coste de investigación",
+      "Blueprints": "Planos", "Blueprint tracker": "Control de planos", "Blueprint <em>tracker</em>": "Control de <em>planos</em>", "See which blueprints you have and which are missing, what you can already craft, and the quickest way to get the rest: research them or go find them.": "Mira qué planos tienes y cuáles te faltan, qué puedes fabricar ya y la forma más rápida de conseguir el resto: investigarlos o ir a buscarlos.", "Which blueprints you have and miss, what you can craft, and whether to research or hunt for the rest.": "Qué planos tienes y te faltan, qué puedes fabricar y si conviene investigar o buscar el resto.", "not in the recorded rotation": "fuera de la rotación actual", "now on": "ahora en", "left": "restantes", "next on": "próximo en", "in": "en", "Recipe not published yet": "Receta aún no publicada", "Needs": "Requiere", "you have": "tienes", "Research": "Investigar", "Research Station": "Estación de investigación", "Quest": "Misión", "not done yet": "aún no hecha", "Upgrade": "Mejorar", "Find it": "Buscar", "No source listed yet": "Sin fuente indicada", "or research at Research Station": "o investígalo en la Estación de investigación", "unlocked": "desbloqueado", "you have level": "tienes el nivel", "Where to find it": "Dónde encontrarlo", "Source": "Fuente", "Quest reward": "Recompensa de misión", "Craft": "Fabricar", "ready": "listo", "Materials to shopping list": "Materiales a la lista de compras", "from your ARCTracker": "de tu ARCTracker", "Tick the blueprints you have, or link ARCTracker to fill this in.": "Marca los planos que tienes, o vincula ARCTracker para rellenarlo.", "Learned": "Aprendido", "Can craft now": "Puedes fabricar ya", "Research now": "Investigar ya", "To find or quest": "Buscar o misión", "Every blueprint you are missing can be researched at your level.": "Puedes investigar todos los planos que te faltan con tu nivel.", "You have no missing blueprints that need research.": "No te falta ningún plano que requiera investigación.", "Level": "Nivel", "level": "nivel", "unlocks research for": "desbloquea la investigación de", "of your missing blueprints.": "de los planos que te faltan.", "Build it to research blueprints instead of hunting for them. Level 1 unlocks": "Constrúyela para investigar planos en lugar de buscarlos. El nivel 1 desbloquea", "Add upgrade to shopping list": "Añadir mejora a la lista", "Open Workshop planner": "Abrir planificador del Taller", "Not built yet": "Aún sin construir", "from your Workshop planner": "de tu planificador del Taller", "Research points": "Puntos de investigación", "RP still to collect": "RP por reunir", "Nothing to research at your level right now": "Nada que investigar con tu nivel ahora", "Research points you have": "Puntos de investigación que tienes", "That is about": "Eso son unos", "or": "o", "Where to farm research points": "Dónde farmear puntos de investigación", "All": "Todos", "Attachments": "Accesorios", "Grenades & mines": "Granadas y minas", "Healing": "Curación", "Gadgets": "Utilidades", "Augments": "Aumentos", "Gun parts": "Piezas de armas", "Missing only": "Solo los que faltan", "Search blueprints…": "Buscar planos…", "Counts show how many you are still missing.": "Los números indican cuántos te faltan.", "blueprint": "plano", "blueprints": "planos", "Combined research cost": "Coste total de investigación", "materials": "materiales", "Researchable now": "Investigable ya", "All missing": "Todos los que faltan", "Nothing left to research.": "No queda nada por investigar.", "Total": "Total", "Add materials to shopping list": "Añadir materiales a la lista", "Can craft": "Fabricable", "Missing": "Falta", "Learned, from your ARCTracker": "Aprendido, de tu ARCTracker", "Untick if you have not learned it": "Desmárcalo si no lo has aprendido", "Tick if you have learned it": "Márcalo si ya lo aprendiste", "learned": "aprendidos", "to research the rest": "para investigar el resto", "Blueprint": "Plano", "Status": "Estado", "Best way to get it": "Mejor forma de conseguirlo", "Cost": "Coste", "Nothing missing here. Nice.": "Aquí no falta nada. Bien.", "No blueprint matches that search.": "Ningún plano coincide con la búsqueda.", "Blueprint research": "Investigación de planos",
       "Home": "Inicio", "Workshop": "Taller", "Weapons": "Armas", "Items": "Objetos", "Maps": "Mapas", "Keys": "Llaves", "Shopping list": "Lista de la compra",
       "Unofficial fan tools · Speranza": "Herramientas de fans no oficiales · Speranza",
       "Plan every Workshop and Outpost upgrade, price out a weapon with its attachments, look up any item or key, and build a shopping list before you deploy topside.": "Planifica cada mejora del Taller y del Puesto Avanzado, calcula el coste de un arma con sus accesorios, busca cualquier objeto o llave y crea una lista de la compra antes de salir a la superficie.",
@@ -1081,6 +1285,10 @@ details.dcg summary .n.ok { color: var(--ok); }
       "Workshop <em>planner</em>": "Planificador del <em>Taller</em>", "Item <em>finder</em>": "Buscador de <em>objetos</em>", "Keys <em>& keycards</em>": "Llaves <em>y tarjetas llave</em>", "Info, sources <em>& legal</em>": "Información, fuentes <em>y legal</em>"
     },
     fr: {
+      "free": "gratuit",
+      "Add to shopping list": "Ajouter à la liste", "Add all to shopping list": "Tout ajouter à la liste", "All missing blueprints": "Tous les schémas manquants", "What the + buttons add for missing blueprints": "Ce que les boutons + ajoutent pour les schémas manquants", "Use a quest when one gives the blueprint": "Utiliser une quête quand elle donne le schéma", "Include crafting materials": "Inclure les matériaux de fabrication", "Research Points as": "Points de recherche en", "Research Points only": "Points de recherche seulement", "Show where it spawns": "Voir où il apparaît", "Comes after": "Après", "A quest always gives the blueprint.": "Une quête donne toujours le schéma.",
+      "Research cost": "Coût de recherche",
+      "Blueprints": "Schémas", "Blueprint tracker": "Suivi des schémas", "Blueprint <em>tracker</em>": "Suivi des <em>schémas</em>", "See which blueprints you have and which are missing, what you can already craft, and the quickest way to get the rest: research them or go find them.": "Voyez quels schémas vous avez et lesquels manquent, ce que vous pouvez déjà fabriquer et le moyen le plus rapide d'obtenir le reste : les rechercher ou aller les trouver.", "Which blueprints you have and miss, what you can craft, and whether to research or hunt for the rest.": "Les schémas que vous avez ou non, ce que vous pouvez fabriquer, et s'il vaut mieux rechercher ou chercher le reste.", "not in the recorded rotation": "hors de la rotation actuelle", "now on": "en cours sur", "left": "restantes", "next on": "prochain sur", "in": "dans", "Recipe not published yet": "Recette pas encore publiée", "Needs": "Requiert", "you have": "vous avez", "Research": "Rechercher", "Research Station": "Station de recherche", "Quest": "Quête", "not done yet": "pas encore faite", "Upgrade": "Améliorer", "Find it": "Trouver", "No source listed yet": "Aucune source indiquée", "or research at Research Station": "ou recherchez-le à la Station de recherche", "unlocked": "débloqué", "you have level": "vous avez le niveau", "Where to find it": "Où le trouver", "Source": "Source", "Quest reward": "Récompense de quête", "Craft": "Fabriquer", "ready": "prêt", "Materials to shopping list": "Matériaux dans la liste de courses", "from your ARCTracker": "depuis votre ARCTracker", "Tick the blueprints you have, or link ARCTracker to fill this in.": "Cochez les schémas que vous avez, ou liez ARCTracker pour le remplir.", "Learned": "Appris", "Can craft now": "Fabricable maintenant", "Research now": "À rechercher maintenant", "To find or quest": "À trouver ou quête", "Every blueprint you are missing can be researched at your level.": "Tous les schémas manquants peuvent être recherchés à votre niveau.", "You have no missing blueprints that need research.": "Aucun schéma manquant ne nécessite de recherche.", "Level": "Niveau", "level": "niveau", "unlocks research for": "débloque la recherche de", "of your missing blueprints.": "de vos schémas manquants.", "Build it to research blueprints instead of hunting for them. Level 1 unlocks": "Construisez-la pour rechercher des schémas au lieu de les chercher. Le niveau 1 débloque", "Add upgrade to shopping list": "Ajouter l'amélioration à la liste", "Open Workshop planner": "Ouvrir le planificateur d'atelier", "Not built yet": "Pas encore construite", "from your Workshop planner": "depuis votre planificateur d'atelier", "Research points": "Points de recherche", "RP still to collect": "RP encore à collecter", "Nothing to research at your level right now": "Rien à rechercher à votre niveau pour l'instant", "Research points you have": "Vos points de recherche", "That is about": "Cela fait environ", "or": "ou", "Where to farm research points": "Où farmer des points de recherche", "All": "Tous", "Attachments": "Accessoires", "Grenades & mines": "Grenades et mines", "Healing": "Soins", "Gadgets": "Gadgets", "Augments": "Augmentations", "Gun parts": "Pièces d'armes", "Missing only": "Manquants seulement", "Search blueprints…": "Rechercher un schéma…", "Counts show how many you are still missing.": "Les nombres indiquent combien il vous en manque.", "blueprint": "schéma", "blueprints": "schémas", "Combined research cost": "Coût total de recherche", "materials": "matériaux", "Researchable now": "Recherchable maintenant", "All missing": "Tous les manquants", "Nothing left to research.": "Plus rien à rechercher.", "Total": "Total", "Add materials to shopping list": "Ajouter les matériaux à la liste", "Can craft": "Fabricable", "Missing": "Manquant", "Learned, from your ARCTracker": "Appris, depuis votre ARCTracker", "Untick if you have not learned it": "Décochez si vous ne l'avez pas appris", "Tick if you have learned it": "Cochez si vous l'avez appris", "learned": "appris", "to research the rest": "pour rechercher le reste", "Blueprint": "Schéma", "Status": "État", "Best way to get it": "Meilleur moyen de l'obtenir", "Cost": "Coût", "Nothing missing here. Nice.": "Rien ne manque ici. Bien joué.", "No blueprint matches that search.": "Aucun schéma ne correspond.", "Blueprint research": "Recherche de schémas",
       "Home": "Accueil", "Workshop": "Atelier", "Weapons": "Armes", "Items": "Objets", "Maps": "Cartes", "Keys": "Clés", "Shopping list": "Liste de courses",
       "Unofficial fan tools · Speranza": "Outils de fans non officiels · Speranza",
       "Plan every Workshop and Outpost upgrade, price out a weapon with its attachments, look up any item or key, and build a shopping list before you deploy topside.": "Planifiez chaque amélioration de l'Atelier et de l'Avant-poste, calculez le coût d'une arme avec ses accessoires, recherchez n'importe quel objet ou clé, et préparez une liste de courses avant de partir en surface.",
@@ -1121,6 +1329,10 @@ details.dcg summary .n.ok { color: var(--ok); }
       "Workshop <em>planner</em>": "Planificateur d'<em>Atelier</em>", "Item <em>finder</em>": "Recherche d'<em>objets</em>", "Keys <em>& keycards</em>": "Clés <em>et cartes-clés</em>", "Info, sources <em>& legal</em>": "Infos, sources <em>et mentions légales</em>"
     },
     de: {
+      "free": "gratis",
+      "Add to shopping list": "Auf die Einkaufsliste", "Add all to shopping list": "Alles auf die Einkaufsliste", "All missing blueprints": "Alle fehlenden Baupläne", "What the + buttons add for missing blueprints": "Was die +-Knöpfe für fehlende Baupläne hinzufügen", "Use a quest when one gives the blueprint": "Auftrag nutzen, wenn er den Bauplan gibt", "Include crafting materials": "Herstellungsmaterialien einbeziehen", "Research Points as": "Forschungspunkte als", "Research Points only": "Nur Forschungspunkte", "Show where it spawns": "Zeigen, wo es spawnt", "Comes after": "Kommt nach", "A quest always gives the blueprint.": "Ein Auftrag gibt den Bauplan garantiert.",
+      "Research cost": "Forschungskosten",
+      "Blueprints": "Baupläne", "Blueprint tracker": "Bauplan-Tracker", "Blueprint <em>tracker</em>": "Bauplan-<em>Tracker</em>", "See which blueprints you have and which are missing, what you can already craft, and the quickest way to get the rest: research them or go find them.": "Sieh, welche Baupläne du hast und welche fehlen, was du schon herstellen kannst und wie du den Rest am schnellsten bekommst: erforschen oder suchen gehen.", "Which blueprints you have and miss, what you can craft, and whether to research or hunt for the rest.": "Welche Baupläne du hast und welche fehlen, was du herstellen kannst und ob du den Rest erforschen oder suchen solltest.", "not in the recorded rotation": "nicht in der aktuellen Rotation", "now on": "jetzt auf", "left": "übrig", "next on": "als Nächstes auf", "in": "in", "Recipe not published yet": "Rezept noch nicht veröffentlicht", "Needs": "Braucht", "you have": "du hast", "Research": "Erforschen", "Research Station": "Forschungsstation", "Quest": "Auftrag", "not done yet": "noch nicht erledigt", "Upgrade": "Ausbauen", "Find it": "Finden", "No source listed yet": "Noch keine Quelle", "or research at Research Station": "oder erforsche ihn an der Forschungsstation", "unlocked": "freigeschaltet", "you have level": "du hast Stufe", "Where to find it": "Wo du ihn findest", "Source": "Quelle", "Quest reward": "Auftragsbelohnung", "Craft": "Herstellen", "ready": "bereit", "Materials to shopping list": "Materialien auf die Einkaufsliste", "from your ARCTracker": "aus deinem ARCTracker", "Tick the blueprints you have, or link ARCTracker to fill this in.": "Hake deine Baupläne ab oder verknüpfe ARCTracker, dann füllt sich das selbst.", "Learned": "Gelernt", "Can craft now": "Jetzt herstellbar", "Research now": "Jetzt erforschbar", "To find or quest": "Suchen oder Auftrag", "Every blueprint you are missing can be researched at your level.": "Alle fehlenden Baupläne kannst du auf deiner Stufe erforschen.", "You have no missing blueprints that need research.": "Dir fehlt kein Bauplan, der Forschung braucht.", "Level": "Stufe", "level": "Stufe", "unlocks research for": "schaltet Forschung frei für", "of your missing blueprints.": "deiner fehlenden Baupläne.", "Build it to research blueprints instead of hunting for them. Level 1 unlocks": "Bau sie, um Baupläne zu erforschen statt sie zu suchen. Stufe 1 schaltet frei:", "Add upgrade to shopping list": "Ausbau auf die Liste", "Open Workshop planner": "Werkstattplaner öffnen", "Not built yet": "Noch nicht gebaut", "from your Workshop planner": "aus deinem Werkstattplaner", "Research points": "Forschungspunkte", "RP still to collect": "RP noch zu sammeln", "Nothing to research at your level right now": "Auf deiner Stufe gibt es gerade nichts zu erforschen", "Research points you have": "Deine Forschungspunkte", "That is about": "Das sind etwa", "or": "oder", "Where to farm research points": "Wo du Forschungspunkte farmst", "All": "Alle", "Attachments": "Aufsätze", "Grenades & mines": "Granaten & Minen", "Healing": "Heilung", "Gadgets": "Gadgets", "Augments": "Augments", "Gun parts": "Waffenteile", "Missing only": "Nur fehlende", "Search blueprints…": "Baupläne suchen…", "Counts show how many you are still missing.": "Die Zahlen zeigen, wie viele dir noch fehlen.", "blueprint": "Bauplan", "blueprints": "Baupläne", "Combined research cost": "Gesamte Forschungskosten", "materials": "Materialien", "Researchable now": "Jetzt erforschbar", "All missing": "Alle fehlenden", "Nothing left to research.": "Nichts mehr zu erforschen.", "Total": "Gesamt", "Add materials to shopping list": "Materialien auf die Liste", "Can craft": "Herstellbar", "Missing": "Fehlt", "Learned, from your ARCTracker": "Gelernt, laut deinem ARCTracker", "Untick if you have not learned it": "Abhaken entfernen, wenn nicht gelernt", "Tick if you have learned it": "Abhaken, wenn gelernt", "learned": "gelernt", "to research the rest": "für den Rest", "Blueprint": "Bauplan", "Status": "Status", "Best way to get it": "Bester Weg", "Cost": "Kosten", "Nothing missing here. Nice.": "Hier fehlt nichts. Stark.", "No blueprint matches that search.": "Kein Bauplan passt zur Suche.", "Blueprint research": "Bauplan-Forschung",
       "Home": "Start", "Workshop": "Werkstatt", "Weapons": "Waffen", "Items": "Gegenstände", "Maps": "Karten", "Keys": "Schlüssel", "Shopping list": "Einkaufsliste",
       "Unofficial fan tools · Speranza": "Inoffizielle Fan-Tools · Speranza",
       "Plan every Workshop and Outpost upgrade, price out a weapon with its attachments, look up any item or key, and build a shopping list before you deploy topside.": "Plane jedes Werkstatt- und Außenposten-Upgrade, berechne die Kosten einer Waffe mit ihren Anbauteilen, suche nach jedem Gegenstand oder Schlüssel und erstelle eine Einkaufsliste, bevor du an die Oberfläche gehst.",
@@ -1161,6 +1373,10 @@ details.dcg summary .n.ok { color: var(--ok); }
       "Workshop <em>planner</em>": "Werkstatt-<em>Planer</em>", "Item <em>finder</em>": "Gegenstands<em>suche</em>", "Keys <em>& keycards</em>": "Schlüssel <em>& Schlüsselkarten</em>", "Info, sources <em>& legal</em>": "Infos, Quellen <em>& Rechtliches</em>"
     },
     sv: {
+      "free": "gratis",
+      "Add to shopping list": "Lägg i inköpslistan", "Add all to shopping list": "Lägg allt i inköpslistan", "All missing blueprints": "Alla saknade ritningar", "What the + buttons add for missing blueprints": "Vad +-knapparna lägger till för saknade ritningar", "Use a quest when one gives the blueprint": "Använd uppdrag när ett ger ritningen", "Include crafting materials": "Ta med tillverkningsmaterial", "Research Points as": "Forskningspoäng som", "Research Points only": "Bara forskningspoäng", "Show where it spawns": "Visa var den dyker upp", "Comes after": "Kommer efter", "A quest always gives the blueprint.": "Ett uppdrag ger alltid ritningen.",
+      "Research cost": "Forskningskostnad",
+      "Blueprints": "Ritningar", "Blueprint tracker": "Ritningskoll", "Blueprint <em>tracker</em>": "Ritnings<em>koll</em>", "See which blueprints you have and which are missing, what you can already craft, and the quickest way to get the rest: research them or go find them.": "Se vilka ritningar du har och vilka som saknas, vad du redan kan tillverka och snabbaste sättet att få resten: forska fram dem eller leta upp dem.", "Which blueprints you have and miss, what you can craft, and whether to research or hunt for the rest.": "Vilka ritningar du har och saknar, vad du kan tillverka och om du ska forska fram eller leta efter resten.", "not in the recorded rotation": "inte i nuvarande rotation", "now on": "nu på", "left": "kvar", "next on": "nästa på", "in": "om", "Recipe not published yet": "Receptet är inte publicerat än", "Needs": "Kräver", "you have": "du har", "Research": "Forska", "Research Station": "Forskningsstation", "Quest": "Uppdrag", "not done yet": "inte klart än", "Upgrade": "Uppgradera", "Find it": "Hitta", "No source listed yet": "Ingen källa än", "or research at Research Station": "eller forska fram den på Forskningsstation", "unlocked": "upplåst", "you have level": "du har nivå", "Where to find it": "Var du hittar den", "Source": "Källa", "Quest reward": "Uppdragsbelöning", "Craft": "Tillverka", "ready": "klar", "Materials to shopping list": "Material till inköpslistan", "from your ARCTracker": "från din ARCTracker", "Tick the blueprints you have, or link ARCTracker to fill this in.": "Bocka i ritningarna du har, eller länka ARCTracker så fylls det i.", "Learned": "Inlärd", "Can craft now": "Kan tillverkas nu", "Research now": "Kan forskas nu", "To find or quest": "Hitta eller uppdrag", "Every blueprint you are missing can be researched at your level.": "Alla ritningar du saknar kan forskas fram på din nivå.", "You have no missing blueprints that need research.": "Du saknar inga ritningar som kräver forskning.", "Level": "Nivå", "level": "nivå", "unlocks research for": "låser upp forskning för", "of your missing blueprints.": "av dina saknade ritningar.", "Build it to research blueprints instead of hunting for them. Level 1 unlocks": "Bygg den för att forska fram ritningar i stället för att leta. Nivå 1 låser upp", "Add upgrade to shopping list": "Lägg uppgraderingen i listan", "Open Workshop planner": "Öppna verkstadsplaneraren", "Not built yet": "Inte byggd än", "from your Workshop planner": "från din verkstadsplanerare", "Research points": "Forskningspoäng", "RP still to collect": "RP kvar att samla", "Nothing to research at your level right now": "Inget att forska på din nivå just nu", "Research points you have": "Forskningspoäng du har", "That is about": "Det motsvarar ungefär", "or": "eller", "Where to farm research points": "Var du farmar forskningspoäng", "All": "Alla", "Attachments": "Tillbehör", "Grenades & mines": "Granater och minor", "Healing": "Läkning", "Gadgets": "Prylar", "Augments": "Augments", "Gun parts": "Vapendelar", "Missing only": "Bara saknade", "Search blueprints…": "Sök ritningar…", "Counts show how many you are still missing.": "Siffrorna visar hur många du saknar.", "blueprint": "ritning", "blueprints": "ritningar", "Combined research cost": "Total forskningskostnad", "materials": "material", "Researchable now": "Kan forskas nu", "All missing": "Alla saknade", "Nothing left to research.": "Inget kvar att forska.", "Total": "Totalt", "Add materials to shopping list": "Lägg material i listan", "Can craft": "Kan tillverkas", "Missing": "Saknas", "Learned, from your ARCTracker": "Inlärd, enligt din ARCTracker", "Untick if you have not learned it": "Avmarkera om du inte lärt dig den", "Tick if you have learned it": "Bocka i om du lärt dig den", "learned": "inlärda", "to research the rest": "för att forska resten", "Blueprint": "Ritning", "Status": "Status", "Best way to get it": "Bästa sättet att få den", "Cost": "Kostnad", "Nothing missing here. Nice.": "Inget saknas här. Snyggt.", "No blueprint matches that search.": "Ingen ritning matchar sökningen.", "Blueprint research": "Ritningsforskning",
       "Home": "Hem", "Workshop": "Verkstad", "Weapons": "Vapen", "Items": "Föremål", "Maps": "Kartor", "Keys": "Nycklar", "Shopping list": "Inköpslista",
       "Unofficial fan tools · Speranza": "Inofficiella fanverktyg · Speranza",
       "Plan every Workshop and Outpost upgrade, price out a weapon with its attachments, look up any item or key, and build a shopping list before you deploy topside.": "Planera varje uppgradering av Verkstaden och Utposten, räkna ut kostnaden för ett vapen med tillbehör, sök upp vilket föremål eller vilken nyckel som helst, och bygg en inköpslista innan du ger dig ut på ytan.",
@@ -1341,9 +1557,9 @@ details.dcg summary .n.ok { color: var(--ok); }
   }
 
   /* ---------- Routing ---------- */
-  var VIEWS = ["home", "workshop", "weapons", "items", "maps", "keys", "list", "info"];
+  var VIEWS = ["home", "workshop", "weapons", "blueprints", "items", "maps", "keys", "list", "info"];
   var started = {};
-  var VIEW_TITLE = { workshop: "Workshop planner", weapons: "Weapon calculator", items: "Item finder", maps: "Map intel", keys: "Keys & keycards", list: "Shopping list", info: "Info, sources & legal" };
+  var VIEW_TITLE = { workshop: "Workshop planner", weapons: "Weapon calculator", blueprints: "Blueprint tracker", items: "Item finder", maps: "Map intel", keys: "Keys & keycards", list: "Shopping list", info: "Info, sources & legal" };
   function setTitle() {
     var h = (location.hash || "").replace("#", "");
     document.title = VIEW_TITLE[h] ? t(VIEW_TITLE[h]) + " · Raider Toolkit" : "Raider Toolkit";
@@ -1358,6 +1574,7 @@ details.dcg summary .n.ok { color: var(--ok); }
     if (h === "maps") { setSbw(); mvApply(); }
     if (h === "weapons") centerWSel();
     if (h === "items") { renderUseChips(); renderItems(false); }
+    if (h === "blueprints") renderBp();
     if (window.__scene) { if (h === "home") window.__scene.start(); else window.__scene.stop(); }
     setTitle();
     window.scrollTo(0, 0);
@@ -1981,16 +2198,16 @@ details.dcg summary .n.ok { color: var(--ok); }
   function shopCount() { var s = {}; shop.g.forEach(function (g) { Object.keys(g.items).forEach(function (k) { if (needTotal(k) > haveOf(k)) s[k] = 1; }); }); return Object.keys(s).length; }
   function updateNb() { var n = shopCount(); $("#nb").textContent = n ? n : ""; }
   var toastT;
-  function toast(msg) {
+  function toast(msg, nolink) {
     var el = $("#toast"); if (!el) { el = document.createElement("div"); el.id = "toast"; el.setAttribute("role", "status"); document.body.appendChild(el); }
-    el.innerHTML = "<span>" + esc(msg) + '</span><a href="#list">View list →</a>'; el.classList.add("on");
+    el.innerHTML = "<span>" + esc(msg) + "</span>" + (nolink ? "" : '<a href="#list">View list →</a>'); el.classList.add("on");
     clearTimeout(toastT); toastT = setTimeout(function () { el.classList.remove("on"); }, 3200);
   }
   function rerenderShopViews() { renderShop(); if (document.getElementById("v-list").classList.contains("on")) runSearch(); }
-  function shopSet(key, label, items) {
-    var n = Object.keys(items).length; if (!n) { toast("Nothing to add: your stash already covers it."); return; }
+  function shopSet(key, label, items, notes) {
+    var n = Object.keys(items).length; if (!n && !(notes && notes.length)) { toast("Nothing to add: your stash already covers it."); return; }
     var g = shop.g.filter(function (x) { return x.key === key; })[0];
-    if (g) { g.items = items; g.label = label; } else shop.g.push({ key: key, label: label, items: items });
+    if (g) { g.items = items; g.label = label; g.notes = notes || null; } else shop.g.push({ key: key, label: label, items: items, notes: notes || null });
     saveShop(); rerenderShopViews(); toast((g ? "Updated " : "Added ") + label + " (" + n + " item" + (n > 1 ? "s" : "") + ")");
   }
   function shopAddOne(id) {
@@ -2024,8 +2241,9 @@ details.dcg summary .n.ok { color: var(--ok); }
       if (f === "steam") return "[*] " + (done ? "[strike]" + txt + "[/strike]" : txt);
       return "- " + txt + (done ? " (got)" : "");
     }
-    function block(title, items, left) {
+    function block(title, items, left, notes) {
       var ls = Object.keys(items).sort(function (a, b) { return items[b] - items[a] || nm(a).localeCompare(nm(b)); }).map(function (k) { return line(k, items[k], left[k]); }).filter(Boolean);
+      ls = (notes || []).map(function (x) { return f === "steam" ? "[*] [i]" + x + "[/i]" : f === "discord" ? "- *" + x + "*" : "- " + x; }).concat(ls);
       if (!ls.length) return;
       if (f === "discord") out.push((title ? "**" + title + "**\n" : "") + ls.join("\n"));
       else if (f === "steam") out.push((title ? "[h2]" + title + "[/h2]\n" : "") + "[list]\n" + ls.join("\n") + "\n[/list]");
@@ -2034,8 +2252,9 @@ details.dcg summary .n.ok { color: var(--ok); }
     if (comb) {
       var all = {}, al = {};
       shop.g.forEach(function (g, gi) { Object.keys(g.items).forEach(function (k) { all[k] = (all[k] || 0) + g.items[k]; al[k] = (al[k] || 0) + rem[gi][k]; }); });
-      block("", all, al);
-    } else shop.g.forEach(function (g, gi) { block(g.label, g.items, rem[gi]); });
+      var nt = []; shop.g.forEach(function (g) { (g.notes || []).forEach(function (x) { nt.push(x); }); });
+      block("", all, al, nt);
+    } else shop.g.forEach(function (g, gi) { block(g.label, g.items, rem[gi], g.notes); });
     var head = f === "discord" ? "## ARC Raiders shopping list" : f === "steam" ? "[h1]ARC Raiders shopping list[/h1]" : "ARC Raiders shopping list";
     return out.length ? head + "\n\n" + out.join("\n\n") : "";
   }
@@ -2046,14 +2265,15 @@ details.dcg summary .n.ok { color: var(--ok); }
     var txt = shopText(); $("#sOut").value = txt || (shop.g.length ? "You have everything on the list." : "Your list is empty."); $("#sHint").textContent = HINTS[shop.fmt];
     $("#sCopy").disabled = !txt;
   }
-  function grpKind(g) { return g.key === "ws" ? "Workshop" : g.key === "man" ? "Your picks" : g.key.indexOf("w:") === 0 ? "Weapon" : g.key.indexOf("mat:") === 0 ? "Crafting materials" : "List"; }
+  function grpKind(g) { return g.key === "ws" ? "Workshop" : g.key === "man" ? "Your picks" : g.key.indexOf("w:") === 0 ? "Weapon" : g.key.indexOf("mat:") === 0 ? "Crafting materials" : g.key.indexOf("bp:") === 0 ? "Blueprints" : "List"; }
   function renderShop() {
     var el = $("#shopGroups"), rem = remaining();
     el.innerHTML = shop.g.length ? shop.g.map(function (g, gi) {
       var ks = Object.keys(g.items).sort(function (a, b) { return g.items[b] - g.items[a] || nm(a).localeCompare(nm(b)); });
       var stepper = g.key === "man" || g.key.indexOf("mat:") === 0;
       return '<section class="panel sgrp"><div class="sgrp-h"><div><small>' + grpKind(g) + "</small><b>" + esc(g.label) + '</b></div><button type="button" class="x" data-rmg="' + gi + '">Remove</button></div>' +
-        '<div class="shead"><span></span><span></span><span>Item</span><span>Have</span><span>Need</span></div>' +
+        (g.notes && g.notes.length ? '<ul class="snotes">' + g.notes.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>" : "") +
+        (ks.length ? '<div class="shead"><span></span><span></span><span>Item</span><span>Have</span><span>Need</span></div>' : "") +
         ks.map(function (k) {
           var it = IDX[k], need = g.items[k], left = rem[gi][k], done = left <= 0, tot = needTotal(k);
           return '<div class="srow2' + (done ? " got" : "") + '" style="--rc:' + rcol(it && it.r) + '"><input type="checkbox" data-got="' + k + '"' + (done ? " checked" : "") + ' title="I have all of these" aria-label="I have all ' + esc(nm(k)) + '">' + thumb(k) + '<div class="nm">' + esc(nm(k)) + (done ? '<small class="ok">Covered</small>' : left < need ? "<small>" + left + " still to find</small>" : "") + "</div>" +
@@ -2626,13 +2846,266 @@ details.dcg summary .n.ok { color: var(--ok); }
   }
   if (window.ResizeObserver) { var zzRO = new ResizeObserver(function () { layoutZZ(); }); Array.prototype.forEach.call(document.querySelectorAll(".zz > li"), function (li) { zzRO.observe(li); }); }
   window.addEventListener("resize", layoutZZ);
+  /* ---------- Blueprint tracker ---------- */
+  var BPD = DB.bp || { list: [], rp: [] }, BPL = BPD.list || [];
+  var BP_CATS = [["wpn", "Weapons"], ["att", "Attachments"], ["exp", "Grenades & mines"], ["heal", "Healing"], ["gad", "Gadgets"], ["aug", "Augments"], ["parts", "Gun parts"]];
+  var BP_CN = {}; BP_CATS.forEach(function (c) { BP_CN[c[0]] = c[1]; });
+  var bpS = store("rt-bp") || {}; bpS.own = bpS.own || {}; bpS.cat = bpS.cat || "all"; bpS.scope = bpS.scope || "now"; bpS.q = ""; var bpOpen = {};
+  if (bpS.quest == null) bpS.quest = true; if (bpS.craft == null) bpS.craft = true; bpS.rpItem = bpS.rpItem || "";
+  function saveBp() { store("rt-bp", { own: bpS.own, cat: bpS.cat, miss: !!bpS.miss, rp: bpS.rp || 0, scope: bpS.scope, quest: !!bpS.quest, craft: !!bpS.craft, rpItem: bpS.rpItem || "" }); }
+  var BPQS = BPD.qs || {};
+  function bpQuestFor(e) { if (!bpS.quest) return null; var q = bpQ(e).filter(function (x) { return x.done !== true; })[0]; return q || null; }
+  /* builds one shopping list group for a set of missing blueprints, following the chosen options */
+  function bpShop(list, key, label) {
+    var items = {}, notes = [], res = [], byQ = {}, find = [];
+    function add(m, mul) { Object.keys(m || {}).forEach(function (k) { items[k] = (items[k] || 0) + m[k] * (mul || 1); }); }
+    list.forEach(function (e) {
+      var q = bpQuestFor(e);
+      if (q) { (byQ[q.q.id] = byQ[q.q.id] || { q: q.q, bps: [] }).bps.push(e.n); return; }
+      if (e.rs) res.push(e); else find.push(e);
+    });
+    var rp = 0; res.forEach(function (e) { rp += e.rs.p; add(e.rs.m); });
+    if (rp) {
+      var have = Math.max(0, parseInt(bpS.rp, 10) || 0), need = Math.max(0, rp - have), ri = (BPD.rp || []).filter(function (x) { return x.i === bpS.rpItem; })[0];
+      notes.push(fmt(rp) + " Research Points to research " + res.length + " blueprint" + (res.length === 1 ? "" : "s") + (have ? " (" + fmt(need) + " after the " + fmt(have) + " you have)" : "") + ".");
+      if (ri && need) { var nb = Math.ceil(need / ri.p); items[ri.i] = (items[ri.i] || 0) + nb; notes.push(nb + "× " + nm(ri.i) + " covers that (" + fmt(ri.p) + " each)."); }
+    }
+    Object.keys(byQ).forEach(function (id) {
+      var x = byQ[id], qd = BPQS[id] || {};
+      notes.push("Quest: " + x.q.n + (qd.tr ? " (" + qd.tr + ")" : "") + " gives the " + x.bps.join(", ") + " blueprint" + (x.bps.length > 1 ? "s" : "") + "." + (qd.pre && qd.pre.length ? " Comes after " + qd.pre.join(", ") + "." : ""));
+      add(qd.d);
+    });
+    find.forEach(function (e) {
+      var w = e.fc && e.fc.length ? e.fc.join(" or ") : (e.f || "no source listed yet").split(/[.;]/)[0];
+      notes.push("Find the " + e.n + " blueprint: " + w + (e.fc && e.fc.length ? " (map condition)" : "") + ".");
+    });
+    if (bpS.craft) list.forEach(function (e) { var it = IDX[e.id]; if (it && it.rp) add(it.rp); });
+    shopSet(key, label, items, notes);
+  }
+  function stLvl(id) { return (ws.cur && ws.cur[id]) || 0; }
+  function stById(id) { return STATIONS.filter(function (x) { return x.id === id; })[0]; }
+  function stN(id) { var s = stById(id); return s ? sname(s) : id; }
+  function bpArc(e) {
+    if (!arcOn() || !arc.bp || arcNoData()) return false;
+    var b = arc.bp;
+    return !!((e.b && (b[e.b] || b[e.b.replace(/_blueprint$/, "")])) || b[e.id] || (e.w && b[e.w]) || b[arcNorm(e.n)] || b[arcNorm(e.n) + "_blueprint"]);
+  }
+  function bpOwned(e) { return bpArc(e) || !!bpS.own[e.id]; }
+  function bpCraft(e) {
+    var it = IDX[e.id], w = e.w && WIDX[e.w];
+    var bench = w ? "weapon_bench" : it && it.cb && it.cb[0], lvl = w ? w.lvl : it && it.sl;
+    if (!bench) return null;
+    lvl = lvl || 1;
+    return { bench: bench, lvl: lvl, ok: stLvl(bench) >= lvl };
+  }
+  function bpQ(e) {
+    return (e.q || []).map(function (q) { return { q: q, done: arcOn() && arc.qd && !arcNoData() ? !!(arc.qd[arcNorm(q.id)] || arc.qd[arcNorm(q.n)]) : null }; });
+  }
+  function bpPlan(e) {
+    if (bpOwned(e)) return { k: "own", c: bpCraft(e) };
+    var qs = bpQ(e).filter(function (x) { return x.done !== true; });
+    if (qs.length && bpS.quest) return { k: "quest", q: qs[0] };
+    if (e.rs && stLvl("research") >= e.rs.l) return { k: "res" };
+    if (qs.length) return { k: "quest", q: qs[0] };
+    if (e.f && !/^Research Station/.test(e.f)) return { k: "find" };
+    if (e.rs) return { k: "up", l: e.rs.l };
+    return { k: "find" };
+  }
+  var BP_ORDER = { res: 0, quest: 1, find: 2, up: 3, own: 4 };
+  function bpDur(s) { s = Math.max(0, s); if (s < 3600) return evClock(s); var m = Math.floor(s % 3600 / 60); return Math.floor(s / 3600) + " h " + (m < 10 ? "0" : "") + m + " min"; }
+  function evFind(name, maps) {
+    if (!EV || !EV.m) return null;
+    var t0 = Date.parse(EV.t0), now = Date.now(), h = Math.floor((now - t0) / 3600000), left = (t0 + (h + 1) * 3600000 - now) / 1000;
+    var ms = (maps && maps.length ? maps : MAP_ORDER).filter(function (m) { return EV.m[m]; });
+    for (var k = 0; k <= EV.per; k++) for (var i = 0; i < ms.length; i++) {
+      if (evAt(ms[i], h + k).split(" + ").indexOf(name) > -1) return { m: ms[i], now: k === 0, s: k === 0 ? left : left + (k - 1) * 3600 };
+    }
+    return null;
+  }
+  function bpCondTxt(c, maps) {
+    var f = evFind(c, maps);
+    if (!f) return '<b>' + esc(c) + '</b> <span class="dim">' + esc(t("not in the recorded rotation")) + "</span>";
+    return "<b>" + esc(c) + "</b> " + (f.now ? '<span class="bpnow">' + esc(t("now on")) + " " + esc(MAPS[f.m].name) + "</span> · " + bpDur(f.s) + " " + esc(t("left")) : '<span class="dim">' + esc(t("next on")) + " " + esc(MAPS[f.m].name) + " " + esc(t("in")) + " " + bpDur(f.s) + "</span>");
+  }
+  function bpCond(c, maps) { return '<span class="bpc" data-bpc="' + esc(c) + '" data-bpm="' + esc((maps || []).join(",")) + '">' + bpCondTxt(c, maps) + "</span>"; }
+  function bpThumb(e) {
+    var id = ICONS[e.id] ? e.id : e.b && ICONS[e.b] ? e.b : e.id;
+    return IDX[id] || ICONS[id] ? thumb(id) : '<span class="th"><i></i></span>';
+  }
+  function bpHow(e, p) {
+    var rs = e.rs, s = "";
+    if (p.k === "own") {
+      if (!p.c) return '<span class="dim">' + esc(t("Recipe not published yet")) + "</span>";
+      return p.c.ok ? esc(stN(p.c.bench)) + " " + p.c.lvl : '<span class="bpwarn">' + esc(t("Needs")) + " " + esc(stN(p.c.bench)) + " " + p.c.lvl + "</span> <small class=\"dim\">(" + esc(t("you have")) + " " + stLvl(p.c.bench) + ")</small>";
+    }
+    if (p.k === "res") return '<span class="bptag res">' + esc(t("Research")) + "</span> " + esc(t("Research Station")) + " " + rs.l;
+    if (p.k === "quest") return '<span class="bptag q">' + esc(t("Quest")) + "</span> " + esc(p.q.q.n) + (p.q.done === false ? ' <small class="dim">(' + esc(t("not done yet")) + ")</small>" : "");
+    if (p.k === "up") return '<span class="bptag up">' + esc(t("Upgrade")) + "</span> " + esc(t("Research Station")) + " " + rs.l + ' <small class="dim">(' + esc(t("you have")) + " " + stLvl("research") + ")</small>";
+    s = '<span class="bptag find">' + esc(t("Find it")) + "</span> ";
+    if (e.fc && e.fc.length) s += bpCond(e.fc[0], e.fm);
+    else s += '<span class="bpf">' + esc(e.f || t("No source listed yet")) + "</span>";
+    if (rs) s += '<small class="dim bpor">' + esc(t("or research at Research Station")) + " " + rs.l + "</small>";
+    return s;
+  }
+  function bpDetail(e, p) {
+    var out = [], rs = e.rs, rsl = stLvl("research");
+    if (rs) out.push('<div class="bpd"><h5>' + esc(t("Research")) + '</h5><p><b class="rpv">' + fmt(rs.p) + " RP</b> · " + esc(t("Research Station")) + " " + rs.l +
+      (rsl >= rs.l ? ' <span class="chipst ok">' + esc(t("unlocked")) + "</span>" : ' <span class="chipst">' + esc(t("you have level")) + " " + rsl + "</span>") + "</p>" + chips(rs.m).replace('class="cm-row"', 'class="cm-row tight"') + "</div>");
+    if (e.f || (e.fc && e.fc.length)) out.push('<div class="bpd"><h5>' + esc(t("Where to find it")) + "</h5><p>" + esc(e.f || "") + "</p>" +
+      (e.fc && e.fc.length ? '<ul class="bpcl">' + e.fc.map(function (c) { return "<li>" + bpCond(c, e.fm) + "</li>"; }).join("") + "</ul>" : "") +
+      (e.fm && e.fm.length ? '<div class="chips tight">' + e.fm.map(function (k) { return MAPS[k] ? '<button type="button" class="chip orb" data-map="' + k + '">' + esc(MAPS[k].name) + "</button>" : ""; }).join("") + "</div>" : "") +
+      (e.fs ? '<small class="dim">' + esc(t("Source")) + ": " + esc(e.fs) + "</small>" : "") + "</div>");
+    var qs = bpQ(e);
+    if (qs.length) out.push('<div class="bpd"><h5>' + esc(t("Quest reward")) + "</h5>" + qs.map(function (x) {
+      var qd = BPQS[x.q.id] || {};
+      return "<p><b>" + esc(x.q.n) + "</b>" + (qd.tr ? " · " + esc(qd.tr) : "") + (qd.m && qd.m.length ? " · " + esc(qd.m.join(", ")) : "") + (x.done === true ? ' <span class="qdone">done</span>' : x.done === false ? ' <span class="qopen">not done yet</span>' : "") + "</p>" +
+        (qd.o && qd.o.length ? '<ul class="bpql">' + qd.o.map(function (o) { return "<li>" + esc(o) + "</li>"; }).join("") + "</ul>" : "") +
+        (qd.pre && qd.pre.length ? '<small class="dim">' + esc(t("Comes after")) + ": " + esc(qd.pre.join(", ")) + "</small>" : "");
+    }).join("") + '<small class="dim">' + esc(t("A quest always gives the blueprint.")) + "</small></div>");
+    var c = bpCraft(e), it = IDX[e.id];
+    if (c) out.push('<div class="bpd"><h5>' + esc(t("Craft")) + "</h5><p>" + esc(stN(c.bench)) + " " + c.lvl + (c.ok ? ' <span class="chipst ok">' + esc(t("ready")) + "</span>" : ' <span class="chipst">' + esc(t("you have level")) + " " + stLvl(c.bench) + "</span>") + "</p>" +
+      (it && it.rp ? chips(it.rp).replace('class="cm-row"', 'class="cm-row tight"') + '<button type="button" class="wchg" data-addm="' + e.id + '">+ ' + esc(t("Materials to shopping list")) + "</button>" : "") + "</div>");
+    return '<div class="bpdet">' + out.join("") + "</div>";
+  }
+  function bpMats(list) { var m = {}, p = 0; list.forEach(function (e) { p += e.rs.p; Object.keys(e.rs.m).forEach(function (k) { m[k] = (m[k] || 0) + e.rs.m[k]; }); }); return { m: m, p: p }; }
+  function bpInCat(e) { return bpS.cat === "all" || e.c === bpS.cat; }
+  function bpMatchQ(e) { var q = (bpS.q || "").toLowerCase().trim(); return !q || e.n.toLowerCase().indexOf(q) > -1; }
+  function renderBpTop() {
+    var el = $("#bpTop"); if (!el) return;
+    var rsl = stLvl("research"), miss = BPL.filter(function (e) { return !bpOwned(e); });
+    var own = BPL.length - miss.length, craft = BPL.filter(function (e) { var p = bpPlan(e); return p.k === "own" && p.c && p.c.ok; }).length;
+    var resNow = miss.filter(function (e) { return e.rs && e.rs.l <= rsl; }), rpNow = bpMats(resNow).p;
+    var find = miss.filter(function (e) { var k = bpPlan(e).k; return k === "find" || k === "quest"; }).length;
+    var src = arcOn() && arc.bp && !arcNoData() ? '<span class="arctag">' + esc(t("from your ARCTracker")) + "</span>" : '<span class="dim bpsrc">' + esc(t("Tick the blueprints you have, or link ARCTracker to fill this in.")) + "</span>";
+    var stats = '<div class="bpstats">' +
+      '<div class="bpsx"><b>' + own + "<small>/" + BPL.length + "</small></b><span>" + esc(t("Learned")) + "</span></div>" +
+      '<div class="bpsx"><b>' + craft + "</b><span>" + esc(t("Can craft now")) + "</span></div>" +
+      '<div class="bpsx"><b>' + resNow.length + "</b><span>" + esc(t("Research now")) + (rpNow ? " · " + fmt(rpNow) + " RP" : "") + "</span></div>" +
+      '<div class="bpsx"><b>' + find + "</b><span>" + esc(t("To find or quest")) + "</span></div></div>" + '<p class="bpsrcl">' + src + "</p>";
+    // research station card
+    var rs = stById("research"), need = 0, unlock = 0;
+    miss.forEach(function (e) { if (e.rs && e.rs.l > rsl) { if (!need || e.rs.l < need) need = e.rs.l; } });
+    var nx = rsl + 1, card1;
+    if (!rs) card1 = "";
+    else {
+      unlock = miss.filter(function (e) { return e.rs && e.rs.l === nx; }).length;
+      var cost = nx <= rs.max ? (rs.lv[nx - 1] || []) : [], cm = {}; cost.forEach(function (x) { cm[x.i] = x.q; });
+      var req = rs.req && rs.req[nx - 1], outL = stLvl("outpost");
+      var body;
+      if (rsl >= 3 || !need) body = "<p>" + esc(rsl ? t("Every blueprint you are missing can be researched at your level.") : t("You have no missing blueprints that need research.")) + "</p>";
+      else body = "<p>" + (rsl ? esc(t("Level")) + " " + nx + " " + esc(t("unlocks research for")) + " <b>" + unlock + "</b> " + esc(t("of your missing blueprints.")) : esc(t("Build it to research blueprints instead of hunting for them. Level 1 unlocks")) + " <b>" + unlock + "</b> " + esc(t("of your missing blueprints."))) + "</p>" +
+        (req ? '<p class="dim bpreq">' + esc(t("Needs")) + " " + esc(req) + (/Outpost level (\d)/.test(req) ? " · " + esc(t("you have")) + " " + outL + (outL >= +req.match(/Outpost level (\d)/)[1] ? ' <span class="chipst ok">ok</span>' : "") : "") + "</p>" : "") +
+        (cost.length ? chips(cm).replace('class="cm-row"', 'class="cm-row tight"') + '<div class="bpbtns"><button type="button" class="btn orb sm" data-bpup="' + nx + '">' + esc(t("Add upgrade to shopping list")) + '</button><a class="wchg" href="#workshop">' + esc(t("Open Workshop planner")) + "</a></div>" : "");
+      card1 = '<section class="panel bpcard"><div class="tag-k">' + esc(t("Research Station")) + '</div><h3>' + (rsl ? esc(t("Level")) + " " + rsl : esc(t("Not built yet"))) + ' <small class="dim">' + esc(t("from your Workshop planner")) + "</small></h3>" + body + "</section>";
+    }
+    // research points card
+    var mine = Math.max(0, parseInt(bpS.rp, 10) || 0), left = Math.max(0, rpNow - mine);
+    var rpl = (BPD.rp || []).map(function (r) { return '<li><button type="button" class="bprpn" data-find="' + esc(nm(r.i)) + '" title="' + esc(t("Show where it spawns")) + '">' + thumb(r.i) + esc(nm(r.i)) + '</button><b>' + fmt(r.p) + "</b><small>" + esc(r.w) + "</small></li>"; }).join("");
+    var hb = (BPD.rp || []).filter(function (r) { return r.i === "exodus_technical_handbook"; })[0], fn = (BPD.rp || []).filter(function (r) { return r.i === "frigate_diagnostic_node"; })[0];
+    var card2 = '<section class="panel bpcard"><div class="tag-k">' + esc(t("Research points")) + "</div><h3>" + (rpNow ? fmt(left) + ' <small class="dim">' + esc(t("RP still to collect")) + "</small>" : '<small class="dim">' + esc(t("Nothing to research at your level right now")) + "</small>") + "</h3>" +
+      '<label class="bprpin"><span>' + esc(t("Research points you have")) + '</span><input type="number" min="0" step="50" id="bpRp" value="' + (mine || "") + '" placeholder="0" inputmode="numeric"></label>' +
+      (left && hb && fn ? '<p class="dim bpeq">' + esc(t("That is about")) + " " + Math.ceil(left / hb.p) + " × " + esc(nm(hb.i)) + " " + esc(t("or")) + " " + Math.ceil(left / fn.p) + " × " + esc(nm(fn.i)) + ".</p>" : "") +
+      '<p class="bpfr">' + bpCond("ARC Frigate") + "</p>" +
+      '<details class="bprpd"><summary>' + esc(t("Where to farm research points")) + "</summary><ul class=\"bprpl\">" + rpl + "</ul></details></section>";
+    // filters
+    var cnt = {}; miss.forEach(function (e) { cnt[e.c] = (cnt[e.c] || 0) + 1; });
+    var chipsH = '<div class="chips bpcats"><button type="button" class="chip" data-bpcat="all" aria-pressed="' + (bpS.cat === "all") + '">' + esc(t("All")) + " <small>" + miss.length + "</small></button>" +
+      BP_CATS.map(function (c) { return '<button type="button" class="chip" data-bpcat="' + c[0] + '" aria-pressed="' + (bpS.cat === c[0]) + '">' + esc(t(c[1])) + " <small>" + (cnt[c[0]] || 0) + "</small></button>"; }).join("") + "</div>";
+    var rpo = '<option value="">' + esc(t("Research Points only")) + "</option>" + (BPD.rp || []).map(function (x) { return '<option value="' + x.i + '"' + (bpS.rpItem === x.i ? " selected" : "") + ">" + esc(nm(x.i)) + " (" + x.p + ")</option>"; }).join("");
+    var opts = '<div class="panel bpopts"><div class="bpoh"><b>' + esc(t("Shopping list")) + "</b><span class=\"dim\">" + esc(t("What the + buttons add for missing blueprints")) + "</span></div>" +
+      '<label class="bptog"><input type="checkbox" id="bpOptQ"' + (bpS.quest ? " checked" : "") + "> <span>" + esc(t("Use a quest when one gives the blueprint")) + "</span></label>" +
+      '<label class="bptog"><input type="checkbox" id="bpOptC"' + (bpS.craft ? " checked" : "") + "> <span>" + esc(t("Include crafting materials")) + "</span></label>" +
+      '<label class="bpsel"><span>' + esc(t("Research Points as")) + '</span><select id="bpOptRp">' + rpo + "</select></label>" +
+      '<button type="button" class="btn go orb sm" data-bpshopcat="all">' + esc(t("Add all to shopping list")) + "</button></div>";
+    var bar = opts + '<div class="bpbar">' + chipsH + '<div class="bpbar2"><label class="bptog"><input type="checkbox" id="bpMiss"' + (bpS.miss ? " checked" : "") + "> <span>" + esc(t("Missing only")) + '</span></label><input type="search" id="bpQ" placeholder="' + esc(t("Search blueprints…")) + '" autocomplete="off" aria-label="' + esc(t("Search blueprints…")) + '"></div><small class="dim bpnote">' + esc(t("Counts show how many you are still missing.")) + "</small></div>";
+    var qv = ($("#bpQ") || {}).value || "";
+    el.innerHTML = stats + '<div class="bpcards">' + card1 + card2 + "</div>" + renderBpCost(miss, rsl) + bar;
+    if ($("#bpQ")) $("#bpQ").value = qv;
+  }
+  function renderBpCost(miss, rsl) {
+    var pool = miss.filter(function (e) { return e.rs && !bpQuestFor(e) && (bpS.scope === "all" || e.rs.l <= rsl); });
+    var rows = BP_CATS.map(function (c) {
+      var l = pool.filter(function (e) { return e.c === c[0]; }); if (!l.length) return "";
+      var m = bpMats(l);
+      return '<div class="bpcr"><div class="bpcrh"><b>' + esc(t(c[1])) + '</b><span class="dim">' + l.length + " " + esc(t(l.length === 1 ? "blueprint" : "blueprints")) + '</span><b class="rpv">' + fmt(m.p) + " RP</b></div>" + chips(m.m).replace('class="cm-row"', 'class="cm-row tight"') + "</div>";
+    }).join("");
+    var tot = bpMats(pool);
+    return '<details class="panel bpcost"' + (bpS.costOpen ? " open" : "") + '><summary><span>' + esc(t("Combined research cost")) + '</span><b class="rpv">' + fmt(tot.p) + " RP</b><small class=\"dim\">" + pool.length + " " + esc(t("blueprints")) + " · " + Object.keys(tot.m).length + " " + esc(t("materials")) + "</small></summary>" +
+      '<div class="bpcb"><div class="seg bpseg" role="group"><button type="button" data-bpscope="now" aria-pressed="' + (bpS.scope !== "all") + '">' + esc(t("Researchable now")) + '</button><button type="button" data-bpscope="all" aria-pressed="' + (bpS.scope === "all") + '">' + esc(t("All missing")) + "</button></div>" +
+      (rows || '<p class="dim">' + esc(bpS.scope === "all" ? t("Nothing left to research.") : t("Nothing to research at your level right now")) + "</p>") +
+      (pool.length ? '<div class="bpcrt"><b>' + esc(t("Total")) + '</b><b class="rpv">' + fmt(tot.p) + ' RP</b><button type="button" class="btn go orb sm" data-bpshop="1">' + esc(t("Add materials to shopping list")) + "</button></div>" : "") + "</div></details>";
+  }
+  function renderBpList() {
+    var el = $("#bpBody"); if (!el) return;
+    var rsl = stLvl("research"), cats = bpS.cat === "all" ? BP_CATS : BP_CATS.filter(function (c) { return c[0] === bpS.cat; });
+    var html = cats.map(function (c) {
+      var all = BPL.filter(function (e) { return e.c === c[0]; });
+      var list = all.filter(function (e) { return bpMatchQ(e) && (!bpS.miss || !bpOwned(e)); });
+      if (!list.length) return "";
+      var ownN = all.filter(bpOwned).length, rest = bpMats(all.filter(function (e) { return !bpOwned(e) && e.rs && !bpQuestFor(e); }));
+      var rows = list.map(function (e) { return { e: e, p: bpPlan(e) }; }).sort(function (a, b) { return BP_ORDER[a.p.k] - BP_ORDER[b.p.k] || a.e.n.localeCompare(b.e.n); }).map(function (r) {
+        var e = r.e, p = r.p, own = p.k === "own", fromArc = bpArc(e), open = !!bpOpen[e.id];
+        var st = own ? (p.c && p.c.ok ? '<span class="bps ok">' + esc(t("Can craft")) + "</span>" : '<span class="bps own">' + esc(t("Learned")) + "</span>") : '<span class="bps miss">' + esc(t("Missing")) + "</span>";
+        return '<tr class="bpr' + (own ? " own" : "") + (open ? " open" : "") + '" data-bprow="' + e.id + '"><td class="bcc">' +
+          '<button type="button" class="bpck" data-bpown="' + e.id + '" aria-pressed="' + own + '"' + (fromArc ? ' disabled title="' + esc(t("Learned, from your ARCTracker")) + '"' : ' title="' + esc(own ? t("Untick if you have not learned it") : t("Tick if you have learned it")) + '"') + '><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2.2"/></svg></button></td>' +
+          '<td class="bcn"><div class="bpn">' + bpThumb(e) + "<div><b>" + esc(e.n) + "</b>" + (fromArc ? '<small class="arctag">ARCTracker</small>' : "") + "</div></div></td>" +
+          '<td class="bcs">' + st + "</td>" +
+          '<td class="bch">' + bpHow(e, p) + "</td>" +
+          '<td class="r bcr">' + (e.rs && !own && p.k !== "quest" ? fmt(e.rs.p) + " <small>RP</small>" : p.k === "quest" ? '<small class="bpfree">' + esc(t("free")) + "</small>" : '<span class="dim">–</span>') + "</td>" +
+          '<td class="bcx"><span class="bpchev" aria-hidden="true"></span></td></tr>' + (open ? '<tr class="bpdr"><td colspan="6">' + bpDetail(e, p) + "</td></tr>" : "");
+      }).join("");
+      return '<section class="bpgrp"><header class="bpgh"><h3>' + esc(t(c[1])) + '</h3><span class="dim">' + ownN + " / " + all.length + " " + esc(t("learned")) + "</span>" + (rest.p ? '<span class="rpv">' + fmt(rest.p) + " RP " + esc(t("to research the rest")) + "</span>" : "") + (all.some(function (x) { return !bpOwned(x); }) ? '<button type="button" class="wchg bpaddc" data-bpshopcat="' + c[0] + '">+ ' + esc(t("Add to shopping list")) + "</button>" : "") + '</header><div class="bptw"><table class="bpt"><colgroup><col class="bcc"><col class="bcn"><col class="bcs"><col class="bch"><col class="bcr"><col class="bcx"></colgroup><thead><tr><th class="bcc"><span class="sr">' + esc(t("Learned")) + '</span></th><th>' + esc(t("Blueprint")) + "</th><th>" + esc(t("Status")) + "</th><th>" + esc(t("Best way to get it")) + '</th><th class="r">' + esc(t("Research cost")) + '</th><th class="bcx"></th></tr></thead><tbody>' + rows + "</tbody></table></div></section>";
+    }).join("");
+    el.innerHTML = html || '<p class="dim bpempty">' + esc(bpS.miss ? t("Nothing missing here. Nice.") : t("No blueprint matches that search.")) + "</p>";
+  }
+  function renderBp() { renderBpTop(); renderBpList(); }
+  function bpTick() {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-bpc]"), function (s) { var m = s.dataset.bpm; s.innerHTML = bpCondTxt(s.dataset.bpc, m ? m.split(",") : null); });
+  }
+  setInterval(function () { var v = $("#v-blueprints"); if (v && v.classList.contains("on") && !document.hidden) bpTick(); }, 1000);
+  document.addEventListener("click", function (e) {
+    var v = $("#v-blueprints"); if (!v || !v.contains(e.target)) return;
+    var b;
+    if ((b = e.target.closest("[data-bpcat]"))) { bpS.cat = b.dataset.bpcat; saveBp(); renderBp(); return; }
+    if ((b = e.target.closest("[data-bpscope]"))) { bpS.scope = b.dataset.bpscope; bpS.costOpen = true; saveBp(); renderBpTop(); return; }
+    if ((b = e.target.closest("[data-bpown]"))) { var id = b.dataset.bpown; if (bpS.own[id]) delete bpS.own[id]; else bpS.own[id] = 1; saveBp(); renderBp(); return; }
+    if ((b = e.target.closest("[data-bpup]"))) {
+      var n = +b.dataset.bpup, rs = stById("research"), m = {}; ((rs && rs.lv[n - 1]) || []).forEach(function (x) { m[x.i] = x.q; });
+      shopSet("bp:rs" + n, t("Research Station") + " " + t("level") + " " + n, m); return;
+    }
+    if ((b = e.target.closest("[data-bpshopcat]"))) {
+      var ck = b.dataset.bpshopcat, cl = BPL.filter(function (x) { return !bpOwned(x) && (ck === "all" || x.c === ck); });
+      bpShop(cl, "bp:cat:" + ck, (ck === "all" ? t("All missing blueprints") : t(BP_CN[ck]) + " " + t("blueprints")) + " (" + cl.length + ")"); return;
+    }
+    if ((b = e.target.closest("[data-bpshop]"))) {
+      var rsl = stLvl("research"), pool = BPL.filter(function (x) { return !bpOwned(x) && x.rs && (bpS.scope === "all" || x.rs.l <= rsl); });
+      bpShop(pool, "bp:research", t("Blueprint research") + " (" + pool.length + ")"); return;
+    }
+    if (e.target.closest("a, button, input, label, .bpdet")) return;
+    if ((b = e.target.closest("[data-bprow]"))) { var k = b.dataset.bprow; bpOpen[k] = !bpOpen[k]; renderBpList(); }
+  });
+  document.addEventListener("toggle", function (e) { if (e.target && e.target.classList && e.target.classList.contains("bpcost")) bpS.costOpen = e.target.open; }, true);
+  document.addEventListener("input", function (e) {
+    if (!e.target) return;
+    if (e.target.id === "bpQ") { bpS.q = e.target.value; renderBpList(); }
+    if (e.target.id === "bpRp") { bpS.rp = Math.max(0, parseInt(e.target.value, 10) || 0); saveBp(); clearTimeout(bpRpT); bpRpT = setTimeout(function () { var f = document.activeElement && document.activeElement.id === "bpRp"; renderBpTop(); if (f && $("#bpRp")) { var i = $("#bpRp"); i.focus(); var l = i.value.length; try { i.setSelectionRange(l, l); } catch (x) {} } }, 500); }
+  });
+  var bpRpT;
+  document.addEventListener("change", function (e) {
+    if (!e.target) return; var id = e.target.id;
+    if (id === "bpMiss") { bpS.miss = e.target.checked; saveBp(); renderBpList(); }
+    if (id === "bpOptQ") { bpS.quest = e.target.checked; saveBp(); renderBp(); }
+    if (id === "bpOptC") { bpS.craft = e.target.checked; saveBp(); }
+    if (id === "bpOptRp") { bpS.rpItem = e.target.value; saveBp(); }
+  });
+
   /* ---------- ARCTracker connection (optional) ---------- */
   var HOUR = 3600000, ARC_MANUAL = 2;
   var arc = store("rt-arc") || {};
   function arcOn() { return !!(ARC_PROXY && arc.key); }
   var ARC_APP_URL = "https://arctracker.io/app#download";
   function arcNoData() { return arcOn() && !!arc.at && !arc.err && !arc.n && !arc.miss; }
-  function arcSave() { store("rt-arc", { key: arc.key, pn: arc.pn, pl: arc.pl, stash: arc.stash, bp: arc.bp, qd: arc.qd, ids: arc.ids, n: arc.n, nd: arc.nd, miss: arc.miss, lv: arc.lv, at: arc.at, last: arc.last, man: arc.man, err: arc.err }); }
+  function arcSave() { store("rt-arc", { key: arc.key, pn: arc.pn, pl: arc.pl, xf: arc.xf, xc: arc.xc, xn: arc.xn, stash: arc.stash, bp: arc.bp, qd: arc.qd, ids: arc.ids, n: arc.n, nd: arc.nd, miss: arc.miss, lv: arc.lv, at: arc.at, last: arc.last, man: arc.man, err: arc.err }); }
   function arcBpMissing(id) { return arcOn() && !!arc.bp && !arc.bp[id] && !arc.bp[id + "_blueprint"]; }
   function questsFor(ids) {
     var out = [], seen = {};
@@ -2654,11 +3127,80 @@ details.dcg summary .n.ok { color: var(--ok); }
   function arcNorm(s) { return String(s == null ? "" : s).toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, ""); }
   var ARC_NAMES = null;
   function arcByName(n) { if (!ARC_NAMES) { ARC_NAMES = {}; ITEMS.forEach(function (i) { ARC_NAMES[arcNorm(i.n)] = i.id; }); } return ARC_NAMES[arcNorm(n)]; }
-  function arcList(j) {
-    if (Array.isArray(j)) return j; if (!j || typeof j !== "object") return [];
-    var c = [j.items, j.data, j.stash, j.modules, j.hideout, j.results, j.data && j.data.items, j.data && j.data.modules];
+  /* ARCTracker does not publish its response shapes, so lists are found wherever they are: plain arrays, {data: [...]},
+     groups like {weapons: [...], mods: [...]} or maps like {gunsmith: {level: 2}, outpost: 3} */
+  function arcList(j, d) {
+    d = d || 0;
+    if (Array.isArray(j)) return j; if (!j || typeof j !== "object" || d > 4) return [];
+    var c = [j.items, j.data, j.stash, j.modules, j.hideout, j.blueprints, j.quests, j.results, j.entries];
     for (var i = 0; i < c.length; i++) if (Array.isArray(c[i])) return c[i];
-    return [];
+    if (j.data && typeof j.data === "object") { var x = arcList(j.data, d + 1); if (x.length) return x; }
+    var out = [];
+    Object.keys(j).forEach(function (k) {
+      if (/^(meta|pagination|links|summary|counts?|total|stats)$/i.test(k)) return;
+      var v = j[k];
+      if (Array.isArray(v)) v.forEach(function (o) { if (o && typeof o === "object") { if (o._group == null) o._group = k; out.push(o); } else if (typeof o === "string") out.push({ id: o, _group: k }); });
+      else if (v && typeof v === "object") {
+        if (arcLevel(v) != null || v.quantity != null) { var o = { id: k }; Object.keys(v).forEach(function (q) { o[q] = v[q]; }); out.push(o); }
+        else arcList(v, d + 1).forEach(function (o) { if (o._group == null) o._group = k; out.push(o); });
+      } else if (typeof v === "number") out.push({ id: k, level: v, quantity: v });
+    });
+    return out;
+  }
+  /* finds a level for a key that matches re (outpost, research) anywhere in a response */
+  function arcFindLevel(objs, re) {
+    var found = null;
+    function walk(o, d) {
+      if (found != null || !o || typeof o !== "object" || d > 6) return;
+      if (Array.isArray(o)) { o.forEach(function (x) { if (x && typeof x === "object" && found == null) { var nmx = arcNorm(x.id || x.module_id || x.moduleId || x.slug || x.name || x.type || ""); if (re.test(nmx)) { var L = arcLevel(x); if (L == null && Array.isArray(x.rooms)) L = x.rooms.length; if (L != null && !isNaN(L)) { found = L; return; } } walk(x, d + 1); } }); return; }
+      Object.keys(o).forEach(function (k) {
+        if (found != null) return;
+        var v = o[k];
+        if (re.test(k.toLowerCase()) && !/xp|progress|max|next|cost|slot|unlock|require/i.test(k)) {
+          if (typeof v === "number" || (typeof v === "string" && /^\d+$/.test(v))) { found = parseInt(v, 10); return; }
+          if (Array.isArray(v) && /rooms?$/i.test(k)) { found = v.length; return; }
+          if (v && typeof v === "object" && !Array.isArray(v)) { var L = arcLevel(v); if (L == null && Array.isArray(v.rooms)) L = v.rooms.length; if (L != null && !isNaN(L)) { found = L; return; } }
+        }
+        walk(v, d + 1);
+      });
+    }
+    objs.forEach(function (o) { walk(o, 0); });
+    return found;
+  }
+  /* the raider level: prefers fields that say raider, player or game over a site or account level */
+  function arcProfileLevel(j) {
+    var best = null;
+    function walk(o, path, d) {
+      if (!o || typeof o !== "object" || d > 6) return;
+      Object.keys(o).forEach(function (k) {
+        var v = o[k], p = path + "/" + k.toLowerCase();
+        if (v && typeof v === "object") { walk(v, p, d + 1); return; }
+        if (!/level|lvl/i.test(k) || /xp|exp|progress|next|max|min|trader|station|module|hideout|bench|quest|outpost|research|skill|tier|cap/i.test(k)) return;
+        var n = parseInt(v, 10); if (isNaN(n) || n < 0 || n > 999) return;
+        var sc = /raider|player|game|character|embark|season/.test(p) ? 2 : /account|site|tracker|member|community|badge|prestige|vip|profile_level/.test(p) ? 0 : 1;
+        if (!best || sc > best.sc || (sc === best.sc && n > best.n)) best = { sc: sc, n: n };
+      });
+    }
+    walk(j, "", 0);
+    return best ? best.n : null;
+  }
+  var arcRaw = null;
+  function arcReport() {
+    function red(o, d, lim) {
+      if (d > 7) return "…";
+      if (Array.isArray(o)) { var a = o.slice(0, lim).map(function (x) { return red(x, d + 1, lim); }); if (o.length > lim) a.push("… " + o.length + " entries in total"); return a; }
+      if (o && typeof o === "object") { var r = {}; Object.keys(o).forEach(function (k) { r[k] = /mail|token|key|secret|pass|auth|session|ip_?addr/i.test(k) ? "[hidden]" : red(o[k], d + 1, lim); }); return r; }
+      if (typeof o === "string" && o.length > 80) return o.slice(0, 80) + "…";
+      return o;
+    }
+    var names = ["stash", "hideout", "blueprints", "quests", "profile"], raw = {};
+    names.forEach(function (n, i) { raw[n] = arcRaw ? red(arcRaw[i], 0, n === "hideout" || n === "profile" ? 40 : 3) : null; });
+    var rep = { site: location.host, at: new Date().toISOString(), read: { items: arc.n, notRecognised: arc.miss, stations: arc.lv, raiderLevel: arc.pl, xp: arc.xf != null ? { progress: arc.xf, inLevel: arc.xc, forLevel: arc.xn } : null, blueprints: arc.bp ? Object.keys(arc.bp).length : null, quests: arc.qd ? Object.keys(arc.qd).length : null, stationLevels: ws.cur }, raw: raw };
+    return JSON.stringify(rep, null, 1).slice(0, 15000);
+  }
+  function copyText(txt, done) {
+    function fb() { var ta = document.createElement("textarea"); ta.value = txt; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select(); try { document.execCommand("copy"); } catch (e) {} ta.remove(); done(); }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, fb); else fb();
   }
   function arcItemId(o) {
     var it = o.item || {}, c = [o.item_id, o.itemId, o.slug, o.id, it.id, it.item_id, it.slug];
@@ -2666,9 +3208,16 @@ details.dcg summary .n.ok { color: var(--ok); }
     return arcByName(o.name || it.name || o.item_name || o.itemName);
   }
   function arcQty(o) { var q = [o.quantity, o.qty, o.amount, o.count, o.stack, o.stackSize].filter(function (x) { return x != null; })[0]; return Math.max(0, parseInt(q == null ? 1 : q, 10) || 0); }
+  var ARC_ST = { outpost: ["outpost", "shelter", "sheltered_retreat", "raider_outpost", "home_base", "outpost_rooms", "rooms"], research: ["research", "research_station", "research_bench", "research_lab"], weapon_bench: ["gunsmith", "weapon_bench", "weapons_bench"], equipment_bench: ["gear_bench", "equipment_bench"], med_station: ["medical_lab", "med_station", "medical_station", "med_lab"], utility_bench: ["utility_station", "utility_bench"], explosives_bench: ["explosives_station", "explosives_bench", "explosive_station"], refiner: ["refiner", "refinery"], scrappy: ["scrappy"] };
   function arcStation(o) {
-    var c = [o.module_id, o.moduleId, o.hideout_id, o.slug, o.id, o.name, o.module && o.module.id, o.module && o.module.name];
-    for (var i = 0; i < c.length; i++) { var k = arcNorm(c[i]); if (!k) continue; var s = STATIONS.filter(function (x) { return x.id === k || arcNorm(x.n) === k || arcNorm(sname(x)) === k; })[0]; if (s) return s; }
+    var c = [o.module_id, o.moduleId, o.hideout_id, o.hideoutId, o.station_id, o.stationId, o.slug, o.id, o.key, o.type, o.name, o.module && o.module.id, o.module && o.module.name];
+    for (var i = 0; i < c.length; i++) {
+      var k = arcNorm(c[i]); if (!k) continue;
+      var s = STATIONS.filter(function (x) { return x.id === k || arcNorm(x.n) === k || arcNorm(sname(x)) === k || (ARC_ST[x.id] || []).indexOf(k) > -1; })[0];
+      if (!s && /outpost/.test(k)) s = STATIONS.filter(function (x) { return x.id === "outpost"; })[0];
+      if (!s && /research/.test(k)) s = STATIONS.filter(function (x) { return x.id === "research"; })[0];
+      if (s) return s;
+    }
     return null;
   }
   function arcLevel(o) { var l = [o.level, o.current_level, o.currentLevel, o.lvl, o.tier].filter(function (x) { return x != null; })[0]; return l == null ? null : parseInt(l, 10); }
@@ -2690,6 +3239,7 @@ details.dcg summary .n.ok { color: var(--ok); }
     if (kind === "manual") { if (arcManualLeft() <= 0) return; arc.man.push(Date.now()); }
     arcBusy = true; arc.last = Date.now(); arcSave(); renderArc();
     Promise.all([arcGet("/stash"), arcGet("/hideout").catch(function () { return null; }), arcGet("/blueprints").catch(function () { return null; }), arcGet("/quests").catch(function () { return null; }), arcGet("/profile").catch(function () { return null; })]).then(function (res) {
+      arcRaw = res;
       var st = {}, miss = 0, lv = 0;
       var raw = arcList(res[0]), hl = res[1] ? arcList(res[1]) : [], nbp = res[2] ? arcList(res[2]).length : 0, nq = res[3] ? arcList(res[3]).length : 0;
       raw.forEach(function (o) { var id = arcItemId(o); if (!id) { miss++; return; } st[id] = (st[id] || 0) + arcQty(o); });
@@ -2698,12 +3248,19 @@ details.dcg summary .n.ok { color: var(--ok); }
         (arc.ids || []).forEach(function (k) { if (!(k in st)) { ws.have[k] = 0; shop.have[k] = 0; } });
         Object.keys(st).forEach(function (k) { ws.have[k] = st[k]; shop.have[k] = st[k]; });
       }
+      var stSeen = {};
+      function setSt(s, L) { if (stSeen[s.id]) return; stSeen[s.id] = 1; ws.cur[s.id] = Math.max(0, Math.min(s.max, L)); if ((ws.goal[s.id] || 0) < ws.cur[s.id]) ws.goal[s.id] = ws.cur[s.id]; lv++; }
       (nd ? [] : hl).forEach(function (o) {
-        var s = arcStation(o), L = arcLevel(o); if (!s || L == null || isNaN(L)) return;
-        ws.cur[s.id] = Math.max(0, Math.min(s.max, L)); if ((ws.goal[s.id] || 0) < ws.cur[s.id]) ws.goal[s.id] = ws.cur[s.id]; lv++;
+        var s = arcStation(o), L = arcLevel(o); if (s && L == null && Array.isArray(o.rooms)) L = o.rooms.length;
+        if (!s || L == null || isNaN(L)) return; setSt(s, L);
+      });
+      if (!nd) [["outpost", /outpost/], ["research", /research/]].forEach(function (p) {
+        var s = STATIONS.filter(function (x) { return x.id === p[0]; })[0]; if (!s || stSeen[s.id]) return;
+        var L = arcFindLevel([res[1], res[4]], p[1]); if (L != null && !isNaN(L)) setSt(s, L);
       });
       if (res[2]) { var bp = {}; arcList(res[2]).forEach(function (o) {
-        if (o.learned === false || o.unlocked === false || o.owned === false) return;
+        if (o.learned === false || o.unlocked === false || o.owned === false || o.is_learned === false || o.isLearned === false) return;
+        if (/missing|unlearned|not_?learned|locked/i.test(String(o._group || "")) || /^(missing|locked|unlearned|not_?learned)$/i.test(String(o.status || o.state || ""))) return;
         var it = o.item || o.blueprint || {}, c = [o.item_id, o.itemId, o.blueprint_id, o.blueprintId, o.slug, o.id, it.id, it.item_id, it.slug];
         var k = ""; for (var i = 0; i < c.length; i++) { k = arcNorm(c[i]); if (k) break; }
         if (!k) k = arcByName(o.name || it.name) || ""; if (!k) return;
@@ -2711,7 +3268,7 @@ details.dcg summary .n.ok { color: var(--ok); }
       }); arc.bp = bp; } else arc.bp = null;
       if (res[3]) { var qd = {}; arcList(res[3]).forEach(function (o) {
         var done = o.completed === true || o.is_completed === true || o.done === true || /^(complete|completed|done|finished)$/i.test(String(o.status || o.state || ""));
-        if (o.completed === false || o.is_completed === false) done = false;
+        if (o.completed === false || o.is_completed === false || /incomplete|active|in_?progress|open|available/i.test(String(o._group || ""))) done = false;
         if (o.completed == null && o.is_completed == null && o.done == null && o.status == null && o.state == null) done = true;
         var q = o.quest || {}, k = arcNorm(o.quest_id || o.questId || o.slug || o.id || q.id || q.slug || o.name || q.name);
         if (k && done) qd[k] = 1;
@@ -2720,8 +3277,9 @@ details.dcg summary .n.ok { color: var(--ok); }
         var pf = res[4].data || res[4].profile || res[4].user || res[4];
         if (Array.isArray(pf)) pf = pf[0] || {};
         var pn = [pf.raider_name, pf.raiderName, pf.display_name, pf.displayName, pf.name, pf.username, pf.player_name, pf.playerName, pf.embark_id, pf.embarkId].filter(function (x) { return typeof x === "string" && x.trim(); })[0];
-        var pl = [pf.level, pf.raider_level, pf.raiderLevel, pf.player_level, pf.playerLevel, pf.xp_level, pf.rank].filter(function (x) { return x != null && !isNaN(parseInt(x, 10)); })[0];
+        var pl = arcProfileLevel(res[4]);
         arc.pn = pn ? String(pn).trim().slice(0, 32) : ""; arc.pl = pl != null ? parseInt(pl, 10) : null;
+        var xp = arcProfileXp(res[4]); arc.xf = xp.f; arc.xc = xp.c; arc.xn = xp.n;
       }
       if (nd) { arc.bp = null; arc.qd = null; }
       arc.nd = nd; arc.stash = st; arc.ids = Object.keys(st); arc.n = arc.ids.length; arc.miss = miss; arc.lv = lv; arc.at = Date.now(); arc.err = "";
@@ -2730,7 +3288,7 @@ details.dcg summary .n.ok { color: var(--ok); }
       else if (kind !== "auto") toast("Synced " + arc.n + " items" + (lv ? " and " + lv + " station level" + (lv === 1 ? "" : "s") : "") + " from ARCTracker");
     }).catch(function (e) { arc.err = (e && e.message) || "Could not reach ARCTracker."; }).then(function () {
       arcBusy = false; arcSave();
-      renderTop(); renderShop(); renderWeapon(); renderArc();
+      renderTop(); renderShop(); renderWeapon(); renderArc(); renderBp();
     });
   }
   function arcAgo(t) { var m = Math.round((Date.now() - t) / 60000); return m < 1 ? "just now" : m < 60 ? m + " min ago" : m < 1440 ? Math.round(m / 60) + " h ago" : Math.round(m / 1440) + " d ago"; }
@@ -2744,7 +3302,7 @@ details.dcg summary .n.ok { color: var(--ok); }
         (arcBusy ? "Syncing…" : nd ? "Checked " + arcAgo(arc.at) : arc.at ? arc.n + " items from your stash" + (arc.lv ? ", " + arc.lv + " station level" + (arc.lv === 1 ? "" : "s") : "") + " · synced " + arcAgo(arc.at) : "Not synced yet") +
         (arc.miss && !arcBusy ? " · " + arc.miss + " not recognised" : "") + (arc.at && !arcBusy && !arc.bp && !nd ? " · blueprints not shared (give the key blueprints read access)" : "") +
         (!arcBusy && auto > 0 ? " · next auto-sync in " + evClock(auto) : "") + "</small>" +
-        (arc.err ? '<small class="arcerr">' + esc(arc.err) + "</small>" : "") + "</div>" +
+        (arc.err ? '<small class="arcerr">' + esc(arc.err) + "</small>" : "") + (full && arc.at ? '<button type="button" class="arcdiag" data-arc="diag">Something not filling in? Copy sync details</button>' : "") + "</div>" +
         '<button type="button" class="btn orb sm" data-arc="sync"' + (arcBusy || wait > 0 ? " disabled" : "") + ">" + (wait > 0 ? "Refresh in " + evClock(wait) : "Refresh (" + arcManualLeft() + " left)") + "</button>" +
         '<button type="button" class="wchg" data-arc="off">Unlink</button></div>';
     }
@@ -2752,6 +3310,50 @@ details.dcg summary .n.ok { color: var(--ok); }
       '<div class="arcf"><input type="password" id="arcKey" placeholder="arc_u1_…" autocomplete="off" aria-label="ARCTracker personal API key"><button type="button" class="btn go orb sm" data-arc="go">Link</button></div>' +
       (arc.err ? '<small class="arcerr">' + esc(arc.err) + "</small>" : "") + '<small>Syncs once an hour while the site is open, plus up to ' + ARC_MANUAL + " manual refreshes per hour.</small></div></div>";
     return '<div class="arcin"><div class="arct"><b>Use your ARCTracker stash</b><small>Link ARCTracker and what you own, plus your station levels, fills in by itself.</small></div><button type="button" class="btn orb sm" data-arc="open">Link ARCTracker</button></div>';
+  }
+  function arcXpFrac() {
+    if (arc.xf != null && !isNaN(arc.xf)) return Math.max(0, Math.min(1, arc.xf));
+    return null;
+  }
+  function arcRing() {
+    var f = arcXpFrac(), C = 2 * Math.PI * 15.5, fill = f == null ? 0 : f * C;
+    return '<span class="plvl"><svg viewBox="0 0 36 36" aria-hidden="true"><circle class="trk" cx="18" cy="18" r="15.5"/>' + (fill > 0 ? '<circle class="xpf" cx="18" cy="18" r="15.5" stroke-dasharray="' + fill.toFixed(2) + " " + C.toFixed(2) + '"/>' : "") + "</svg><b>" + arc.pl + "</b></span>";
+  }
+  function arcTipHtml(nd) {
+    if (!arcOn() || !arc.at) return "";
+    if (nd) return '<b>No game data found</b>Your key works, but ARCTracker has nothing from the game for this account yet. Install <b style="display:inline;color:inherit">ARC Tracker Link</b> on your PC, link your ARC Raiders account there and press Sync now. <a href="' + ARC_APP_URL + '" target="_blank" rel="noopener">Open the install guide</a><span class="tipx">Click for refresh and options</span>';
+    var f = arcXpFrac(), auto = arcAutoIn(), li = [];
+    if (arc.pl != null) li.push("<li>Level " + arc.pl + (arc.xc != null && arc.xn ? ' <em>· ' + fmt(arc.xc) + " / " + fmt(arc.xn) + " XP</em>" : f != null ? ' <em>· ' + Math.round(f * 100) + "% to next level</em>" : "") + (f != null ? '<span class="xpbar"><i style="width:' + (f * 100).toFixed(1) + '%"></i></span>' : "") + "</li>");
+    li.push("<li>" + arc.n + " items from your stash" + (arc.lv ? " · " + arc.lv + " station level" + (arc.lv === 1 ? "" : "s") : "") + "</li>");
+    if (arc.miss) li.push("<li><em>" + arc.miss + " stash item" + (arc.miss === 1 ? "" : "s") + " not recognised</em></li>");
+    if (!arc.bp) li.push("<li><em>Blueprints not shared (give the key blueprints read access)</em></li>");
+    li.push("<li>" + (arcBusy ? "Syncing…" : "Synced " + arcAgo(arc.at)) + (!arcBusy && auto > 0 ? ' <em>· next in ' + evClock(auto) + "</em>" : "") + "</li>");
+    return "<b>" + (arc.err ? "ARCTracker sync failed" : "ARCTracker linked") + "</b>" + (arc.err ? "<div>" + esc(arc.err) + "</div>" : "") + "<ul>" + li.join("") + '</ul><span class="tipx">Click for refresh and options</span>';
+  }
+  /* XP from the profile: either a progress value, or XP in this level and XP needed for the next */
+  function arcProfileXp(j) {
+    var v = {};
+    (function walk(o, d) {
+      if (!o || typeof o !== "object" || d > 6) return;
+      Object.keys(o).forEach(function (k) {
+        var x = o[k], kk = k.toLowerCase().replace(/[^a-z0-9]/g, "");
+        if (x && typeof x === "object") { walk(x, d + 1); return; }
+        var n = parseFloat(x); if (isNaN(n) || n < 0) return;
+        if (/^(levelprogress|xpprogress|progress|progresspercent|levelpercent|xppercent|percenttonext|progresstonextlevel)$/.test(kk) && v.p == null) v.p = n;
+        else if (/^(xp|exp|experience|currentxp|xpcurrent|currentexperience|levelxp|xpinlevel|xpintolevel|xpthislevel|currentlevelxp|xpcurrentlevel)$/.test(kk) && v.c == null) v.c = n;
+        else if (/^(xptonext|xptonextlevel|xpremaining|remainingxp|xpleft|xpuntilnext)$/.test(kk) && v.rem == null) v.rem = n;
+        else if (/^(nextlevelxp|xpnextlevel|xpneeded|neededxp|xprequired|requiredxp|xpfornextlevel|levelupxp|xpmax|maxxp|xpforlevel)$/.test(kk) && v.need == null) v.need = n;
+        else if (/^(levelstartxp|xplevelstart|levelminxp|xpmin|minxp|currentlevelstartxp)$/.test(kk) && v.lo == null) v.lo = n;
+        else if (/^(levelendxp|xplevelend|levelmaxxp|nextlevelstartxp|nextlevelthreshold)$/.test(kk) && v.hi == null) v.hi = n;
+      });
+    })(j, 0);
+    var out = { f: null, c: null, n: null };
+    if (v.p != null) out.f = v.p > 1 ? v.p / 100 : v.p;
+    else if (v.c != null && v.lo != null && v.hi != null && v.hi > v.lo) { out.c = v.c - v.lo; out.n = v.hi - v.lo; out.f = out.c / out.n; }
+    else if (v.c != null && v.rem != null && v.c + v.rem > 0) { out.c = v.c; out.n = v.c + v.rem; out.f = v.c / out.n; }
+    else if (v.c != null && v.need > 0 && v.c <= v.need) { out.c = v.c; out.n = v.need; out.f = v.c / v.need; }
+    if (out.f != null) out.f = Math.max(0, Math.min(1, out.f));
+    return out;
   }
   function renderArc() {
     Array.prototype.forEach.call(document.querySelectorAll(".arc-only"), function (el) { el.hidden = !ARC_PROXY; });
@@ -2762,14 +3364,16 @@ details.dcg summary .n.ok { color: var(--ok); }
       pill.hidden = !ARC_PROXY;
       var pnd = arcNoData() && !arcBusy, wrap = $("#arcWrap");
       pill.className = "arcpill" + (arcOn() ? (arc.err ? " bad" : pnd ? " warn" : " on") : "");
-      if (wrap) { wrap.classList.toggle("warn", pnd); wrap.classList.toggle("popopen", !!($("#arcPop") && !$("#arcPop").hidden)); }
-      pill.innerHTML = arcOn() && arc.pn ? (arc.pl != null && !pnd ? '<b class="plvl">' + arc.pl + "</b>" : "") + '<span class="pname">' + esc(arc.pn) + "</span>" + (arc.err || pnd ? "<i></i>" : "") : '<i></i><span>' + (arcOn() ? (arcBusy ? "Syncing…" : "ARCTracker") : "Link ARCTracker") + "</span>";
+      if (wrap) { wrap.classList.toggle("warn", pnd); wrap.classList.toggle("tip", arcOn() && !!arc.at); wrap.classList.toggle("popopen", !!($("#arcPop") && !$("#arcPop").hidden)); }
+      var tip = $("#arcTip");
+      if (tip) { var th = arcTipHtml(pnd); tip.className = "arctip" + (arc.err ? " bad" : pnd ? "" : " ok"); if (tip.firstChild.innerHTML !== th) tip.firstChild.innerHTML = th; }
+      pill.innerHTML = arcOn() && arc.pn ? (arc.pl != null && !pnd ? arcRing() : "") + '<span class="pname">' + esc(arc.pn) + "</span>" + (arc.err || pnd ? "<i></i>" : "") : '<i></i><span>' + (arcOn() ? (arcBusy ? "Syncing…" : "ARCTracker") : "Link ARCTracker") + "</span>";
       pill.classList.toggle("who", !!(arcOn() && arc.pn));
-      pill.title = pnd ? "" : arcOn() ? (arc.pn ? arc.pn + (arc.pl != null ? " · level " + arc.pl : "") + " · " : "") + (arc.at ? "ARCTracker linked · synced " + arcAgo(arc.at) : "ARCTracker linked") : "Link your ARCTracker stash";
+      pill.title = arcOn() && arc.at ? "" : arcOn() ? "ARCTracker linked" : "Link your ARCTracker stash";
     }
     var pop = $("#arcPop"), keep = pop && !pop.hidden && !arcOn() ? (($("#arcKey") || {}).value || "") : null;
     Array.prototype.forEach.call(document.querySelectorAll("[data-arcbar]"), function (el) {
-      var full = el.hasAttribute("data-arcfull"), html = arcBox(full);
+      var full = el.hasAttribute("data-arcfull"), html = !full && arcOn() && !arcNoData() && !arc.err ? "" : arcBox(full);
       if (full && !arcOn() && el.querySelector("#arcKey")) { var e = el.querySelector(".arcerr"); if (e) e.textContent = arc.err || ""; return; }
       el.innerHTML = html; el.hidden = !html;
     });
@@ -2798,6 +3402,7 @@ details.dcg summary .n.ok { color: var(--ok); }
       arc = { key: v, man: [] }; arcSave(); arcOpen(false); arcSync("link");
     }
     else if (a === "sync") arcSync("manual");
+    else if (a === "diag") copyText(arcReport(), function () { toast("Sync details copied. Paste them to us in Discord. They contain no key.", true); });
     else if (a === "off") { arc = {}; arcSave(); arcOpen(false); renderArc(); renderWeapon(); toast("ARCTracker unlinked. Your Have counts were kept."); }
   });
   document.addEventListener("keydown", function (e) {
@@ -2811,7 +3416,7 @@ details.dcg summary .n.ok { color: var(--ok); }
   function renderAll() {
     applyI18nStatic();
     setTitle();
-    [renderWList, renderWeapon, renderSources, renderTop, renderList, renderRarChips, renderUseChips, function () { renderItems(true); }, renderMapList, renderMapDetail, renderEvents, renderKeyChips, renderKeys, renderShop, renderWTabs, renderDataCheck, renderArc].forEach(function (fn) {
+    [renderWList, renderWeapon, renderSources, renderTop, renderList, renderRarChips, renderUseChips, function () { renderItems(true); }, renderMapList, renderMapDetail, renderEvents, renderKeyChips, renderKeys, renderShop, renderWTabs, renderDataCheck, renderArc, renderBp].forEach(function (fn) {
       try { fn(); } catch (err) { if (window.console) console.error("init failed:", err); }
     });
   }
