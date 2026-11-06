@@ -143,14 +143,15 @@ NI=[
  ('epoxy_bucket','Epoxy Bucket',dict(t='Topside Material',r='Rare',v=1000,w=0.5)),
  ('hand_drill','Hand Drill',dict(t='Topside Material',r='Rare',v=640,w=0.5)),
  ('laser_level','Laser Level',{}),('insulation_roll','Insulation Roll',{}),
- ('battered_paperback','Battered Paperback',{}),('mini_pump','Mini Pump',{}),('calculator','Calculator',{}),('raider_logbook','Raider Logbook',{}),
- ('skulker_targeter','Skulker Targeter',{}),('differential_microphone','Differential Microphone',{}),('exodus_technical_handbook','Exodus Technical Handbook',{}),
+ ('battered_paperback','Battered Paperback',dict(d='Grants 50 Research Points.')),('mini_pump','Mini Pump',{}),('calculator','Calculator',{}),('raider_logbook','Raider Logbook',dict(d='Grants 100 Research Points.')),
+ ('skulker_targeter','Skulker Targeter',{}),('differential_microphone','Differential Microphone',{}),('exodus_technical_handbook','Exodus Technical Handbook',dict(d='Grants 150 Research Points.')),
  ('bully_fragmenter','Bully Fragmenter',{}),
  ('thermal_shaker','Thermal Shaker',dict(t='Topside Material',r='Epic',v=3000,w=0.5)),
  ('arc_data_module','ARC Data Module',dict(t='Topside Material',r='Epic',v=2000,w=0.5,s=3,d='Scavenged from ARC machines. Grants 200 Research Points. Cannot be recycled or salvaged.')),
  ('frigate_inductor','Frigate Inductor',dict(t='Topside Material',r='Legendary',v=7000)),
  ('radial_press','Radial Press',dict(t='Topside Material',r='Epic',v=3000,w=0.5,s=3,d='Not craftable.')),
  ('emperor_modulator','Emperor Modulator',dict(t='Topside Material',r='Legendary',v=7000,d='Legendary crafting material. Not a guaranteed drop. Keep one for the Gunsmith 4 upgrade.')),
+ ('frigate_diagnostic_node','Frigate Diagnostic Node',dict(t='Topside Material',d='Found only on the ARC Frigate. Grants 1,000 Research Points.')),
  ('amplification_module','Amplification Module',dict(t='Special',d='Comes in Mk. I to Mk. V. Dropped by Frigates and the fallen Emperor on Pendola Pass.')),
 ]
 for i,n,k in NI:
@@ -466,7 +467,220 @@ for f in sorted(os.listdir(R+'quests')) if os.path.isdir(R+'quests') else []:
     for r in (q.get('rewardItemIds') or []):
         iid=r.get('itemId') if isinstance(r,dict) else r
         if iid: qr.setdefault(iid,[]).append({'id':q['id'],'n':en(q.get('name') or q['id'])})
-data={'items':out,'stations':stations,'events':events,'guide':guide,'weapons':weapons,'mods':mods,'keys':keys,'qr':qr,'ev':ev}
+# ---- blueprints: every blueprint, how to research it (Research Station) and where to find it ----
+RS_SRC='ARCTracker research list, Nov 2026'; LP='LePreStore blueprint guide, Oct 24 2026'
+RS_RAW="""Bantam|1|3000|8 Hornet Driver
+Barricade Kit|1|1000|3 Rusty ARC Steel
+Burletta|1|2000|8 Simple Gun Parts
+Crash Mat|1|1000|5 Durable Cloth
+Gas Mine|1|1000|3 Household Cleaner
+Grappling Hook|1|2000|10 Rope
+Il Toro|1|1500|5 Shredder Gyro
+Lure Grenade|1|1000|6 ARC Circuitry
+Pulse Mine|1|1000|3 Industrial Battery
+Remote Raider Flare|1|500|25 Chemicals
+Seeker Grenade|1|1000|1 Rocketeer Driver
+Stiletto|1|3000|15 Wasp Driver
+White Flag|1|500|5 Planks
+Yank Grenade|1|1000|8 Steel Cable
+Angled Grip II|2|3000|5 ARC Flex Rubber + 1 Mechanical Components
+Anvil|2|3000|5 Bully Fragmenter + 1 Rusted Tools
+Canto|2|2000|10 Skulker Targeter + 5 Steel Spring
+Compensator II|2|2000|1 Cooling Coil + 5 Rusty ARC Steel
+Defibrillator|2|2000|5 Adrenaline Shot + 3 Syringe
+Explosive Mine|2|2000|3 Comet Igniter + 2 Sensors
+Extended Barrel II|2|2000|5 Rusty ARC Steel + 1 Steel Cable
+Extended Light Mag II|2|2000|5 Dried-Out ARC Resin + 5 Wires
+Extended Medium Mag II|2|2000|3 Canister + 5 Dried-Out ARC Resin
+Extended Shotgun Mag II|2|2000|5 Dried-Out ARC Resin + 1 Mechanical Components
+Heavy Gun Parts|2|2000|5 Simple Gun Parts + 1 Unusable Weapon
+Jolt Mine|2|2000|3 Advanced ARC Powercell + 1 Industrial Battery
+Light Gun Parts|2|2000|5 Simple Gun Parts + 1 Unusable Weapon
+Medium Gun Parts|2|2000|5 Simple Gun Parts + 1 Unusable Weapon
+Muzzle Brake II|2|2000|5 Rusty ARC Steel + 1 Steel Cable
+Osprey|2|3000|1 Camera Lens + 3 Sentinel Firing Core
+Rascal|2|3000|15 ARC Alloy + 2 Bombardier Cell
+Shotgun Choke II|2|2000|1 Heavy Gun Parts + 5 Rusty ARC Steel
+Showstopper|2|2000|5 Hornet Driver + 3 Industrial Battery
+Silencer I|2|2000|1 Cooling Coil + 5 Rusty ARC Steel
+Smoke Grenade|2|2000|3 Gas Grenade + 1 Household Cleaner
+Stable Stock II|2|2000|5 ARC Flex Rubber + 1 Rubber Pad
+Surge Coil|2|2000|10 Battery + 3 Hornet Driver
+Tagging Grenade|2|2000|2 Broken Guidance System + 2 Sensors
+Tether Launcher|2|2000|3 Steel Cable + 1 Unusable Weapon
+Torrente|2|3000|3 Bastion Cell + 1 Cooling Fan
+Trailblazer|2|2000|5 Crude Explosives + 1 Turbine Compressor
+Trigger 'Nade|2|2000|2 Pop Trigger + 2 Radio
+Venator|2|3000|3 Leaper Pulse Unit + 1 Mechanical Components
+Vertical Grip II|2|2000|5 ARC Flex Rubber + 1 Mechanical Components
+Vita Shot|2|2000|2 Microscope + 2 Syringe
+Bettina|3|4500|1 Complex Gun Parts + 5 Rocketeer Driver
+Combat Mk. 3 (Flanking)|3|3000|5 ARC Circuitry + 3 Mechanical Components
+Complex Gun Parts|3|3000|1 Advanced Mechanical Components + 2 Complex Gun Parts
+Deadline|3|3000|5 Comet Igniter + 1 Fossilized Lightning
+Hullcracker|3|4500|5 Bombardier Cell + 1 Complex Gun Parts
+Looting Mk. 3 (Safekeeper)|3|3000|5 ARC Circuitry + 5 Canister
+Powered Descender|3|3000|1 Advanced Electrical Components + 2 Cooling Fan
+Silencer II|3|3000|1 Advanced Mechanical Components + 5 ARC Performance Steel
+Tactical Mk. 3 (Defensive)|3|3000|2 Advanced ARC Powercell + 5 ARC Circuitry
+Tactical Mk. 3 (Revival)|3|3000|3 Antiseptic + 5 ARC Circuitry
+Vertical Grip III|3|3000|1 Advanced Mechanical Components + 6 ARC Motion Core
+Vita Spray|3|3000|5 Antiseptic + 50 Chemicals"""
+# where to find blueprints that have no detailed note above (weapons and attachments use BPL)
+BPF={
+ 'complex_gun_parts':"Security containers on all maps.",
+ 'heavy_gun_parts':"Raider containers on all maps. Also a Trials reward.",
+ 'light_gun_parts':"Raider containers on all maps. Also a Trials reward.",
+ 'medium_gun_parts':"Raider containers on all maps. Also a Trials reward.",
+ 'combat_mk3_aggressive':"Medical and security containers on Stella Montis or Blue Gate. Also a Trials reward.",
+ 'combat_mk3_flanking':"Medical and security containers on Stella Montis or Blue Gate. Also a Trials reward.",
+ 'looting_mk3_safekeeper':"Medical, security and metal crates on all maps. Also a Trials reward.",
+ 'looting_mk3_survivor':"Medical, security and metal crates on all maps. Also a Trials reward.",
+ 'tactical_mk3_defensive':"Medical and security loot and ARC Surveyors on Stella Montis or Blue Gate. Also a Trials reward.",
+ 'tactical_mk3_healing':"Medical and security containers on Stella Montis or Blue Gate. Also a Trials reward.",
+ 'tactical_mk3_revival':"Medical and security containers on Stella Montis or Blue Gate. Also a Trials reward.",
+ 'tactical_mk3_smoke':"High-tier containers; Stella Montis is one known spot.",
+ 'defibrillator':"Medical containers on all maps. Also a Trials reward.",
+ 'vita_shot':"Medical containers on all maps and ARC Surveyors. Also a Trials reward.",
+ 'vita_spray':"Medical containers or ARC Surveyors.",
+ 'barricade_kit':"Electrical loot on all maps. Also a Trials reward.",
+ 'blue_light_stick':"World loot on all maps. Also a Trials reward.",
+ 'green_light_stick':"World loot on all maps. Also a Trials reward.",
+ 'red_light_stick':"World loot on all maps. Also a Trials reward.",
+ 'yellow_light_stick':"World loot on all maps. Also a Trials reward.",
+ 'crash_mat':"Riven Tides containers or world loot. Also a Trials reward.",
+ 'powered_descender':"Riven Tides containers, including the Stacking Yard.",
+ 'remote_raider_flare':"Electrical loot on all maps. Also a Trials reward.",
+ 'snap_hook':"World loot during Electromagnetic Storm.",
+ 'white_flag':"World loot on Riven Tides. Also a Trials reward.",
+ 'blaze_grenade':"Industrial containers on all maps. Also a Trials reward.",
+ 'deadline':"World loot on Stella Montis. Also a Trials reward.",
+ 'explosive_mine':"Industrial containers on all maps. Also a Trials reward.",
+ 'fireworks_box':"World loot during Cold Snap.",
+ 'gas_mine':"World loot on Stella Montis.",
+ 'jolt_mine':"Industrial containers on all maps. Also a Trials reward.",
+ 'lure_grenade':"Quest reward.",
+ 'pulse_mine':"World loot on Stella Montis. Also a Trials reward.",
+ 'seeker_grenade':"World loot on Stella Montis.",
+ 'showstopper':"Industrial containers on all maps. Also a Trials reward.",
+ 'smoke_grenade':"Residential loot on all maps. Also a Trials reward.",
+ 'surge_coil':"World loot during Electromagnetic Storm.",
+ 'tagging_grenade':"Electrical loot on all maps. Also a Trials reward.",
+ 'trailblazer':"World loot on Stella Montis. Also a Trials reward.",
+ 'trigger_nade':"World loot on several maps.",
+ 'wolfpack':"Residential loot during Night Raid. Also a Trials reward.",
+ 'rascal_i':"Raider containers on all maps.",
+ 'grappling_hook':"Research Station. Also reported from scavenging and the free Reward Pass.",
+ 'tether_launcher':"Research Station. Also reported from scavenging.",
+ 'yank_grenade':"Research Station. Also reported from scavenging.",
+ 'bantam':"Research Station. Also reported from scavenging.",
+ 'stiletto':"Research Station. Scavenging is not confirmed.",
+}
+CONDS=["Electromagnetic Storm","Night Raid","Locked Gate","Hurricane","Harvester","Close Scrutiny","Hidden Bunker","Uncovered Caches","Prospecting Probes","Bird City","Matriarch","Launch Tower Loot","Beachcombing","Cold Snap"]
+MAPN={'dam':'Dam','buried':'Buried City','space':'Spaceport','gate':'Blue Gate','stella':'Stella Montis','riven':'Riven Tides','pendola':'Pendola Pass'}
+def scan(txt):
+    c=[x for x in CONDS if x in txt]
+    if 'Frigate' in txt: c.append('ARC Frigate')
+    if 'Redirection' in txt: c.append('Redirection')
+    m=[k for k,v in MAPN.items() if v in txt or (k=='dam' and 'Dam ' in txt)]
+    return c,m
+HEAL={'defibrillator','vita_shot','vita_spray'}
+GADGET={'barricade_kit','crash_mat','blue_light_stick','green_light_stick','red_light_stick','yellow_light_stick','powered_descender','remote_raider_flare','snap_hook','white_flag','fireworks_box','grappling_hook','tether_launcher'}
+GUNT={"Assault Rifle","SMG","Pistol","Shotgun","Battle Rifle","Hand Cannon","LMG","Sniper Rifle","Special"}
+def cat(i,t):
+    if t in GUNT: return 'wpn'
+    if t=='Modification': return 'att'
+    if t=='Augment': return 'aug'
+    if t=='Topside Material': return 'parts'
+    if i in HEAL: return 'heal'
+    if i in GADGET: return 'gad'
+    return 'exp'
+def nrm(s): return re.sub(r'[^a-z0-9]+',' ',s.lower()).strip()
+NB={nrm(k):v for k,v in byname.items()}
+NB[nrm('Cable Stripper')]='cable_strippers'
+wbyt={w['tiers'][0]:w for w in weapons if w.get('tiers')}
+bpl={}
+for w in weapons:
+    if w.get('bpl') and w.get('tiers'): bpl[w['tiers'][0]]=w['bpl']
+for k,m in mods.items():
+    if m.get('bpl') and not m.get('loot'): bpl[k]=m['bpl']
+bps=[]; seen={}
+def add_bp(iid,name,t):
+    base=re.sub(r' I$','',name) if t in GUNT else name
+    b=NB.get(nrm(base+' Blueprint'))
+    e={'id':iid,'n':base,'c':cat(iid,t)}
+    if b: e['b']=b
+    if iid in bpl: e['f'],e['fs']=bpl[iid][0],bpl[iid][1]
+    elif iid in BPF: e['f'],e['fs']=BPF[iid],LP
+    if iid in wbyt: e['w']=wbyt[iid]['id']
+    bps.append(e); seen[nrm(base)]=e
+for o in out:
+    if o.get('bp'): add_bp(o['id'],o['n'],o['t'])
+for iid,name,t in [('bantam','Bantam','Hand Cannon'),('stiletto','Stiletto','Battle Rifle'),('grappling_hook','Grappling Hook','Quick Use'),('tether_launcher','Tether Launcher','Quick Use'),('yank_grenade','Yank Grenade','Quick Use')]:
+    if nrm(name) not in seen and iid not in by: add_bp(iid,name,t); bps[-1]['x']=1
+miss=[]
+for line in RS_RAW.splitlines():
+    n,l,p,mats=line.split('|'); e=seen.get(nrm(n))
+    if not e: miss.append(n); continue
+    mm={}
+    for part in mats.split(' + '):
+        q,mn=part.split(' ',1); mid=NB.get(nrm(mn))
+        if not mid: miss.append(mn); continue
+        mm[mid]=int(q)
+    e['rs']={'l':int(l),'p':int(p),'m':mm}
+if miss: print('blueprints: unmatched research names', miss)
+for e in bps:
+    txt=e.get('f','')
+    c,m=scan(txt); 
+    if c: e['fc']=c
+    if m: e['fm']=m
+    qs=[]
+    for k in (e.get('b'),):
+        for q in qr.get(k,[]) if k else []:
+            if q not in qs: qs.append(q)
+    if qs: e['q']=qs
+RP=[('battered_paperback',50,"Residential rooms on any map; Old Town houses on Pendola Pass"),
+    ('raider_logbook',100,"Almost anywhere"),
+    ('exodus_technical_handbook',150,"Exodus-style sites; Cielo Sereno Observatory on Pendola Pass"),
+    ('arc_data_module',200,"Wrecks of ARC machines (Probes, Couriers, Harvesters)"),
+    ('frigate_diagnostic_node',1000,"Breach-and-search containers on the ARC Frigate, only while the Frigate condition is up")]
+blueprints={'list':bps,'rp':[{'i':a,'p':b,'w':c} for a,b,c in RP],'src':[RS_SRC,LP,'CheckpointGuides research points guide, Oct 17 2026']}
+# where the research items turn up, so the Item finder can show it
+CG='CheckpointGuides, Oct 17 2026'; ALLM=['dam','buried','space','gate','stella','riven','pendola']
+RPG={'battered_paperback':("Residential interiors on any map; the Old Town houses on Pendola Pass are a good spot. Study it after extracting for 50 Research Points.",ALLM),
+     'raider_logbook':("Almost anywhere. Study it after extracting for 100 Research Points.",ALLM),
+     'exodus_technical_handbook':("Exodus-style sites, and the Cielo Sereno Observatory on Pendola Pass. Study it after extracting for 150 Research Points.",['pendola']),
+     'arc_data_module':("Wrecks of ARC machines such as Probes, Couriers and Harvesters. Study it after extracting for 200 Research Points.",ALLM),
+     'frigate_diagnostic_node':("Breach-and-search containers on the ARC Frigate, only while the Frigate condition is up. Study it after extracting for 1,000 Research Points.",['dam','buried','space','gate','pendola'])}
+for k,(w,m) in RPG.items(): guide[k]={'w':w,'m':m,'s':CG}
+# quests that give a blueprint: who gives them, where, what to do, and what comes before
+QMAP={'dam_battlegrounds':'Dam','dam':'Dam','buried_city':'Buried City','spaceport':'Spaceport','the_spaceport':'Spaceport','blue_gate':'Blue Gate','stella_montis':'Stella Montis','riven_tides':'Riven Tides','pendola_pass':'Pendola Pass'}
+qs={}
+qall={}
+for f in sorted(os.listdir(R+'quests')) if os.path.isdir(R+'quests') else []:
+    if f.endswith('.json'):
+        q=json.load(open(R+'quests/'+f)); qall[q['id']]=q
+for e in bps:
+    for qq in e.get('q',[]):
+        q=qall.get(qq['id'])
+        if not q or q['id'] in qs: continue
+        qs[q['id']]={'n':en(q.get('name') or q['id']),'tr':q.get('trader'),
+          'm':[QMAP.get(x,x.replace('_',' ').title()) for x in (q.get('map') or [])],
+          'o':[en(o) for o in (q.get('objectives') or [])][:4],
+          'pre':[en(qall[x]['name']) for x in (q.get('previousQuestIds') or []) if x in qall]}
+        # items the quest asks you to hand in ("Deliver 3 Wires to ...")
+        dl={}
+        for o in qs[q['id']]['o']:
+            mm=re.match(r"(?i)^deliver (?:(\d+)\s+|an?\s+|the\s+)?(.+?) to\b",o)
+            if not mm: continue
+            nmx=nrm(mm.group(2)); iid=NB.get(nmx) or NB.get(re.sub(r's$','',nmx)) or NB.get(re.sub(r'es$','',nmx))
+            ob={x['id']:x for x in out}.get(iid)
+            if ob and 'quest' not in str(ob.get('t','')).lower(): dl[iid]=dl.get(iid,0)+int(mm.group(1) or 1)
+        if dl: qs[q['id']]['d']=dl
+blueprints['qs']=qs
+print('blueprints:', len(bps), 'entries,', sum(1 for e in bps if 'rs' in e), 'researchable')
+
+data={'items':out,'stations':stations,'events':events,'guide':guide,'weapons':weapons,'mods':mods,'keys':keys,'qr':qr,'ev':ev,'bp':blueprints}
 js='var DB='+json.dumps(data,separators=(',',':'),ensure_ascii=False)+';'
 open(os.path.join(os.environ.get('OUT','build'),'data.js'),'w').write(js)
 print(len(js),'bytes', len(out),'items', len(guide),'guide entries')

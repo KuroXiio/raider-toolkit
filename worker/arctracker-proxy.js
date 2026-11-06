@@ -39,13 +39,21 @@ export default {
       return new Response(await r.text(), { status: r.status, headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "no-store" } });
     }
 
-    const paged = { "/stash": "stash", "/blueprints": "blueprints" };
+    // Blueprints: only the learned ones, so everything that comes back counts as learned.
+    const paged = { "/stash": "stash", "/blueprints": "blueprints?filter=learned" };
     if (paged[path]) {
       let all = [];
       for (let page = 1; page <= MAX_PAGES; page++) {
-        const r = await fetch(API + paged[path] + "?per_page=" + PER_PAGE + "&page=" + page, { headers });
+        const base = API + paged[path];
+        const r = await fetch(base + (base.includes("?") ? "&" : "?") + "per_page=" + PER_PAGE + "&page=" + page, { headers });
         if (!r.ok) return new Response(await r.text(), { status: r.status, headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "no-store" } });
-        const list = listOf(await r.json());
+        const body = await r.json();
+        const list = listOf(body);
+        // not a plain list (for example grouped by category): pass it on as it is, the site sorts it out
+        if (list === null) {
+          if (page === 1) return json(body, 200, cors);
+          break;
+        }
         all = all.concat(list);
         if (list.length < PER_PAGE) break;
       }
@@ -59,8 +67,8 @@ export default {
 function listOf(j) {
   if (Array.isArray(j)) return j;
   if (!j || typeof j !== "object") return [];
-  for (const c of [j.items, j.data, j.stash, j.results, j.data && j.data.items]) if (Array.isArray(c)) return c;
-  return [];
+  for (const c of [j.items, j.data, j.stash, j.blueprints, j.results, j.data && j.data.items, j.data && j.data.blueprints]) if (Array.isArray(c)) return c;
+  return null;
 }
 
 function json(obj, status, headers) {
