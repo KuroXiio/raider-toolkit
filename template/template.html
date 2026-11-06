@@ -360,6 +360,7 @@ body { overflow-x: clip; }
 .zz::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 22px; transform: translateX(-50%); background: linear-gradient(90deg, #ff2d2d 0 4px, transparent 4px 6px, #ffc400 6px 10px, transparent 10px 12px, #22d65f 12px 16px, transparent 16px 18px, #5ff2ea 18px 22px); -webkit-mask-image: linear-gradient(transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(transparent, #000 10%, #000 90%, transparent); opacity: .9; }
 .zz li { position: relative; width: 50%; padding: 0 64px 0 0; text-align: right; }
 .zz li + li { margin-top: -34px; }
+.zz li { transition: none; }
 .zz li:nth-child(even) { margin-left: 50%; padding: 0 0 0 64px; text-align: left; }
 .zz li::before { content: ""; position: absolute; top: 26px; right: 18px; width: 36px; height: 3px; border-radius: 2px; background: var(--c); }
 .zz li:nth-child(even)::before { right: auto; left: 18px; }
@@ -2605,6 +2606,25 @@ details.dcg summary .n.ok { color: var(--ok); }
   $("#statStations").textContent = STATIONS.length;
   $("#statWeapons").textContent = WEAPONS.length;
   $("#statMaps").textContent = MAP_ORDER.length;
+  /* zigzag guide: each step sits a fixed distance below the one before, and only moves further down if the step above it on the same side is long */
+  function layoutZZ() {
+    Array.prototype.forEach.call(document.querySelectorAll(".zz"), function (ul) {
+      var lis = Array.prototype.filter.call(ul.children, function (li) { return !li.hidden; });
+      var wide = window.matchMedia("(min-width: 701px)").matches;
+      if (!wide || !lis.length) { lis.forEach(function (li) { li.style.marginTop = ""; }); ul.style.paddingBottom = ""; return; }
+      var STEP = 110, GAP = 30, top = [], h = lis.map(function (li) { return li.offsetHeight; }), end = 0;
+      lis.forEach(function (li, k) {
+        top[k] = k === 0 ? 0 : Math.max(top[k - 1] + STEP, k > 1 ? top[k - 2] + h[k - 2] + GAP : 0);
+        var m = k === 0 ? "" : Math.round(top[k] - (top[k - 1] + h[k - 1])) + "px";
+        if (li.style.marginTop !== m) li.style.marginTop = m;
+        end = Math.max(end, top[k] + h[k]);
+      });
+      var last = lis.length - 1, pb = Math.round(6 + end - (top[last] + h[last])) + "px";
+      if (ul.style.paddingBottom !== pb) ul.style.paddingBottom = pb;
+    });
+  }
+  if (window.ResizeObserver) { var zzRO = new ResizeObserver(function () { layoutZZ(); }); Array.prototype.forEach.call(document.querySelectorAll(".zz > li"), function (li) { zzRO.observe(li); }); }
+  window.addEventListener("resize", layoutZZ);
   /* ---------- ARCTracker connection (optional) ---------- */
   var HOUR = 3600000, ARC_MANUAL = 2;
   var arc = store("rt-arc") || {};
@@ -2735,6 +2755,7 @@ details.dcg summary .n.ok { color: var(--ok); }
   function renderArc() {
     Array.prototype.forEach.call(document.querySelectorAll(".arc-only"), function (el) { el.hidden = !ARC_PROXY; });
     var zn = 0; Array.prototype.forEach.call(document.querySelectorAll(".zz > li"), function (li) { if (li.hidden) return; zn++; var z = li.querySelector(".zn"); if (z) z.textContent = (zn < 10 ? "0" : "") + zn; li.style.setProperty("--c", ["#ff2d2d", "#ffc400", "#22d65f", "#5ff2ea", "#2f3ee0"][zn - 1] || "#5ff2ea"); });
+    layoutZZ();
     var pill = $("#arcPill");
     if (pill) {
       pill.hidden = !ARC_PROXY;
