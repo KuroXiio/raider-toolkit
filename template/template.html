@@ -3105,7 +3105,7 @@ button.bprpn:hover { color: #fff; text-decoration-color: currentColor; }
   function arcOn() { return !!(ARC_PROXY && arc.key); }
   var ARC_APP_URL = "https://arctracker.io/app#download";
   function arcNoData() { return arcOn() && !!arc.at && !arc.err && !arc.n && !arc.miss; }
-  function arcSave() { store("rt-arc", { key: arc.key, pn: arc.pn, pl: arc.pl, xf: arc.xf, xc: arc.xc, xn: arc.xn, stash: arc.stash, bp: arc.bp, qd: arc.qd, ids: arc.ids, n: arc.n, nd: arc.nd, miss: arc.miss, lv: arc.lv, at: arc.at, last: arc.last, man: arc.man, err: arc.err }); }
+  function arcSave() { store("rt-arc", { key: arc.key, missN: arc.missN, pn: arc.pn, pl: arc.pl, xf: arc.xf, xc: arc.xc, xn: arc.xn, stash: arc.stash, bp: arc.bp, qd: arc.qd, ids: arc.ids, n: arc.n, nd: arc.nd, miss: arc.miss, lv: arc.lv, at: arc.at, last: arc.last, man: arc.man, err: arc.err }); }
   function arcBpMissing(id) { return arcOn() && !!arc.bp && !arc.bp[id] && !arc.bp[id + "_blueprint"]; }
   function questsFor(ids) {
     var out = [], seen = {};
@@ -3195,7 +3195,7 @@ button.bprpn:hover { color: #fff; text-decoration-color: currentColor; }
     }
     var names = ["stash", "hideout", "blueprints", "quests", "profile"], raw = {};
     names.forEach(function (n, i) { raw[n] = arcRaw ? red(arcRaw[i], 0, n === "hideout" || n === "profile" ? 40 : 3) : null; });
-    var rep = { site: location.host, at: new Date().toISOString(), read: { items: arc.n, notRecognised: arc.miss, stations: arc.lv, raiderLevel: arc.pl, xp: arc.xf != null ? { progress: arc.xf, inLevel: arc.xc, forLevel: arc.xn } : null, blueprints: arc.bp ? Object.keys(arc.bp).length : null, quests: arc.qd ? Object.keys(arc.qd).length : null, stationLevels: ws.cur }, raw: raw };
+    var rep = { site: location.host, at: new Date().toISOString(), read: { items: arc.n, notRecognised: arc.miss, notRecognisedNames: arc.missN, stations: arc.lv, raiderLevel: arc.pl, xp: arc.xf != null ? { progress: arc.xf, inLevel: arc.xc, forLevel: arc.xn } : null, blueprints: arc.bp ? Object.keys(arc.bp).length : null, quests: arc.qd ? Object.keys(arc.qd).length : null, stationLevels: ws.cur }, raw: raw };
     return JSON.stringify(rep, null, 1).slice(0, 15000);
   }
   function copyText(txt, done) {
@@ -3242,7 +3242,8 @@ button.bprpn:hover { color: #fff; text-decoration-color: currentColor; }
       arcRaw = res;
       var st = {}, miss = 0, lv = 0;
       var raw = arcList(res[0]), hl = res[1] ? arcList(res[1]) : [], nbp = res[2] ? arcList(res[2]).length : 0, nq = res[3] ? arcList(res[3]).length : 0;
-      raw.forEach(function (o) { var id = arcItemId(o); if (!id) { miss++; return; } st[id] = (st[id] || 0) + arcQty(o); });
+      var missN = [];
+      raw.forEach(function (o) { var id = arcItemId(o); if (!id) { miss++; var mn = o.name || o.itemName || o.item_name || o.itemId || o.item_id; if (mn && missN.indexOf(mn) < 0) missN.push(String(mn)); return; } st[id] = (st[id] || 0) + arcQty(o); });
       var nd = !raw.length;
       if (!nd) {
         (arc.ids || []).forEach(function (k) { if (!(k in st)) { ws.have[k] = 0; shop.have[k] = 0; } });
@@ -3265,13 +3266,14 @@ button.bprpn:hover { color: #fff; text-decoration-color: currentColor; }
         var k = ""; for (var i = 0; i < c.length; i++) { k = arcNorm(c[i]); if (k) break; }
         if (!k) k = arcByName(o.name || it.name) || ""; if (!k) return;
         bp[k] = 1; bp[k.replace(/_blueprint$/, "")] = 1;
+        var tg = arcNorm(o.targetItemId || o.target_item_id || o.itemId || ""); if (tg) bp[tg] = 1;
       }); arc.bp = bp; } else arc.bp = null;
       if (res[3]) { var qd = {}; arcList(res[3]).forEach(function (o) {
         var done = o.completed === true || o.is_completed === true || o.done === true || /^(complete|completed|done|finished)$/i.test(String(o.status || o.state || ""));
         if (o.completed === false || o.is_completed === false || /incomplete|active|in_?progress|open|available/i.test(String(o._group || ""))) done = false;
         if (o.completed == null && o.is_completed == null && o.done == null && o.status == null && o.state == null) done = true;
         var q = o.quest || {}, k = arcNorm(o.quest_id || o.questId || o.slug || o.id || q.id || q.slug || o.name || q.name);
-        if (k && done) qd[k] = 1;
+        if (k && done) { qd[k] = 1; qd[k.replace(/^\d+_/, "")] = 1; var qn = arcNorm(o.name || q.name); if (qn) qd[qn] = 1; }
       }); arc.qd = qd; } else arc.qd = null;
       if (res[4]) {
         var pf = res[4].data || res[4].profile || res[4].user || res[4];
@@ -3282,7 +3284,7 @@ button.bprpn:hover { color: #fff; text-decoration-color: currentColor; }
         var xp = arcProfileXp(res[4]); arc.xf = xp.f; arc.xc = xp.c; arc.xn = xp.n;
       }
       if (nd) { arc.bp = null; arc.qd = null; }
-      arc.nd = nd; arc.stash = st; arc.ids = Object.keys(st); arc.n = arc.ids.length; arc.miss = miss; arc.lv = lv; arc.at = Date.now(); arc.err = "";
+      arc.nd = nd; arc.stash = st; arc.ids = Object.keys(st); arc.n = arc.ids.length; arc.miss = miss; arc.missN = missN.slice(0, 20); arc.lv = lv; arc.at = Date.now(); arc.err = "";
       saveWs(); saveShop();
       if (nd) { if (kind !== "auto") toast("Linked, but ARCTracker has no game data yet. Install ARC Tracker Link to sync it."); }
       else if (kind !== "auto") toast("Synced " + arc.n + " items" + (lv ? " and " + lv + " station level" + (lv === 1 ? "" : "s") : "") + " from ARCTracker");
@@ -3315,6 +3317,9 @@ button.bprpn:hover { color: #fff; text-decoration-color: currentColor; }
     if (arc.xf != null && !isNaN(arc.xf)) return Math.max(0, Math.min(1, arc.xf));
     return null;
   }
+  /* ARCTracker can report level 1 before it has the real level. Level 1 with a filled stash
+     (or any Outpost, which needs raider level 18) means the level is not known yet, so it is hidden. */
+  function arcLvlOk() { if (arc.pl == null) return false; if (arc.pl > 1) return true; return !(arc.n > 20 || (ws.cur && ws.cur.research > 0)); }
   function arcRing() {
     var f = arcXpFrac(), C = 2 * Math.PI * 15.5, fill = f == null ? 0 : f * C;
     return '<span class="plvl"><svg viewBox="0 0 36 36" aria-hidden="true"><circle class="trk" cx="18" cy="18" r="15.5"/>' + (fill > 0 ? '<circle class="xpf" cx="18" cy="18" r="15.5" stroke-dasharray="' + fill.toFixed(2) + " " + C.toFixed(2) + '"/>' : "") + "</svg><b>" + arc.pl + "</b></span>";
@@ -3323,9 +3328,10 @@ button.bprpn:hover { color: #fff; text-decoration-color: currentColor; }
     if (!arcOn() || !arc.at) return "";
     if (nd) return '<b>No game data found</b>Your key works, but ARCTracker has nothing from the game for this account yet. Install <b style="display:inline;color:inherit">ARC Tracker Link</b> on your PC, link your ARC Raiders account there and press Sync now. <a href="' + ARC_APP_URL + '" target="_blank" rel="noopener">Open the install guide</a><span class="tipx">Click for refresh and options</span>';
     var f = arcXpFrac(), auto = arcAutoIn(), li = [];
-    if (arc.pl != null) li.push("<li>Level " + arc.pl + (arc.xc != null && arc.xn ? ' <em>· ' + fmt(arc.xc) + " / " + fmt(arc.xn) + " XP</em>" : f != null ? ' <em>· ' + Math.round(f * 100) + "% to next level</em>" : "") + (f != null ? '<span class="xpbar"><i style="width:' + (f * 100).toFixed(1) + '%"></i></span>' : "") + "</li>");
+    if (arcLvlOk()) li.push("<li>Level " + arc.pl + (arc.xc != null && arc.xn ? ' <em>· ' + fmt(arc.xc) + " / " + fmt(arc.xn) + " XP</em>" : f != null ? ' <em>· ' + Math.round(f * 100) + "% to next level</em>" : "") + (f != null ? '<span class="xpbar"><i style="width:' + (f * 100).toFixed(1) + '%"></i></span>' : "") + "</li>");
     li.push("<li>" + arc.n + " items from your stash" + (arc.lv ? " · " + arc.lv + " station level" + (arc.lv === 1 ? "" : "s") : "") + "</li>");
-    if (arc.miss) li.push("<li><em>" + arc.miss + " stash item" + (arc.miss === 1 ? "" : "s") + " not recognised</em></li>");
+    if (arc.pl != null && !arcLvlOk()) li.push("<li><em>ARCTracker has not shared your raider level yet</em></li>");
+    if (arc.miss) li.push("<li><em>" + arc.miss + " stash item" + (arc.miss === 1 ? " is" : "s are") + " newer than the site's data" + (arc.missN && arc.missN.length ? ": " + esc(arc.missN.slice(0, 4).join(", ")) + (arc.miss > 4 ? "…" : "") : "") + "</em></li>");
     if (!arc.bp) li.push("<li><em>Blueprints not shared (give the key blueprints read access)</em></li>");
     li.push("<li>" + (arcBusy ? "Syncing…" : "Synced " + arcAgo(arc.at)) + (!arcBusy && auto > 0 ? ' <em>· next in ' + evClock(auto) + "</em>" : "") + "</li>");
     return "<b>" + (arc.err ? "ARCTracker sync failed" : "ARCTracker linked") + "</b>" + (arc.err ? "<div>" + esc(arc.err) + "</div>" : "") + "<ul>" + li.join("") + '</ul><span class="tipx">Click for refresh and options</span>';
@@ -3367,7 +3373,7 @@ button.bprpn:hover { color: #fff; text-decoration-color: currentColor; }
       if (wrap) { wrap.classList.toggle("warn", pnd); wrap.classList.toggle("tip", arcOn() && !!arc.at); wrap.classList.toggle("popopen", !!($("#arcPop") && !$("#arcPop").hidden)); }
       var tip = $("#arcTip");
       if (tip) { var th = arcTipHtml(pnd); tip.className = "arctip" + (arc.err ? " bad" : pnd ? "" : " ok"); if (tip.firstChild.innerHTML !== th) tip.firstChild.innerHTML = th; }
-      pill.innerHTML = arcOn() && arc.pn ? (arc.pl != null && !pnd ? arcRing() : "") + '<span class="pname">' + esc(arc.pn) + "</span>" + (arc.err || pnd ? "<i></i>" : "") : '<i></i><span>' + (arcOn() ? (arcBusy ? "Syncing…" : "ARCTracker") : "Link ARCTracker") + "</span>";
+      pill.innerHTML = arcOn() && arc.pn ? (arcLvlOk() && !pnd ? arcRing() : "") + '<span class="pname">' + esc(arc.pn) + "</span>" + (arc.err || pnd ? "<i></i>" : "") : '<i></i><span>' + (arcOn() ? (arcBusy ? "Syncing…" : "ARCTracker") : "Link ARCTracker") + "</span>";
       pill.classList.toggle("who", !!(arcOn() && arc.pn));
       pill.title = arcOn() && arc.at ? "" : arcOn() ? "ARCTracker linked" : "Link your ARCTracker stash";
     }
