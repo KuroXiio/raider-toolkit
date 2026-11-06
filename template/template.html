@@ -420,10 +420,11 @@ body { overflow-x: clip; }
 .arcf { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
 .arcf input { flex: 1 1 220px; min-width: 0; font: inherit; font-family: var(--f-mono); font-size: .85rem; color: #fff; background: #0f1430; border: 1px solid #343b66; border-radius: 8px; padding: 8px 10px; }
 .arcpill { font: inherit; display: inline-flex; align-items: center; gap: 7px; flex: none; margin-left: 8px; padding: 6px 10px; border-radius: 99px; cursor: pointer; font-family: var(--f-mono); font-size: .7rem; letter-spacing: .06em; color: var(--dim); background: rgba(255,255,255,.04); border: 1px solid #343b66; }
-.arcpill i { width: 8px; height: 8px; border-radius: 50%; background: #6b6890; }
+.arcpill i { width: 8px; height: 8px; border-radius: 50%; background: #ff4d4d; box-shadow: 0 0 8px #ff4d4d; }
+button.arcmini i { background: #ff4d4d; box-shadow: 0 0 6px #ff4d4d; }
 .arcpill.on { color: #d8ffe8; border-color: rgba(109,255,164,.4); }
 .arcpill.on i { background: #6dffa4; box-shadow: 0 0 8px #6dffa4; }
-.arcpill.bad i { background: #ff8f8f; box-shadow: 0 0 8px #ff8f8f; }
+.arcpill.bad i { background: #ff4d4d; box-shadow: 0 0 8px #ff4d4d; }
 .arcpill.warn { color: #ffd9b0; border-color: rgba(255,159,67,.45); }
 .arcpill.warn i { background: #ff9f43; box-shadow: 0 0 8px #ff9f43; }
 .arcpill.who.warn { color: #ece9f6; border-color: transparent; }
@@ -452,7 +453,7 @@ body { overflow-x: clip; }
 .arcmini.on { color: #6dffa4; border-color: rgba(109,255,164,.35); cursor: default; }
 button.arcmini:hover, button.arcmini:focus-visible { background: rgba(95,242,234,.08); }
 .arctag { display: inline-block; margin-left: 8px; font-family: var(--f-mono); font-size: .62rem; letter-spacing: .08em; text-transform: uppercase; color: #6dffa4; font-weight: 500; }
-.arcdot.bad { background: #ff8f8f; box-shadow: 0 0 10px #ff8f8f; }
+.arcdot.bad { background: #ff4d4d; box-shadow: 0 0 10px #ff4d4d; }
 .arcdot.warn { background: #ff9f43; box-shadow: 0 0 10px #ff9f43; }
 .arcin.on.warn { border-color: rgba(255,159,67,.45); background: rgba(255,159,67,.06); }
 .arcnd { color: #ffd9b0 !important; }
@@ -2630,7 +2631,7 @@ details.dcg summary .n.ok { color: var(--ok); }
   var arc = store("rt-arc") || {};
   function arcOn() { return !!(ARC_PROXY && arc.key); }
   var ARC_APP_URL = "https://arctracker.io/app#download";
-  function arcNoData() { return arcOn() && !!arc.at && !arc.err && !!arc.nd; }
+  function arcNoData() { return arcOn() && !!arc.at && !arc.err && !arc.n && !arc.miss; }
   function arcSave() { store("rt-arc", { key: arc.key, pn: arc.pn, pl: arc.pl, stash: arc.stash, bp: arc.bp, qd: arc.qd, ids: arc.ids, n: arc.n, nd: arc.nd, miss: arc.miss, lv: arc.lv, at: arc.at, last: arc.last, man: arc.man, err: arc.err }); }
   function arcBpMissing(id) { return arcOn() && !!arc.bp && !arc.bp[id] && !arc.bp[id + "_blueprint"]; }
   function questsFor(ids) {
@@ -2649,7 +2650,7 @@ details.dcg summary .n.ok { color: var(--ok); }
     return '<div class="bpmiss"><b>Blueprint not learned yet</b><span>The materials are left out until you have it.</span><span><em>Where to find it:</em> ' + esc(loc && loc[0] ? loc[0] : "No location is listed in the guides used here.") + "</span>" + questLine(qids, name + " blueprint") + "</div>";
   }
   function arcHas(id) { return arcOn() && arc.stash && (arc.stash[id] || 0) > 0; }
-  function arcTier(w) { if (!arcOn() || !arc.at || arc.nd) return -1; var t = 0; (w.tiers || []).forEach(function (id, i) { if (arcHas(id)) t = i + 1; }); return t; }
+  function arcTier(w) { if (!arcOn() || !arc.at || arcNoData()) return -1; var t = 0; (w.tiers || []).forEach(function (id, i) { if (arcHas(id)) t = i + 1; }); return t; }
   function arcNorm(s) { return String(s == null ? "" : s).toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, ""); }
   var ARC_NAMES = null;
   function arcByName(n) { if (!ARC_NAMES) { ARC_NAMES = {}; ITEMS.forEach(function (i) { ARC_NAMES[arcNorm(i.n)] = i.id; }); } return ARC_NAMES[arcNorm(n)]; }
@@ -2692,12 +2693,12 @@ details.dcg summary .n.ok { color: var(--ok); }
       var st = {}, miss = 0, lv = 0;
       var raw = arcList(res[0]), hl = res[1] ? arcList(res[1]) : [], nbp = res[2] ? arcList(res[2]).length : 0, nq = res[3] ? arcList(res[3]).length : 0;
       raw.forEach(function (o) { var id = arcItemId(o); if (!id) { miss++; return; } st[id] = (st[id] || 0) + arcQty(o); });
-      var nd = !raw.length && !hl.length && !nbp && !nq;
+      var nd = !raw.length;
       if (!nd) {
         (arc.ids || []).forEach(function (k) { if (!(k in st)) { ws.have[k] = 0; shop.have[k] = 0; } });
         Object.keys(st).forEach(function (k) { ws.have[k] = st[k]; shop.have[k] = st[k]; });
       }
-      hl.forEach(function (o) {
+      (nd ? [] : hl).forEach(function (o) {
         var s = arcStation(o), L = arcLevel(o); if (!s || L == null || isNaN(L)) return;
         ws.cur[s.id] = Math.max(0, Math.min(s.max, L)); if ((ws.goal[s.id] || 0) < ws.cur[s.id]) ws.goal[s.id] = ws.cur[s.id]; lv++;
       });
@@ -2762,7 +2763,7 @@ details.dcg summary .n.ok { color: var(--ok); }
       var pnd = arcNoData() && !arcBusy, wrap = $("#arcWrap");
       pill.className = "arcpill" + (arcOn() ? (arc.err ? " bad" : pnd ? " warn" : " on") : "");
       if (wrap) { wrap.classList.toggle("warn", pnd); wrap.classList.toggle("popopen", !!($("#arcPop") && !$("#arcPop").hidden)); }
-      pill.innerHTML = arcOn() && arc.pn ? (arc.pl != null ? '<b class="plvl">' + arc.pl + "</b>" : "") + '<span class="pname">' + esc(arc.pn) + "</span>" + (arc.err || pnd ? "<i></i>" : "") : '<i></i><span>' + (arcOn() ? (arcBusy ? "Syncing…" : "ARCTracker") : "Link ARCTracker") + "</span>";
+      pill.innerHTML = arcOn() && arc.pn ? (arc.pl != null && !pnd ? '<b class="plvl">' + arc.pl + "</b>" : "") + '<span class="pname">' + esc(arc.pn) + "</span>" + (arc.err || pnd ? "<i></i>" : "") : '<i></i><span>' + (arcOn() ? (arcBusy ? "Syncing…" : "ARCTracker") : "Link ARCTracker") + "</span>";
       pill.classList.toggle("who", !!(arcOn() && arc.pn));
       pill.title = pnd ? "" : arcOn() ? (arc.pn ? arc.pn + (arc.pl != null ? " · level " + arc.pl : "") + " · " : "") + (arc.at ? "ARCTracker linked · synced " + arcAgo(arc.at) : "ARCTracker linked") : "Link your ARCTracker stash";
     }
