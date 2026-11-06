@@ -85,10 +85,11 @@ nav a { font-family: var(--f-display); font-weight: 600; text-decoration: none; 
 nav a:hover, nav a:focus-visible { color: var(--fg); border-bottom-color: var(--cream); }
 
 /* Hero */
-.hero { position: relative; margin: 0 calc(-1 * max(16px, env(safe-area-inset-right, 0px))) 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px))); overflow: hidden; background: #07050f; border-bottom: 1px solid var(--line); }
+.hero { position: relative; margin: 0 calc(-1 * max(16px, env(safe-area-inset-right, 0px))) 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px))); overflow: hidden; background: #07050f; }
 .hero canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.hero::before, .hero::after { content: ""; position: absolute; left: 0; right: 0; height: 26px; background: #000; z-index: 4; }
-.hero::before { top: 0; } .hero::after { bottom: 0; }
+.hero::before, .hero::after { content: ""; position: absolute; left: 0; right: 0; z-index: 4; pointer-events: none; }
+.hero::before { top: 0; height: 90px; background: linear-gradient(180deg, var(--bg) 0%, rgba(12,9,22,.55) 45%, rgba(12,9,22,0) 100%); }
+.hero::after { bottom: 0; height: 180px; background: linear-gradient(0deg, var(--bg) 0%, rgba(12,9,22,.85) 30%, rgba(12,9,22,.4) 65%, rgba(12,9,22,0) 100%); }
 .stripes {
   position: absolute; right: 0; bottom: 26px; z-index: 2; pointer-events: none;
   width: min(52vw, 620px); height: min(52vw, 620px);
@@ -96,7 +97,7 @@ nav a:hover, nav a:focus-visible { color: var(--fg); border-bottom-color: var(--
   opacity: .96;
 }
 .hero-in {
-  position: relative; z-index: 3; padding: 112px max(16px, env(safe-area-inset-right, 0px)) 92px max(16px, env(safe-area-inset-left, 0px));
+  position: relative; z-index: 3; padding: 112px max(16px, env(safe-area-inset-right, 0px)) 150px max(16px, env(safe-area-inset-left, 0px));
   background: linear-gradient(90deg, rgba(8,5,16,.82) 0%, rgba(8,5,16,.4) 55%, transparent 100%);
 }
 .eyebrow { font-family: var(--f-mono); font-size: .8rem; letter-spacing: .2em; text-transform: uppercase; color: var(--mint); }
@@ -218,7 +219,7 @@ footer p { margin: 0 0 8px; max-width: 90ch; }
   .mapwrap, .haulgrid { grid-template-columns: minmax(0, 1fr); }
   .maplist { flex-direction: row; flex-wrap: wrap; }
   .hr-total { position: static; }
-  .hero-in { padding-top: 84px; padding-bottom: 70px; background: linear-gradient(180deg, rgba(8,5,16,.65), rgba(8,5,16,.45)); }
+  .hero-in { padding-top: 84px; padding-bottom: 130px; background: linear-gradient(180deg, rgba(8,5,16,.65), rgba(8,5,16,.45)); }
   nav a { padding: 10px 8px; }
   header.top .wrap { gap: 4px 12px; padding-block: 4px; }
   .item { grid-template-columns: 96px minmax(0, 1fr); gap: 14px; }

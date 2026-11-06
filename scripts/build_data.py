@@ -212,6 +212,46 @@ for k,ids in fam.items():
        'rep':[by[x].get('repairCost') or None for x in ids]}
     if first.get('vendors'): w['ve']=[{'tr':v.get('trader'),'c':v.get('cost'),'lim':v.get('limit'),'lv':v.get('requiredLevel')} for v in first['vendors']]
     weapons.append(w)
+# Base stats for stats the data set leaves out. Damage, fire rate and range: arcraiders.wiki (same scale as
+# the data set). Stability, agility and stealth: arcraidershub.com (approximate).
+WIKI_STATS={
+ 'kettle':(8.5,30,42.8),'rattler':(9,33.3,56.2),'arpeggio':(9.5,18.3,55.9),'tempest':(10,36.7,55.9),'bettina':(16,28.7,52.3),
+ 'ferro':(40,6.6,53.1),'renegade':(35,21,68.8),'aphelion':(25,9,76),'stitcher':(6.5,45.3,42.1),'canto':(6.5,56.7,51),
+ 'bobcat':(6,66.7,44),'il_toro':(67.5,14,20),'vulcano':(49.5,26.3,26),'hairpin':(20,9,38.6),'burletta':(10,28,41.7),
+ 'venator':(16,36.7,48.4),'anvil':(40,16.3,50.2),'torrente':(8,58.3,49.9),'osprey':(45,17.7,80.3),'jupiter':(60,7.7,71.7),
+ 'rascal':(75,13.7,28.3),'hullcracker':(100,20.3,38.9),'equalizer':(8,33.3,68.6),
+}
+HUB_STATS={
+ 'anvil':dict(stability=67,agility=56,stealth=10),'aphelion':dict(stability=88,agility=39,stealth=16),
+ 'bettina':dict(stability=81,agility=43,stealth=14),'bobcat':dict(agility=74.3,stealth=21),
+ 'burletta':dict(stability=75,agility=86,stealth=24),'ferro':dict(stability=78,agility=32,stealth=8),
+ 'hairpin':dict(stability=92,agility=77,stealth=70),'stitcher':dict(agility=74.8,stealth=19),
+ 'tempest':dict(agility=52,stealth=14),'torrente':dict(stability=78.2,agility=39.8,stealth=1),
+ 'venator':dict(stability=71,agility=78,stealth=12),
+}
+for w in weapons:
+    ste=[{k:v for k,v in (x or {}).items() if v is not None} for x in w['ste']]
+    fb={}
+    if w['id'] in WIKI_STATS: fb.update(zip(('damage','fireRate','range'),WIKI_STATS[w['id']]))
+    fb.update(HUB_STATS.get(w['id'],{}))
+    for s,v in fb.items():
+        if not any(s in x for x in ste):
+            for x in ste: x[s]=v
+            w['sest']=1
+    # the data set often lists stats on only some tiers; where every listed tier agrees, the
+    # stat does not change between tiers, so fill the gaps with that value
+    for s in STATK:
+        vals=[x[s] for x in ste if s in x]
+        if vals and all(v==vals[0] for v in vals):
+            for x in ste: x[s]=vals[0]
+    # where fire rate is the same base value on every tier, apply each tier's "Increased Fire Rate X%" bonus
+    frs=[x.get('fireRate') for x in ste]
+    if len(ste)>1 and frs[0] is not None and all(v==frs[0] for v in frs):
+        for i,x in enumerate(ste):
+            m=re.search(r'Increased Fire Rate\s*([\d.]+)%',' '.join(w['tb'][i] or []))
+            if m and i>0:
+                x['fireRate']=round(frs[0]*(1+float(m.group(1))/100),1); w['frb']=1
+    w['ste']=ste
 mods={}
 for i in items:
     if i['type']!='Modification': continue
@@ -304,7 +344,7 @@ for w in weapons:
 big_ids={}
 
 
-# ---- keys and locked rooms. pin = [image key, x, y] in pixels of the 1800px map images (area label on the map, not the exact door)
+# ---- keys and locked rooms. pin = [image key, x, y] in pixels of the 1800px map images; a 4th value of 1 means the pin is on the exact door (otherwise it marks the area)
 KG='KeenGamer, Feb 24 2026'; DX='Dexerto wiki, Apr 29 2026'; NC="Nerd's Chalk, Dec 29 2025"; GF='GamesFuze, May 25 2026'; UM='UMA Technology, Oct 20 2026'; TB='TechBloat, Oct 31 2026'; SN='Shacknews, Nov 13 2025'; GR='GamesRadar, May 8 2026'; AC='AltChar, Oct 19 2026'
 ANY='Random loot in containers (drawers, lockers, cabinets, bags). Keys are not carried by ARC.'
 K=[
@@ -313,7 +353,7 @@ K=[
  ('dam_surveillance_key','dam','Interior room in the Water Treatment Control building.','Random containers; often found in and around Water Treatment Control.',None,[KG,DX,NC],['dam',750,856]),
  ('dam_staff_room_key','dam','Staff room inside the Research & Administration building.','Random containers, especially administrative ones.','Crafting materials and rare components (Nerd\'s Chalk).',[DX,NC],['dam',1040,970]),
  ('dam_testing_annex_key','dam','Doors inside the Testing Annex. Guides disagree on whether one key opens both doors.','Random containers in and near the Testing Annex and admin buildings.','Larger loot room (KeenGamer).',[KG,DX,NC],['dam',1249,1127]),
- ('dam_controlled_access_zone_key','dam','Door at the top of the Controlled Access Zone.',None,None,[DX],None),
+ ('dam_controlled_access_zone_key','dam','Door at the top of the Controlled Access Zone, the puzzle area under the dam between the Power Generation Complex and Pipeline Tower.',None,None,[DX],['dam',1165,529]),
  # Spaceport
  ('spaceport_control_tower_key','space','Control Tower A6 (also called the Ground Control Tower).','Random containers; upper tower levels and pilot offices are mentioned.',None,[KG,DX,NC],['space',983,885]),
  ('spaceport_container_storage_key','space','Locked room in Container Storage, up the stairs to the upper walkway.','Random containers, lockers and crates.','Often guarded by ARC (Nerd\'s Chalk).',[KG,DX,NC],['space',1124,951]),
@@ -328,30 +368,30 @@ K=[
  # Blue Gate
  ('blue_gate_village_key','gate','A locked building in the Village.','Random containers in the Village houses.',None,[KG,DX,NC],['gate',709,303]),
  ('blue_gate_confiscation_room_key','gate','Confiscated goods room in the tunnels; KeenGamer places it under Reinforced Reception.','Random containers in the tunnels and nearby buildings.','Close-quarters fights (Nerd\'s Chalk).',[KG,DX,NC],['gate',920,385]),
- ('blue_gate_communication_tower_key','gate','Door by the Communication Tower. KeenGamer says a basement metal door at Pilgrim\'s Peak.','Random containers near the tower and tunnels.',None,[KG,DX,NC],None),
- ('blue_gate_cellar_key','gate','Cellar doors. Guides disagree: old Village basements, or near the south Olive Grove.','Random containers.',None,[KG,DX,NC],None),
+ ('blue_gate_communication_tower_key','gate','Pilgrim\'s Peak, by the Communication Tower: a basement metal door (KeenGamer).','Random containers near the tower and tunnels.',None,[KG,DX,NC],['gate',1367,312]),
+ ('blue_gate_cellar_key','gate','Works on several cellar doors. Most reported: just south of Olive Grove (angled door by a rock wall and beehives), Trapper\'s Glade (against a small ruined building), south of Raider\'s Refuge (hatch in open ground) and west of Ruined Homestead along the road (by a low stone wall).','Random containers.','Several doors, so check a few until you find one still closed.',[KG,DX,NC],['gate',745,982]),
  ('patrol_car_key','gate','Trunk of a patrol car. KeenGamer: Traffic Tunnel at the Headhouse (Blue Gate). Dexerto: a patrol car near the Customs House on Riven Tides.','Random containers; also a quest reward.','Random, moderate gear (Nerd\'s Chalk).',[KG,DX,NC],['gate',1052,420]),
  ('ancient_fort_security_code','gate','Gate Control Room (blue building on top of the Checkpoint gate). One of four codes for the Locked Gate condition.','Containers at Ancient Fort.','The fourth code opens the main Checkpoint gate; the area behind it is lootable.',[SN],['gate',964,1113]),
  ('pilgrims_peak_security_code','gate','Gate Control Room. One of four codes for the Locked Gate condition.','Containers at Pilgrim\'s Peak.',None,[SN],['gate',1359,322]),
  ('raiders_refuge_security_code','gate','Gate Control Room. One of four codes for the Locked Gate condition.','Containers at Raider\'s Refuge.',None,[SN],['gate',548,441]),
  ('reinforced_reception_security_code','gate','Gate Control Room. One of four codes for the Locked Gate condition.','Containers at Reinforced Reception.',None,[SN],['gate',905,360]),
  # Stella Montis
- ('stella_montis_archives_key','stella','A door in the Archives, at the end of the tunnels.','Random containers in high-loot areas (lockers, cabinets, bags).','High-value room (KeenGamer).',[KG,DX],['stella_l',1366,731]),
- ('stella_montis_assembly_admin_key','stella','Assembly admin door in the northwest, near the Assembly Line.','Random containers in Assembly and Medical Research.',None,[KG,DX],['stella_l',451,342]),
- ('stella_montis_medical_storage_key','stella','Medical storage door in Medical Research.','Random containers.',None,[KG],['stella_l',271,718]),
- ('stella_montis_security_checkpoint_key','stella','First door on the right in the Security Checkpoint.','Random containers.',None,[KG,DX],None),
+ ('stella_montis_archives_key','stella','A door in the Archives, at the end of the tunnels.','Random containers in high-loot areas (lockers, cabinets, bags).','High-value room (KeenGamer).',[KG,DX],['stella_l',1616,501,1]),
+ ('stella_montis_assembly_admin_key','stella','Assembly admin door in the northwest, near the Assembly Line.','Random containers in Assembly and Medical Research.',None,[KG,DX],['stella_l',661,358,1]),
+ ('stella_montis_medical_storage_key','stella','Medical storage door in Medical Research.','Random containers.',None,[KG],['stella_l',185,578,1]),
+ ('stella_montis_security_checkpoint_key','stella','First door on the right in the Security Checkpoint.','Random containers.',None,[KG,DX],['stella_l',1189,332,1]),
  ('seed_vault_box_key','stella','A specific box in the Seed Vault.',None,None,[],['stella_u',1210,1253]),
  # Riven Tides
- ('riven_tides_hotel_keycard_no_113','riven','Hotel Panorama Azzurro, floor 01: north-east stairs up, room straight ahead.','Random loot.',None,[GF,DX],None),
- ('riven_tides_hotel_keycard_no_107','riven','Hotel Panorama Azzurro, floor 01: north-west of room 113, on the left.','Guaranteed from Apollo\'s quest Battening Down; also random loot.','Busy PvP area (GamesFuze).',[GF,DX],None),
- ('riven_tides_hotel_keycard_no_102','riven','Hotel Panorama Azzurro, floor 01: far west end of a hallway, on the right.','Random loot.',None,[GF],None),
- ('riven_tides_hotel_keycard_no_205','riven','Hotel Panorama Azzurro, floor 02: near the centre, by a zipline and the western stairs.','Random loot.',None,[GF,DX],None),
- ('riven_tides_hotel_keycard_no_208','riven','Hotel Panorama Azzurro, floor 02: eastern part.','Random loot.',None,[GF,DX],None),
- ('riven_tides_hotel_keycard_no_311','riven','Hotel Panorama Azzurro, floor 03: easternmost stairs, just right of boarded room 313.','Random loot.',None,[GF,DX],None),
- ('riven_tides_hotel_keycard_no_404','riven','Hotel Panorama Azzurro, floor 04: easternmost stairs to the roof, then the far west corner at the end of a hallway.','Random loot.',None,[GF,DX],None),
- ('riven_tides_classified_records_keycard','riven','Port Authority Building, top floor, west side: a pair of locked doors guarded by a Sentry.','Random loot.',None,[GF,DX],None),
- ('riven_tides_secure_storage_keycard','riven','A second locked door inside the Classified Records room (open that first).','Random loot.',None,[GF],None),
- ('riven_tides_crane_house_keycard','riven','Stacking Yard: top of the south-central building, south-east corner door. Reach it by zipline or ladders.','Random loot.',None,[GF,DX],None),
+ ('riven_tides_hotel_keycard_no_113','riven','Hotel Panorama Azzurro, floor 01: north-east stairs up, room straight ahead.','Random loot.',None,[GF,DX],['riven',433,1070]),
+ ('riven_tides_hotel_keycard_no_107','riven','Hotel Panorama Azzurro, floor 01: north-west of room 113, on the left.','Guaranteed from Apollo\'s quest Battening Down; also random loot.','Busy PvP area (GamesFuze).',[GF,DX],['riven',433,1070]),
+ ('riven_tides_hotel_keycard_no_102','riven','Hotel Panorama Azzurro, floor 01: far west end of a hallway, on the right.','Random loot.',None,[GF],['riven',433,1070]),
+ ('riven_tides_hotel_keycard_no_205','riven','Hotel Panorama Azzurro, floor 02: near the centre, by a zipline and the western stairs.','Random loot.',None,[GF,DX],['riven',433,1070]),
+ ('riven_tides_hotel_keycard_no_208','riven','Hotel Panorama Azzurro, floor 02: eastern part.','Random loot.',None,[GF,DX],['riven',433,1070]),
+ ('riven_tides_hotel_keycard_no_311','riven','Hotel Panorama Azzurro, floor 03: easternmost stairs, just right of boarded room 313.','Random loot.',None,[GF,DX],['riven',433,1070]),
+ ('riven_tides_hotel_keycard_no_404','riven','Hotel Panorama Azzurro, floor 04: easternmost stairs to the roof, then the far west corner at the end of a hallway.','Random loot.',None,[GF,DX],['riven',433,1070]),
+ ('riven_tides_classified_records_keycard','riven','Port Authority Building, top floor, west side: a pair of locked doors guarded by a Sentry.','Random loot.',None,[GF,DX],['riven',795,690]),
+ ('riven_tides_secure_storage_keycard','riven','A second locked door inside the Classified Records room (open that first).','Random loot.',None,[GF],['riven',795,690]),
+ ('riven_tides_crane_house_keycard','riven','Harbor, in the Stacking Yard: top of the south-central building, south-east corner door. Reach it by zipline or ladders.','Random loot.',None,[GF,DX],['riven',1240,954,1]),
  # Pendola Pass
  ('pendola_pass_observatory_key','pendola','Cielo Sereno Observatory (north of the Railyard), main building: west exterior stairs, central north door, right-hand door, then left; the small room is at the end of the passage.','Scavenging; Shani\'s quest Belly of the Beast is reported to give one.','One of the two best rooms on the map (AltChar).',[TB,UM,AC],None),
  ('pendola_pass_train_station_key','pendola','Almatera Station: enter from the west, go to reception, the door is on the left.',None,None,[UM,AC],None),
@@ -360,9 +400,12 @@ K=[
  # Any map
  ('raider_hatch_key','any','Any Raider Hatch (an extraction point) on any map.','Containers; can also be crafted or bought from Shani.',None,[NC],None),
 ]
+# keys that open more than one door: extra pins
+XPINS={'blue_gate_cellar_key':[['gate',510,562],['gate',560,478],['gate',790,1012]]}
 keys=[]
 for (kid,mp,door,get,loot,src,pin) in K:
     keys.append({'id':kid,'m':mp,'door':door,'get':get or ANY,'gn':0 if get else 1,'loot':loot,'src':src,'pin':pin,'pf':1 if kid.endswith('_security_code') else 0})
+    if kid in XPINS: keys[-1]['xp']=XPINS[kid]
 
 
 # ---- corrections from patch notes (Frozen Trail 2.0, Oct 8 2026; 2.3.0, Oct 27 2026) ----
@@ -397,7 +440,25 @@ weapons.append({'id':'stiletto','n':'Stiletto','t':'Battle Rifle','r':'Uncommon'
 weapons.append({'id':'bantam','n':'Bantam','t':'Hand Cannon','r':'Uncommon','wip':1,'tiers':[],'slots':{},
   'facts':['Added in update 2.0 (Frozen Trail).','Snub-nosed revolver that uses heavy ammo.'],
   'src':'KeenGamer patch notes, Oct 8 2026; TimeSaver, Oct 8 2026'})
-data={'items':out,'stations':stations,'events':events,'guide':guide,'weapons':weapons,'mods':mods,'keys':keys}
+# ---- map condition rotation (estimated). Observed hour by hour (UTC, Europe servers) from
+# thearcraiders.wiki/events, 5 Nov 2026 14:00 to 7 Nov 2026 07:00. Most events repeat every 25 hours,
+# so the site loops this cycle. When Embark changes the rotation, record a fresh run here and update EV_REC/EV_PATCH.
+EV_T0='2026-11-05T14:00:00Z'; EV_REC='2026-11-05'; EV_PATCH='2.3.0'; EV_PER=25
+EV_RAW={
+ 'dam':"Electromagnetic Storm,Matriarch,ARC Frigate,-,Harvester,Matriarch,ARC Frigate,-,-,Night Raid,-,Uncovered Caches,Uncovered Caches,-,ARC Frigate,-,Prospecting Probes,-,ARC Frigate,Matriarch,-,ARC Frigate,Uncovered Caches,-,ARC Frigate,Electromagnetic Storm,Matriarch,ARC Frigate,-,Harvester,Matriarch,ARC Frigate,ARC Frigate,-,Night Raid,-,Uncovered Caches,Uncovered Caches,-,ARC Frigate,-,Prospecting Probes",
+ 'buried':"Prospecting Probes,ARC Frigate,Bird City,Uncovered Caches,ARC Frigate,Bird City,Close Scrutiny,-,-,Bird City,-,-,Bird City,Prospecting Probes,-,ARC Frigate + Bird City,-,Night Raid,Bird City,-,-,Bird City,-,-,Bird City,Prospecting Probes,ARC Frigate,Bird City,Uncovered Caches,ARC Frigate,Bird City,-,-,-,Bird City,-,-,Bird City,Prospecting Probes,-,ARC Frigate + Bird City,-",
+ 'space':"ARC Frigate,-,Close Scrutiny,ARC Frigate,-,-,Harvester,Matriarch,Matriarch,-,ARC Frigate,Night Raid,ARC Frigate,Night Raid,Launch Tower Loot,-,Matriarch,Launch Tower Loot,-,ARC Frigate,Uncovered Caches,Night Raid,ARC Frigate,Harvester + Hidden Bunker,Matriarch,ARC Frigate,-,Electromagnetic Storm,ARC Frigate,-,-,Harvester,Harvester,Matriarch,-,ARC Frigate,Night Raid,ARC Frigate,Night Raid,Launch Tower Loot,-,Matriarch",
+ 'gate':"Harvester,-,Harvester,Matriarch,Hurricane,ARC Frigate,Prospecting Probes,-,-,ARC Frigate,Matriarch,-,-,Matriarch,-,Uncovered Caches,ARC Frigate,-,-,Night Raid,-,Locked Gate,Matriarch,ARC Frigate,-,Harvester,-,Harvester,Matriarch,-,ARC Frigate,Locked Gate + Prospecting Probes,Prospecting Probes,-,ARC Frigate,Matriarch,-,-,Matriarch,-,Uncovered Caches,ARC Frigate",
+ 'stella':"-,Night Raid,-,Night Raid,-,Night Raid,-,Night Raid,Night Raid,-,Night Raid,-,Night Raid,-,Night Raid,-,Night Raid,-,Night Raid,-,Night Raid,-,Night Raid,-,Night Raid,-,Night Raid,-,Night Raid,-,Night Raid,-,-,Night Raid,-,Night Raid,-,Night Raid,-,Night Raid,-,Night Raid",
+ 'riven':"Night Raid,Beachcombing,-,-,Beachcombing,-,Night Raid,Beachcombing,Beachcombing,-,Prospecting Probes,Beachcombing,-,-,Beachcombing,-,-,Beachcombing,-,Prospecting Probes,Beachcombing,-,-,Beachcombing,-,Night Raid,Beachcombing,-,-,Beachcombing,-,Night Raid,Night Raid,Beachcombing,-,Prospecting Probes,Beachcombing,-,-,Beachcombing,-,-",
+ 'pendola':"-,-,-,-,-,-,-,ARC Frigate,ARC Frigate,-,-,ARC Frigate + Redirection,-,ARC Frigate,-,Night Raid,-,ARC Frigate,-,-,ARC Frigate + Redirection,-,-,Redirection,-,Redirection,-,-,-,-,-,-,-,ARC Frigate,-,-,ARC Frigate,-,ARC Frigate,-,Night Raid,-",
+}
+ev={'t0':EV_T0,'per':EV_PER,'rec':EV_REC,'patch':EV_PATCH,'src':'thearcraiders.wiki','m':{}}
+for k,v in EV_RAW.items():
+    a=[x.strip() for x in v.split(',')]
+    # later observations win where the two passes disagree
+    ev['m'][k]=[('' if a[i]=='-' else a[i]) for i in [s+EV_PER if s+EV_PER<len(a) else s for s in range(EV_PER)]]
+data={'items':out,'stations':stations,'events':events,'guide':guide,'weapons':weapons,'mods':mods,'keys':keys,'ev':ev}
 js='var DB='+json.dumps(data,separators=(',',':'),ensure_ascii=False)+';'
 open(os.path.join(os.environ.get('OUT','build'),'data.js'),'w').write(js)
 print(len(js),'bytes', len(out),'items', len(guide),'guide entries')

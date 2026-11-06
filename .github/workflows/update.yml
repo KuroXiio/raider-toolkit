@@ -31,6 +31,8 @@ jobs:
         run: pip install pillow
       - name: Build from the latest data set
         run: bash ./build.sh
+        env:
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
