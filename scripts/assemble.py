@@ -1,5 +1,5 @@
 """Puts the page together: template + styles + data + images -> build/site/index.html"""
-import datetime, hashlib, html, json, os, re, shutil, subprocess, sys
+import base64, datetime, hashlib, html, json, os, re, shutil, subprocess, sys
 SRC = sys.argv[1].rstrip('/') + '/'
 OUT = os.environ.get('OUT', 'build')
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -15,8 +15,36 @@ t = rd('template/template.html')
 site_url = (cfg.get('siteUrl') or '').rstrip('/') + '/'
 t = t.replace('{{SITEURL}}', html.escape(site_url))
 data = open(OUT + '/data.js', encoding='utf-8').read()
+# Images ship as separate files next to the page (loaded only when shown), not packed into it.
+# EMBED_IMAGES=1 packs them in again, for a single-file copy.
+EMBED = bool(os.environ.get('EMBED_IMAGES'))
+IMGDIR = {'ICONS': 'i', 'ICONS_BIG': 'w', 'MAPIMG': 'm'}
+def unpack(name, obj):
+    folder = IMGDIR.get(name)
+    if EMBED or not folder: return obj
+    os.makedirs(OUT + '/site/' + folder, exist_ok=True)
+    def save(key, uri):
+        if not isinstance(uri, str) or not uri.startswith('data:image/'): return uri
+        head, b64 = uri.split(',', 1); ext = head.split('/')[1].split(';')[0]
+        raw = base64.b64decode(b64); fn = re.sub(r'[^a-z0-9_-]', '_', key.lower()) + '.' + ext
+        with open(OUT + '/site/' + folder + '/' + fn, 'wb') as fh: fh.write(raw)
+        return folder + '/' + fn + '?v=' + hashlib.sha1(raw).hexdigest()[:8]
+    if name == 'ICONS': return {k: save(k, v) for k, v in obj.items()}
+    return {k: (dict(v, u=save(k, v['u'])) if isinstance(v, dict) and 'u' in v else v) for k, v in obj.items()}
 for name, f in (('ICONS', 'icons.json'), ('TILES', 'tiles_meta.json'), ('MAPIMG', 'maps_img.json'), ('ICONS_BIG', 'icons_big.json')):
-    data += '\nvar ' + name + '=' + open(OUT + '/' + f, encoding='utf-8').read() + ';'
+    obj = json.load(open(OUT + '/' + f, encoding='utf-8'))
+    data += '\nvar ' + name + '=' + json.dumps(unpack(name, obj), separators=(',', ':')) + ';'
+# MetaForge map markers: one small file per map image, fetched when that map is opened
+mkp = OUT + '/markers.json'
+mk = json.load(open(mkp, encoding='utf-8')) if os.path.exists(mkp) else {}
+if EMBED: data += '\nvar MK=' + json.dumps(mk, separators=(',', ':')) + ';var MKF={};'
+else:
+    os.makedirs(OUT + '/site/mk', exist_ok=True); mkf = {}
+    for k, v in mk.items():
+        raw = json.dumps(v, separators=(',', ':')).encode()
+        open(OUT + '/site/mk/' + k + '.json', 'wb').write(raw)
+        mkf[k] = 'mk/' + k + '.json?v=' + hashlib.sha1(raw).hexdigest()[:8]
+    data += '\nvar MK={};var MKF=' + json.dumps(mkf) + ';'
 t = t.replace('/*CSS2*/', rd('template/base.css')).replace('/*DATA*/', data).replace('/*SCENE*/', rd('template/scene.js')).replace('/*DATAINFO*/', json.dumps(info)).replace('/*ADMINHASH*/', json.dumps(admin_hash)).replace('/*ARCPROXY*/""', json.dumps((cfg.get('arcProxy') or '').strip()))
 assert '/*' + 'DATA*/' not in t
 os.makedirs(OUT + '/site', exist_ok=True)

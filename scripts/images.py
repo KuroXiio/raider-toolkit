@@ -13,10 +13,31 @@ def b64(im, q):
     b = io.BytesIO(); im.save(b, 'WEBP', quality=q, method=4)
     return 'data:image/webp;base64,' + base64.b64encode(b.getvalue()).decode()
 
+MF_ICONS = json.load(open(OUT + '/mf_icons.json')) if os.path.exists(OUT + '/mf_icons.json') else {}
+MF_DIR = os.path.join(os.environ.get('MF_CACHE', os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'mf-cache')), 'icons')
+
 def find(i):
     for d in ('items', 'items_upscaled', 'items_ingame'):
         p = IMG + d + '/' + i + '.png'
         if os.path.exists(p): return p
+    return mf_icon(i)
+
+def mf_icon(i):
+    # items the community data set has no picture for: MetaForge's icon, downloaded once and cached
+    url = MF_ICONS.get(i)
+    if not url: return None
+    p = os.path.join(MF_DIR, i + '.png')
+    if not os.path.exists(p):
+        try:
+            import urllib.request
+            os.makedirs(MF_DIR, exist_ok=True)
+            req = urllib.request.Request(url, headers={'User-Agent': 'raidkits-build (+https://raidkits.com)'})
+            raw = urllib.request.urlopen(req, timeout=30).read()
+            Image.open(io.BytesIO(raw)).verify()
+            open(p, 'wb').write(raw)
+        except Exception:
+            return None
+    return p
 
 def icon(i):
     p = find(i)
@@ -52,8 +73,11 @@ MAPS = {'dam': M + 'legacy/dam_battlegrounds.png', 'buried': M + 'legacy/buried_
         'gate': M + 'legacy/the_blue_gate.png', 'stella_u': M + 'stella_montis_upper.png', 'stella_l': M + 'stella_montis_lower.png',
         'riven': M + 'riven-tides/v2/high/2', 'pendola': M + 'pendola-pass/v2/high/2'}
 T = 1024
+# maps the data set has no image for yet: a copy kept in the repo (template/maps/<key>.webp)
+LOCAL = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'template', 'maps')
 def mapjob(key):
     src = MAPS[key]
+    if not os.path.exists(src) and os.path.exists(os.path.join(LOCAL, key + '.webp')): src = os.path.join(LOCAL, key + '.webp')
     if os.path.isdir(src): im = stitch(src)
     elif os.path.exists(src): im = Image.open(src).convert('RGB')
     else: return key, None, None
@@ -74,8 +98,8 @@ def mapjob(key):
 
 if __name__ == '__main__':
     os.makedirs(OUT, exist_ok=True)
-    ids = [json.load(open(SRC + 'items/' + f))['id'] for f in sorted(os.listdir(SRC + 'items'))]
     data = json.loads(open(OUT + '/data.js').read().split('=', 1)[1].rstrip().rstrip(';'))
+    ids = [i['id'] for i in data['items']]
     fams = [w['id'] for w in data['weapons']]
     with Pool(4) as pool:
         icons = {i: d for i, d in pool.map(icon, ids, chunksize=8) if d}

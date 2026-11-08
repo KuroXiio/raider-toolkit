@@ -678,9 +678,72 @@ for e in bps:
             if ob and 'quest' not in str(ob.get('t','')).lower(): dl[iid]=dl.get(iid,0)+int(mm.group(1) or 1)
         if dl: qs[q['id']]['d']=dl
 blueprints['qs']=qs
+# ---- every quest, for the Quest tracker: who gives it, where, what to do, what it needs and gives
+QM={'dam_battlegrounds':'dam','buried_city':'buried','the_spaceport':'space','the_blue_gate':'gate','stella_montis':'stella','riven_tides':'riven','pendola_pass':'pendola'}
+known={x['id'] for x in out}
+def iq(lst): return [[x['itemId'],x.get('quantity',1)] for x in (lst or []) if x.get('itemId') in known]
+qorder={}; queue=[k for k,q in qall.items() if not q.get('previousQuestIds')]; n=0
+while queue:
+    k=queue.pop(0)
+    if k in qorder or k not in qall: continue
+    qorder[k]=n; n+=1
+    queue+=qall[k].get('nextQuestIds') or []
+quests=[]
+for k,q in sorted(qall.items(), key=lambda kv:(qorder.get(kv[0],9999),kv[0])):
+    e={'id':k,'n':en(q.get('name') or k),'tr':q.get('trader') or '','m':[QM.get(x,x) for x in (q.get('map') or [])],
+       'o':[en(o) for o in (q.get('objectives') or [])],'r':iq(q.get('rewardItemIds')),'g':iq(q.get('grantedItemIds')),
+       'req':iq(q.get('requiredItemIds')),'pre':q.get('previousQuestIds') or [],'nx':q.get('nextQuestIds') or []}
+    loc={lg:(q.get('name') or {}).get(lg) for lg in ('pt','es','fr','de','sv')}
+    loc={lg:v for lg,v in loc.items() if v and v!=e['n']}
+    if loc: e['nl']=loc
+    if q.get('xp'): e['xp']=q['xp']
+    if q.get('otherRequirements'): e['oth']=[str(x) for x in q['otherRequirements']]
+    quests.append(e)
+print('quests:', len(quests))
 print('blueprints:', len(bps), 'entries,', sum(1 for e in bps if 'rs' in e), 'researchable')
 
-data={'items':out,'stations':stations,'events':events,'guide':guide,'weapons':weapons,'mods':mods,'keys':keys,'qr':qr,'ev':ev,'bp':blueprints}
+# ---- MetaForge (metaforge.app/arc-raiders): newer values, missing items and spawn hints. Written by scripts/metaforge.py.
+OUTD=os.environ.get('OUT','build'); mfp=os.path.join(OUTD,'mf.json')
+mfd=json.load(open(mfp)) if os.path.exists(mfp) else {}
+mf_icons={}; mfinfo=None
+if mfd.get('items'):
+    oby={o['id']:o for o in out}; added=filled=0
+    for mid,m in mfd['items'].items():
+        oid=mfd['alias'].get(mid) or mid.replace('-','_')
+        if oid not in oby: oid=NB.get(nrm(m['n']),oid)
+        o=oby.get(oid)
+        if o is None:
+            o={'id':oid,'n':m['n'],'t':m['t'],'mfn':1}; out.append(o); oby[oid]=o; added+=1
+        else: filled+=1
+        for a in ('r','v','w','s'):
+            if m.get(a) is not None: o[a]=m[a]
+        if m.get('d') and not o.get('d'): o['d']=m['d']
+        if m.get('f'): o['f']=m['f']
+        if m.get('sp'): o['sp']=m['sp']
+        if o.get('nd') and o.get('r') and o.get('v') is not None: o['nd']=0
+        if m.get('icon'): mf_icons[oid]=m['icon']
+    mfinfo={'types':mfd['types'],'loot':mfd['loot'],'at':mfd.get('fetched')}
+    # key doors from MetaForge: exact door positions, every door a key opens
+    kp=mfd.get('keypins') or {}; kn=0
+    for k in keys:
+        for mid,pins in kp.items():
+            oid=mfd['alias'].get(mid) or mid.replace('-','_')
+            if oid!=k['id'] and NB.get(nrm(mfd['items'].get(mid,{}).get('n','')))!=k['id']: continue
+            ours=k.get('pin')
+            pins=sorted(pins,key=lambda p:(0 if ours and p[0]==ours[0] and abs(p[1]-ours[1])+abs(p[2]-ours[2])<80 else 1))
+            k['pin']=pins[0]; k['xp']=pins[1:] or None
+            if not k['xp']: k.pop('xp')
+            k['mfp']=1; kn+=1; break
+    print('MetaForge key doors:', kn, 'keys')
+    mq=mfd.get('quests') or {}; qn=0
+    for e in quests:
+        m=mq.get(re.sub(r'^\d+_','',e['id']).replace('_','-'))
+        if m: e['mk']=m; qn+=1
+    print('MetaForge quests:', qn, 'with map spots')
+    print('MetaForge merge:', filled, 'items updated,', added, 'added')
+json.dump(mf_icons,open(os.path.join(OUTD,'mf_icons.json'),'w'))
+
+data={'items':out,'mf':mfinfo,'stations':stations,'events':events,'guide':guide,'weapons':weapons,'mods':mods,'keys':keys,'qr':qr,'ev':ev,'bp':blueprints,'quests':quests}
 js='var DB='+json.dumps(data,separators=(',',':'),ensure_ascii=False)+';'
 open(os.path.join(os.environ.get('OUT','build'),'data.js'),'w').write(js)
 print(len(js),'bytes', len(out),'items', len(guide),'guide entries')
