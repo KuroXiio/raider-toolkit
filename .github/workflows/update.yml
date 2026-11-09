@@ -29,6 +29,12 @@ jobs:
           node-version: "22"
       - name: Install Pillow
         run: pip install pillow
+      - name: Keep the last MetaForge download
+        uses: actions/cache@v4
+        with:
+          path: mf-cache
+          key: mf-${{ github.run_id }}
+          restore-keys: mf-
       - name: Build from the latest data set
         run: bash ./build.sh
         env:
