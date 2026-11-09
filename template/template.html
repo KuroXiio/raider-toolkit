@@ -30,6 +30,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preload" href="fonts/barlow-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/urbanist-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "e71680940a4941b6a06111c4eb728be1"}'></script>
 <style>
 /*@include fonts.css*/
 /*CSS2*/
@@ -217,7 +218,7 @@
 <div class="view" id="v-info">
   <div class="wrap view-pad info">
     <div class="sec-head"><div><div class="tag-k">About</div><h2 data-i18n-html="Info, sources &lt;em&gt;&amp; legal&lt;/em&gt;">Info, sources <em>&amp; legal</em></h2><p data-i18n="Where the data comes from, how fresh it is, and what is still missing.">Where the data comes from, how fresh it is, and what is still missing.</p></div></div>
-    <section class="panel ib"><h3 data-i18n="Legal">Legal</h3><p>Raider Toolkit is an unofficial fan project and is not affiliated with or endorsed by Embark Studios. ARC Raiders, its item names, item artwork and map art belong to Embark Studios AB. The home-page scene is original art drawn in code.</p><p>Made and maintained by <b>Kuro</b> (Discord: kuro_1). Questions, corrections or ideas: say hi in the <a href="https://discord.gg/NE3ughZTxn" target="_blank" rel="noopener">Discord</a>.</p><p>What the site saves and sends, and your rights: see the <a href="#privacy">privacy policy</a>.</p></section>
+    <section class="panel ib"><h3 data-i18n="Legal">Legal</h3><p>Raider Toolkit is an unofficial fan project and is not affiliated with or endorsed by Embark Studios. ARC Raiders, its item names, item artwork and map art belong to Embark Studios AB. The home-page scene is original art drawn in code.</p><p>I'm <b>Kuro</b> (Discord: kuro_1), and I make and maintain the site. Questions, corrections or ideas: say hi in the <a href="https://discord.gg/NE3ughZTxn" target="_blank" rel="noopener">Discord</a>.</p><p>What the site saves and sends, and your rights: see the <a href="#privacy">privacy policy</a>.</p></section>
     <section class="panel ib"><h3 data-i18n="Data sources">Data sources</h3><div id="srcBody"></div></section>
     <section class="panel ib"><h3 data-i18n="Known gaps">Known gaps</h3><div id="gapsBody"></div></section>
     <section class="panel ib notes"><h3 data-i18n="Notes per tool">Notes per tool</h3>
@@ -248,18 +249,19 @@
 <div class="view" id="v-privacy">
   <div class="wrap view-pad info priv">
     <div class="sec-head"><div><div class="tag-k">About</div><h2 data-i18n-html="Privacy &lt;em&gt;policy&lt;/em&gt;">Privacy <em>policy</em></h2><p data-i18n="What the site saves, what it sends, and who sees it.">What the site saves, what it sends, and who sees it.</p></div></div>
-    <section class="panel ib"><h3 data-i18n="The short version">The short version</h3>
+    <section class="panel ib"><h3 data-i18n="Overview">Overview</h3>
       <ul>
-        <li>No account, no cookies, no analytics, no ads, no tracking.</li>
-        <li>Your plans, stash counts, shopping list and settings are saved in your own browser. Nobody else can see them, not even the site owner.</li>
+        <li>No account, no cookies, no ads, no tracking across sites.</li>
+        <li>Visits are counted with Cloudflare Web Analytics, which sets no cookies and does not identify you. I only see totals, such as how many visits a day and from which countries.</li>
+        <li>Your plans, stash counts, shopping list and settings are saved in your own browser. Nobody else can see them, not even me.</li>
         <li>Only three things ever leave your browser through this site, and only when you choose to: a problem report you send, ARCTracker syncs if you link your account, and a like you give a recommended skill build.</li>
-        <li>Fonts, icons and map images are served from this site. The only other thing a page fetches is the like counts on the skill tree page, from the site's own relay.</li>
+        <li>Fonts, icons and map images are served from this site. The only other things a page fetches are the visit counter script from Cloudflare and the like counts on the skill tree page, from the site's own relay.</li>
       </ul>
       <p class="dim">Last updated 9 November 2026.</p>
     </section>
-    <section class="panel ib"><h3 data-i18n="Who is responsible">Who is responsible</h3>
-      <p>Raider Toolkit is a hobby project run by <b>Kuro</b>, a private person in Sweden. Kuro decides how the site handles personal data, which makes Kuro the data controller under the EU General Data Protection Regulation (GDPR).</p>
-      <p>Questions about this page, or a request about your data: message <b>kuro_1</b> on Discord, or ask in the <a href="https://discord.gg/NE3ughZTxn" target="_blank" rel="noopener">Raider Toolkit Discord</a>.</p>
+    <section class="panel ib"><h3 data-i18n="Who runs the site">Who runs the site</h3>
+      <p>I'm <b>Kuro</b>, a private person in Sweden, and Raider Toolkit is my hobby project. I decide how the site handles personal data, which makes me the data controller under the EU General Data Protection Regulation (GDPR).</p>
+      <p>Questions about this page, or a request about your data: message me at <b>kuro_1</b> on Discord, or ask in the <a href="https://discord.gg/NE3ughZTxn" target="_blank" rel="noopener">Raider Toolkit Discord</a>.</p>
     </section>
     <section class="panel ib"><h3 data-i18n="Saved in your browser">Saved in your browser</h3>
       <p>The tools save your work in your browser's local storage on this device: Workshop and stash counts, the shopping list, tracked items and quests, blueprint and weapon settings, your language and similar choices. If you link ARCTracker, your personal key and the data it syncs are saved there too.</p>
@@ -276,8 +278,12 @@
       <p><b>Why:</b> you asked for it by linking (consent, GDPR Art. 6(1)(a)). Unlinking withdraws it.</p>
     </section>
     <section class="panel ib"><h3 data-i18n="Hosting and other services">Hosting and other services</h3>
-      <p>The site is hosted on <b>GitHub Pages</b>. Like any web host, GitHub receives your IP address when your browser loads the site and keeps it in its logs for security; see GitHub's privacy statement. The relay runs on <b>Cloudflare</b>, which handles the IP addresses of requests sent to it the same way. Reports are delivered through <b>Discord</b>. All three are US companies, so this data can be processed in the US; each one explains its safeguards in its own privacy policy.</p>
+      <p>The site is hosted on <b>GitHub Pages</b>. Like any web host, GitHub receives your IP address when your browser loads the site and keeps it in its logs for security; see GitHub's privacy statement. The relay and the visitor statistics run on <b>Cloudflare</b>, which handles the IP addresses of requests sent to it the same way. Reports are delivered through <b>Discord</b>. All three are US companies, so this data can be processed in the US; each one explains its safeguards in its own privacy policy.</p>
       <p>Links to other sites (Discord, MetaForge, ARCTracker, the ARC Raiders Wiki, arcraidersmaps.app) contact those sites only when you click them.</p>
+    </section>
+    <section class="panel ib"><h3 data-i18n="Visitor statistics">Visitor statistics</h3>
+      <p>To see how many people use the site, each page load is counted with <b>Cloudflare Web Analytics</b>. A small script from Cloudflare reports the page address, the address of the site you came from, your browser and device type, and page load times. Cloudflare works out your country from your IP address, but does not store the IP address, sets no cookies, does not fingerprint your device and does not follow you to other sites. I only see totals, never single visitors. See <a href="https://www.cloudflare.com/web-analytics/" target="_blank" rel="noopener">Cloudflare Web Analytics</a> for details.</p>
+      <p><b>Why:</b> to know how much the site is used, where visitors come from and which tools are worth improving (legitimate interest, GDPR Art. 6(1)(f)). Blocking the script with an ad or tracker blocker does not affect the site.</p>
     </section>
     <section class="panel ib"><h3 data-i18n="Build likes">Build likes</h3>
       <p>Liking a recommended build on the skill tree page sends the build's name to the site's relay, which adds one to its count. Only the build and its count are stored, in Cloudflare. To stop the same visitor liking a build twice, the relay remembers your IP address together with that build in Cloudflare's cache for one day; it is not stored with the likes. Which builds you liked is saved in your browser so the heart stays filled.</p>
@@ -287,11 +293,11 @@
       <p>A shared shopping list or weapon build is stored inside the link or code itself. Nothing is uploaded, and anyone you give the link or code to can see what is in it.</p>
     </section>
     <section class="panel ib"><h3 data-i18n="Your rights">Your rights</h3>
-      <p>Under the GDPR you can ask what personal data the site holds about you, and have it corrected or deleted. You can also object to how it is used, or withdraw consent (for ARCTracker, by unlinking). In practice, the only thing the site can hold about you is a report you sent. Contact Kuro as described above.</p>
+      <p>Under the GDPR you can ask what personal data the site holds about you, and have it corrected or deleted. You can also object to how it is used, or withdraw consent (for ARCTracker, by unlinking). In practice, the only thing the site can hold about you is a report you sent. Contact me as described above.</p>
       <p>If you think your data is handled wrongly, you can complain to the Swedish Authority for Privacy Protection (<a href="https://www.imy.se/en/" target="_blank" rel="noopener">IMY</a>) or to the data protection authority where you live.</p>
     </section>
     <section class="panel ib"><h3 data-i18n="Changes to this page">Changes to this page</h3>
-      <p>If the site starts handling data differently, this page is updated first and the date at the top changes.</p>
+      <p>If the site starts handling data differently, I update this page first and change the date at the top.</p>
     </section>
   </div>
 </div>
