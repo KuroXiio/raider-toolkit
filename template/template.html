@@ -1347,6 +1347,10 @@ button.infobtn { font: inherit; cursor: pointer; }
 .mlbtn[data-mplan][aria-expanded="true"] { border-color: #5ff2ea; background: #123536; }
 .mview:has(.mlbtn) .hd { top: 248px; }
 @media (max-width: 560px) { .mview:has(.mlbtn) .hd { top: 240px; } .mplanp { right: 54px; top: 8px; width: calc(100% - 66px); } }
+
+.ppmaps { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin: 6px 2px 0; font-size: .74rem; color: var(--dim); }
+.ppmaps button { background: #0f1430; border: 1px solid #2f5f5c; color: #e4e6f5; border-radius: 99px; padding: 1px 8px; font-size: .72rem; cursor: pointer; }
+.ppmaps button em { font-style: normal; color: #5ff2ea; }
 </style>
 
 <header class="top">
@@ -1560,7 +1564,7 @@ button.infobtn { font: inherit; cursor: pointer; }
   <div class="wrap view-pad">
     <div class="maphead">
       <div><div class="tag-k">Tool 06</div><h2 data-i18n="Shopping list">Shopping list</h2></div>
-      <div class="shbtns"><button class="btn orb" id="shopShare" type="button" data-i18n="Share list">Share list</button><button class="btn orb" id="shopClear" type="button" data-i18n="Clear list">Clear list</button></div>
+      <div class="shbtns"><button class="btn go orb" id="shopRoute" type="button" data-i18n="Plan a route">Plan a route</button><button class="btn orb" id="shopShare" type="button" data-i18n="Share list">Share list</button><button class="btn orb" id="shopClear" type="button" data-i18n="Clear list">Clear list</button></div>
     </div>
     <div class="arcbar" data-arcbar hidden></div>
     <div id="shareIn" hidden></div>
@@ -1626,6 +1630,7 @@ button.infobtn { font: inherit; cursor: pointer; }
   /* ---------- Language ---------- */
   var I18N = {
     pt: {
+      "Couldn't reach the report service. Try again in a minute, or post it in our Discord.": "Não foi possível contactar o serviço de relatórios. Tente daqui a um minuto ou publique no nosso Discord.", "Your shopping list has nothing left to find.": "Sua lista não tem mais nada para encontrar.", "Nothing on your list has marked spots on a map yet.": "Nada da sua lista tem pontos marcados num mapa ainda.", "Your list on other maps": "Sua lista em outros mapas",
       "Plan a route": "Planejar rota", "What you need": "O que você precisa", "Where you spawn": "Onde você nasce", "Where you leave": "Onde você sai", "Pick your spawn on the map": "Escolha seu spawn no mapa", "Tap your spawn on the map…": "Toque no seu spawn no mapa…", "Spawn set · change": "Spawn definido · mudar", "Nearest exit to the last stop": "Saída mais próxima da última parada", "Max stops": "Máx. paradas", "stops": "paradas", "Extract": "Extrair", "Add an item…": "Adicionar item…", "Hide": "Ocultar", "Pick at least one item that has spots on this map.": "Escolha pelo menos um item com pontos neste mapa.", "Nothing from your shopping list has marked spots on this map. Add items below.": "Nada da sua lista tem pontos marcados neste mapa. Adicione itens abaixo.", "No item by that name has spots on this map.": "Nenhum item com esse nome tem pontos neste mapa.", "Not enough stops for": "Paradas insuficientes para", "Raise the max stops.": "Aumente o máximo de paradas.", "Straight lines between stops, not walking paths. Containers are random, so a stop can come up empty.": "Linhas retas entre paradas, não caminhos. Contêineres são aleatórios, então uma parada pode vir vazia.", "Pick your spawn and the route draws itself.": "Escolha seu spawn e a rota se desenha.",
       "Filter map": "Filtrar mapa", "Only": "Somente", "Everything else is hidden. Untick this, or tick anything below, to go back to your filter.": "Todo o resto está oculto. Desmarque isto, ou marque algo abaixo, para voltar ao seu filtro.", "Show my filter again": "Mostrar meu filtro de novo", "Nothing marked on this map": "Nada marcado neste mapa", "spot": "ponto", "spots": "pontos", "Route": "Rota", "Step": "Etapa", "Any of these will do": "Qualquer um serve", "Show route": "Mostrar rota", "Show location": "Mostrar local", "Show locations": "Mostrar locais",
       "Map markers and item data": "Marcadores e dados de itens",
@@ -1680,6 +1685,7 @@ button.infobtn { font: inherit; cursor: pointer; }
       "Workshop <em>planner</em>": "Planeador da <em>Oficina</em>", "Item <em>finder</em>": "Pesquisa de <em>itens</em>", "Keys <em>& keycards</em>": "Chaves <em>e cartões-chave</em>", "Info, sources <em>& legal</em>": "Informações, fontes <em>e legal</em>"
     },
     es: {
+      "Couldn't reach the report service. Try again in a minute, or post it in our Discord.": "No se pudo contactar con el servicio de reportes. Prueba en un minuto o publícalo en nuestro Discord.", "Your shopping list has nothing left to find.": "Tu lista no tiene nada más que buscar.", "Nothing on your list has marked spots on a map yet.": "Nada de tu lista tiene puntos marcados en un mapa todavía.", "Your list on other maps": "Tu lista en otros mapas",
       "Plan a route": "Planificar ruta", "What you need": "Lo que necesitas", "Where you spawn": "Dónde apareces", "Where you leave": "Por dónde sales", "Pick your spawn on the map": "Elige tu aparición en el mapa", "Tap your spawn on the map…": "Toca tu aparición en el mapa…", "Spawn set · change": "Aparición fijada · cambiar", "Nearest exit to the last stop": "Salida más cercana a la última parada", "Max stops": "Máx. paradas", "stops": "paradas", "Extract": "Extraer", "Add an item…": "Añadir objeto…", "Hide": "Ocultar", "Pick at least one item that has spots on this map.": "Elige al menos un objeto con puntos en este mapa.", "Nothing from your shopping list has marked spots on this map. Add items below.": "Nada de tu lista tiene puntos marcados en este mapa. Añade objetos abajo.", "No item by that name has spots on this map.": "Ningún objeto con ese nombre tiene puntos en este mapa.", "Not enough stops for": "No hay paradas suficientes para", "Raise the max stops.": "Sube el máximo de paradas.", "Straight lines between stops, not walking paths. Containers are random, so a stop can come up empty.": "Líneas rectas entre paradas, no caminos. Los contenedores son aleatorios, así que una parada puede salir vacía.", "Pick your spawn and the route draws itself.": "Elige tu aparición y la ruta se dibuja sola.",
       "Filter map": "Filtrar mapa", "Only": "Solo", "Everything else is hidden. Untick this, or tick anything below, to go back to your filter.": "Todo lo demás está oculto. Desmarca esto, o marca algo abajo, para volver a tu filtro.", "Show my filter again": "Mostrar mi filtro otra vez", "Nothing marked on this map": "Nada marcado en este mapa", "spot": "punto", "spots": "puntos", "Route": "Ruta", "Step": "Paso", "Any of these will do": "Cualquiera sirve", "Show route": "Mostrar ruta", "Show location": "Mostrar ubicación", "Show locations": "Mostrar ubicaciones",
       "Map markers and item data": "Marcadores y datos de objetos",
@@ -1734,6 +1740,7 @@ button.infobtn { font: inherit; cursor: pointer; }
       "Workshop <em>planner</em>": "Planificador del <em>Taller</em>", "Item <em>finder</em>": "Buscador de <em>objetos</em>", "Keys <em>& keycards</em>": "Llaves <em>y tarjetas llave</em>", "Info, sources <em>& legal</em>": "Información, fuentes <em>y legal</em>"
     },
     fr: {
+      "Couldn't reach the report service. Try again in a minute, or post it in our Discord.": "Impossible de joindre le service de signalement. Réessayez dans une minute ou postez-le sur notre Discord.", "Your shopping list has nothing left to find.": "Votre liste n'a plus rien à trouver.", "Nothing on your list has marked spots on a map yet.": "Rien sur votre liste n'a encore d'emplacement sur une carte.", "Your list on other maps": "Votre liste sur d'autres cartes",
       "Plan a route": "Planifier un itinéraire", "What you need": "Ce qu'il vous faut", "Where you spawn": "Où vous apparaissez", "Where you leave": "Où vous partez", "Pick your spawn on the map": "Choisissez votre apparition sur la carte", "Tap your spawn on the map…": "Touchez votre apparition sur la carte…", "Spawn set · change": "Apparition choisie · changer", "Nearest exit to the last stop": "Sortie la plus proche du dernier arrêt", "Max stops": "Arrêts max", "stops": "arrêts", "Extract": "Extraire", "Add an item…": "Ajouter un objet…", "Hide": "Masquer", "Pick at least one item that has spots on this map.": "Choisissez au moins un objet ayant des emplacements sur cette carte.", "Nothing from your shopping list has marked spots on this map. Add items below.": "Rien de votre liste n'a d'emplacement sur cette carte. Ajoutez des objets ci-dessous.", "No item by that name has spots on this map.": "Aucun objet de ce nom n'a d'emplacement sur cette carte.", "Not enough stops for": "Pas assez d'arrêts pour", "Raise the max stops.": "Augmentez le nombre d'arrêts.", "Straight lines between stops, not walking paths. Containers are random, so a stop can come up empty.": "Lignes droites entre les arrêts, pas des chemins. Le contenu est aléatoire, un arrêt peut être vide.", "Pick your spawn and the route draws itself.": "Choisissez votre apparition et l'itinéraire se trace.",
       "Filter map": "Filtrer la carte", "Only": "Seulement", "Everything else is hidden. Untick this, or tick anything below, to go back to your filter.": "Tout le reste est masqué. Décochez ceci, ou cochez autre chose, pour revenir à votre filtre.", "Show my filter again": "Revenir à mon filtre", "Nothing marked on this map": "Rien de marqué sur cette carte", "spot": "emplacement", "spots": "emplacements", "Route": "Itinéraire", "Step": "Étape", "Any of these will do": "N'importe lequel", "Show route": "Afficher l'itinéraire", "Show location": "Afficher le lieu", "Show locations": "Afficher les lieux",
       "Map markers and item data": "Repères et données d'objets",
@@ -1788,6 +1795,7 @@ button.infobtn { font: inherit; cursor: pointer; }
       "Workshop <em>planner</em>": "Planificateur d'<em>Atelier</em>", "Item <em>finder</em>": "Recherche d'<em>objets</em>", "Keys <em>& keycards</em>": "Clés <em>et cartes-clés</em>", "Info, sources <em>& legal</em>": "Infos, sources <em>et mentions légales</em>"
     },
     de: {
+      "Couldn't reach the report service. Try again in a minute, or post it in our Discord.": "Der Meldedienst ist nicht erreichbar. Versuch es in einer Minute erneut oder poste es in unserem Discord.", "Your shopping list has nothing left to find.": "Auf deiner Liste ist nichts mehr zu finden.", "Nothing on your list has marked spots on a map yet.": "Nichts auf deiner Liste hat bisher Stellen auf einer Karte.", "Your list on other maps": "Deine Liste auf anderen Karten",
       "Plan a route": "Route planen", "What you need": "Was du brauchst", "Where you spawn": "Wo du spawnst", "Where you leave": "Wo du rausgehst", "Pick your spawn on the map": "Wähle deinen Spawn auf der Karte", "Tap your spawn on the map…": "Tippe auf deinen Spawn…", "Spawn set · change": "Spawn gesetzt · ändern", "Nearest exit to the last stop": "Nächster Ausgang zum letzten Stopp", "Max stops": "Max. Stopps", "stops": "Stopps", "Extract": "Extrahieren", "Add an item…": "Gegenstand hinzufügen…", "Hide": "Ausblenden", "Pick at least one item that has spots on this map.": "Wähle mindestens einen Gegenstand mit Stellen auf dieser Karte.", "Nothing from your shopping list has marked spots on this map. Add items below.": "Nichts von deiner Liste hat Stellen auf dieser Karte. Füge unten Gegenstände hinzu.", "No item by that name has spots on this map.": "Kein Gegenstand mit diesem Namen hat Stellen auf dieser Karte.", "Not enough stops for": "Nicht genug Stopps für", "Raise the max stops.": "Erhöhe die Stopps.", "Straight lines between stops, not walking paths. Containers are random, so a stop can come up empty.": "Gerade Linien zwischen Stopps, keine Laufwege. Behälter sind zufällig, ein Stopp kann leer sein.", "Pick your spawn and the route draws itself.": "Wähle deinen Spawn und die Route zeichnet sich.",
       "Filter map": "Karte filtern", "Only": "Nur", "Everything else is hidden. Untick this, or tick anything below, to go back to your filter.": "Alles andere ist ausgeblendet. Entferne den Haken oder wähle unten etwas, um zu deinem Filter zurückzukehren.", "Show my filter again": "Meinen Filter wieder zeigen", "Nothing marked on this map": "Nichts auf dieser Karte markiert", "spot": "Stelle", "spots": "Stellen", "Route": "Route", "Step": "Schritt", "Any of these will do": "Jedes davon geht", "Show route": "Route zeigen", "Show location": "Ort zeigen", "Show locations": "Orte zeigen",
       "Map markers and item data": "Kartenmarker und Gegenstandsdaten",
@@ -1842,6 +1850,7 @@ button.infobtn { font: inherit; cursor: pointer; }
       "Workshop <em>planner</em>": "Werkstatt-<em>Planer</em>", "Item <em>finder</em>": "Gegenstands<em>suche</em>", "Keys <em>& keycards</em>": "Schlüssel <em>& Schlüsselkarten</em>", "Info, sources <em>& legal</em>": "Infos, Quellen <em>& Rechtliches</em>"
     },
     sv: {
+      "Couldn't reach the report service. Try again in a minute, or post it in our Discord.": "Kunde inte nå rapporttjänsten. Försök igen om en minut eller skriv i vår Discord.", "Your shopping list has nothing left to find.": "Din lista har inget kvar att hitta.", "Nothing on your list has marked spots on a map yet.": "Inget på din lista har markerade platser på en karta än.", "Your list on other maps": "Din lista på andra kartor",
       "Plan a route": "Planera rutt", "What you need": "Det du behöver", "Where you spawn": "Var du spawnar", "Where you leave": "Var du lämnar", "Pick your spawn on the map": "Välj din spawn på kartan", "Tap your spawn on the map…": "Tryck på din spawn på kartan…", "Spawn set · change": "Spawn vald · ändra", "Nearest exit to the last stop": "Närmaste utgång till sista stoppet", "Max stops": "Max stopp", "stops": "stopp", "Extract": "Extrahera", "Add an item…": "Lägg till föremål…", "Hide": "Dölj", "Pick at least one item that has spots on this map.": "Välj minst ett föremål med platser på denna karta.", "Nothing from your shopping list has marked spots on this map. Add items below.": "Inget på din lista har platser på denna karta. Lägg till föremål nedan.", "No item by that name has spots on this map.": "Inget föremål med det namnet har platser på denna karta.", "Not enough stops for": "Inte tillräckligt med stopp för", "Raise the max stops.": "Höj max stopp.", "Straight lines between stops, not walking paths. Containers are random, so a stop can come up empty.": "Raka linjer mellan stopp, inte gångvägar. Behållare är slumpmässiga, så ett stopp kan vara tomt.", "Pick your spawn and the route draws itself.": "Välj din spawn så ritas rutten.",
       "Filter map": "Filtrera kartan", "Only": "Bara", "Everything else is hidden. Untick this, or tick anything below, to go back to your filter.": "Allt annat är dolt. Avmarkera detta, eller markera något nedan, för att gå tillbaka till ditt filter.", "Show my filter again": "Visa mitt filter igen", "Nothing marked on this map": "Inget markerat på denna karta", "spot": "plats", "spots": "platser", "Route": "Rutt", "Step": "Steg", "Any of these will do": "Vilken som helst duger", "Show route": "Visa rutt", "Show location": "Visa plats", "Show locations": "Visa platser",
       "Map markers and item data": "Kartmarkörer och föremålsdata",
@@ -3055,6 +3064,8 @@ button.infobtn { font: inherit; cursor: pointer; }
     h += its.length ? '<div class="ppits">' + its.map(function (x) {
       return '<label class="mlr"><input type="checkbox" data-pit="' + x.id + '"' + (x.on ? " checked" : "") + ">" + thumb(x.id) + "<span>" + esc(nm(x.id)) + (x.src === "list" ? ' <small class="dim">×' + x.n + "</small>" : "") + "</span><small>" + fmt(x.spots) + "</small>" + (x.src === "add" ? '<button type="button" class="mlx" data-pdel="' + x.id + '" aria-label="' + esc(t("Remove")) + '">×</button>' : "") + "</label>";
     }).join("") + "</div>" : '<p class="dim pph">' + esc(t("Nothing from your shopping list has marked spots on this map. Add items below.")) + "</p>";
+    var sc = planMapScores(), om = MAP_ORDER.filter(function (k) { return k !== curMap && sc[k]; }).sort(function (a, b) { return sc[b].n - sc[a].n; });
+    if (om.length) h += '<div class="ppmaps"><span>' + esc(t("Your list on other maps")) + ':</span>' + om.map(function (k) { return '<button type="button" data-pmap="' + k + '">' + esc(MAPS[k].name) + ' <em>' + sc[k].n + '</em></button>'; }).join("") + '</div>';
     h += '<div class="ppadd"><input type="search" id="ppq" placeholder="' + esc(t("Add an item…")) + '" autocomplete="off" value="' + esc(P.q || "") + '"><div class="ppres" id="ppres"></div></div>';
     h += '<h6>2 · ' + esc(t("Where you spawn")) + "</h6>";
     h += '<button type="button" class="chip orb pppick' + (P.picking ? " on" : "") + '" data-ppick>' + esc(P.picking ? t("Tap your spawn on the map…") : P.spawn ? t("Spawn set · change") : t("Pick your spawn on the map")) + "</button>";
@@ -3084,6 +3095,24 @@ button.infobtn { font: inherit; cursor: pointer; }
     renderFocus(); mkKeyPins(); var b = $("#mview [data-mplan]"); if (b) b.setAttribute("aria-expanded", "true");
     mkGet(mapImgKey(), function () { renderPlan(); mkSoon(); });
   }
+  function planListIds() { var ids = []; shop.g.forEach(function (g) { Object.keys(g.items).forEach(function (id) { if (planMissing(id) && ids.indexOf(id) < 0) ids.push(id); }); }); return ids; }
+  function planMapScores() {
+    var sc = {}; planListIds().forEach(function (id) { var c = mkSpots(id); Object.keys(c).forEach(function (k) { var m = k.indexOf("stella_") === 0 ? "stella" : k; sc[m] = sc[m] || { n: 0, s: 0, best: k, bs: 0 }; if (!sc[m]["i" + id]) { sc[m]["i" + id] = 1; sc[m].n++; } sc[m].s += c[k]; if (c[k] > sc[m].bs && m === "stella") { sc[m].bs = c[k]; sc[m].best = k; } }); });
+    return sc;
+  }
+  function planFromList() {
+    var ids = planListIds();
+    if (!ids.length) { toast(t("Your shopping list has nothing left to find."), true); return; }
+    var sc = planMapScores(), best = Object.keys(sc).sort(function (a, b) { return sc[b].n - sc[a].n || sc[b].s - sc[a].s; })[0];
+    if (!best) { toast(t("Nothing on your list has marked spots on a map yet."), true); return; }
+    if (best === "stella") MV.layer = sc[best].best.slice(7);
+    MV.item = MV.quest = ""; MV.plan = null; curMap = best; MV.z = 1; MV.x = 0; MV.y = 0; renderMapList(); renderMapDetail(); go("maps");
+    setTimeout(function () {
+      planOpen(); var box = $("#mview"); if (!box) return;
+      var top = box.getBoundingClientRect().top + window.pageYOffset - Math.max(80, (innerHeight - box.offsetHeight) / 2);
+      window.scrollTo({ top: Math.max(0, top), behavior: "instant" });
+    }, 80);
+  }
   function planClose() { MV.plan = null; renderPlan(); mkKeyPins(); var b = $("#mview [data-mplan]"); if (b) b.setAttribute("aria-expanded", "false"); mkSoon(); }
   function planRefresh() { if (MV.plan && MV.plan.spawn) planCompute(); renderPlan(); mkSoon(); }
   function planPick(e, box) {
@@ -3104,6 +3133,7 @@ button.infobtn { font: inherit; cursor: pointer; }
     if (e.target.closest("[data-mplan]")) { if (MV.plan) planClose(); else planOpen(); return true; }
     if (!MV.plan) return false;
     if (e.target.closest("[data-pclose]")) { planClose(); return true; }
+    var pm = e.target.closest("[data-pmap]"); if (pm) { var sc = planMapScores(), k = pm.dataset.pmap; if (k === "stella" && sc.stella) MV.layer = sc.stella.best.slice(7); selectMap(k); return true; }
     if (e.target.closest("[data-pmin]")) { MV.plan.min = !MV.plan.min; renderPlan(); return true; }
     if (e.target.closest("[data-ppick]")) { MV.plan.picking = !MV.plan.picking; renderPlan(); mkSoon(); return true; }
     var a = e.target.closest("[data-padd]"); if (a) { if (planSt.add.indexOf(a.dataset.padd) < 0) planSt.add.push(a.dataset.padd); delete planSt.off[a.dataset.padd]; MV.plan.q = ""; planSave(); planRefresh(); return true; }
@@ -3395,6 +3425,7 @@ button.infobtn { font: inherit; cursor: pointer; }
     if (a !== "no") { saveShop(); rerenderShopViews(); toast(a === "add" ? t("Added the shared list to yours.") : t("Your list now matches the shared one."), true); }
     shareGot = null; renderShareIn();
   });
+  $("#shopRoute").addEventListener("click", planFromList);
   $("#shopShare").addEventListener("click", function () {
     if (!shop.g.length) { toast(t("Your list is empty, so there is nothing to share yet."), true); return; }
     shareCode(function (c) {
@@ -4091,7 +4122,7 @@ button.infobtn { font: inherit; cursor: pointer; }
     var body = { topic: topicSel.options[topicSel.selectedIndex].text, msg: msg, who: $("#rpWho").value.trim(), website: $("#rpWeb").value, view: h, lang: LANG,
       page: h === "maps" && MAPS[curMap] ? "Map: " + MAPS[curMap].name : h === "items" ? "Search: " + ($("#q") ? $("#q").value : "") : "" };
     $("#rpSend").disabled = true; st.textContent = t("Sending…"); st.className = "rpstat";
-    fetch(ARC_PROXY.replace(/\/+$/, "") + "/report", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+    fetch(ARC_PROXY.replace(/\/+$/, "") + "/report", { method: "POST", headers: { "Content-Type": "text/plain;charset=UTF-8" }, body: JSON.stringify(body) })
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { ok: r.ok, j: j }; }); })
       .then(function (x) {
         if (!x.ok) throw new Error(x.j && x.j.error || "");
@@ -4099,7 +4130,12 @@ button.infobtn { font: inherit; cursor: pointer; }
         st.textContent = t("Thanks! Your report is on its way."); st.className = "rpstat ok";
         setTimeout(function () { if (!$("#rpov").hidden) rpClose(); }, 1600);
       })
-      .catch(function (er) { st.textContent = (er && er.message) || t("The report could not be sent. Check your connection and try again."); st.className = "rpstat bad"; $("#rpSend").disabled = false; });
+      .catch(function (er) {
+        var net = !er || er.name === "TypeError" || /fetch|network|load failed/i.test(er.message || "");
+        if (net) st.innerHTML = esc(t("Couldn't reach the report service. Try again in a minute, or post it in our Discord.")) + ' <a href="https://discord.gg/NE3ughZTxn" target="_blank" rel="noopener">Discord</a>';
+        else st.textContent = er.message || t("The report could not be sent. Check your connection and try again.");
+        st.className = "rpstat bad"; $("#rpSend").disabled = false;
+      });
   });
 
   /* ---------- menu: two dropdowns (Planning, Topside) ---------- */

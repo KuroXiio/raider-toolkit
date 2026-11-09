@@ -8,9 +8,11 @@
 //   ARC_APP_KEY      (Secret)  your app key from ARCTracker's Developer Dashboard, starts with arc_k1_
 //   ALLOWED_ORIGINS  (Text)    https://raidkits.com,https://www.raidkits.com,https://kuroxiio.github.io
 //   DISCORD_WEBHOOK  (Secret)  the Discord webhook URL of the channel that gets the reports (REPORT_WEBHOOK works too)
+//   REPORT_PING      (Text, optional) Discord user ID to ping on every report. Defaults to Kuro's. Set it to "none" to turn the ping off.
 
 const API = "https://arctracker.io/api/v2/user/";
 const PER_PAGE = 500;
+const DEFAULT_PING = "285852158845386753"; // Kuro
 const MAX_PAGES = 20;
 
 export default {
@@ -84,7 +86,8 @@ const REPORT_WINDOW = 15 * 60;   // in this many seconds
 async function report(req, env, cors) {
   const hook = String(env.DISCORD_WEBHOOK || env.REPORT_WEBHOOK || "").trim();
   if (!/^https:\/\/(discord|discordapp)\.com\/api\/webhooks\//.test(hook)) return json({ error: "Reports are not set up yet." }, 503, cors);
-  if (!/^application\/json/i.test(req.headers.get("Content-Type") || "")) return json({ error: "Bad request." }, 400, cors);
+  // the site sends text/plain so the browser does not need a CORS preflight; JSON is accepted too
+  if (!/^(application\/json|text\/plain)/i.test(req.headers.get("Content-Type") || "")) return json({ error: "Bad request." }, 400, cors);
   const raw = await req.text();
   if (raw.length > 6000) return json({ error: "That report is too long." }, 413, cors);
   let d; try { d = JSON.parse(raw); } catch (e) { return json({ error: "Bad request." }, 400, cors); }
@@ -101,11 +104,15 @@ async function report(req, env, cors) {
   if (n >= REPORT_LIMIT) return json({ error: "Thanks, we already got a few reports from you. Try again in a little while." }, 429, cors);
   await cache.put(key, new Response(String(n + 1), { headers: { "Cache-Control": "max-age=" + REPORT_WINDOW } }));
 
+  const pv = String(env.REPORT_PING == null ? DEFAULT_PING : env.REPORT_PING).trim();
+  const ping = /^\d{15,22}$/.test(pv) ? pv : "";
   const fields = [{ name: "From", value: who || "Anonymous", inline: true }, { name: "Page", value: view || "unknown", inline: true }];
   if (lang) fields.push({ name: "Language", value: lang, inline: true });
   if (page) fields.push({ name: "Where", value: page.slice(0, 120) });
   const r = await fetch(hook, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
-    username: "Raider Toolkit reports", allowed_mentions: { parse: [] },
+    username: "Raider Toolkit reports",
+    content: ping ? "<@" + ping + "> new report" : undefined,
+    allowed_mentions: ping ? { parse: [], users: [ping] } : { parse: [] },
     embeds: [{ title: topic, description: msg, color: 0x5ff2ea, fields, timestamp: new Date().toISOString() }],
   }) });
   if (!r.ok) return json({ error: "The report could not be delivered. Try again later." }, 502, cors);
