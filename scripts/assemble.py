@@ -11,7 +11,8 @@ fmt = lambda d: datetime.date.fromisoformat(d).strftime('%-d %b %Y') if d else '
 info = {'patch': cfg['patch'], 'patchDate': cfg['patchDate'], 'baseDate': fmt(base), 'checked': datetime.date.today().strftime('%-d %b %Y'), 'auto': bool(os.environ.get('CI'))}
 admin_pw = os.environ.get('ADMIN_PASSWORD') or cfg.get('adminPassword') or ''
 admin_hash = hashlib.sha256(admin_pw.encode('utf-8')).hexdigest() if admin_pw else ''
-t = rd('template/template.html')
+from tmpl import expand
+t = expand('template/template.html')
 site_url = (cfg.get('siteUrl') or '').rstrip('/') + '/'
 t = t.replace('{{SITEURL}}', html.escape(site_url))
 data = open(OUT + '/data.js', encoding='utf-8').read()
@@ -53,6 +54,8 @@ for f in ('og.png', 'og.jpg'):
     if os.path.exists(os.path.join(ROOT, 'template', f)): shutil.copy(os.path.join(ROOT, 'template', f), OUT + '/site/' + f)
 icons = os.path.join(ROOT, 'template/icons')
 for f in os.listdir(icons): shutil.copy(os.path.join(icons, f), OUT + '/site/' + f)
+# fonts are served from the site itself, so visitors' browsers never contact a font host
+shutil.copytree(os.path.join(ROOT, 'template/fonts'), OUT + '/site/fonts', dirs_exist_ok=True)
 json.dump({'name': 'Raider Toolkit', 'short_name': 'Raider Toolkit', 'description': 'ARC Raiders fan tools', 'start_url': './', 'scope': './',
            'display': 'standalone', 'background_color': '#0c0916', 'theme_color': '#0c0916',
            'icons': [{'src': 'icon-192.png', 'sizes': '192x192', 'type': 'image/png'}, {'src': 'icon-512.png', 'sizes': '512x512', 'type': 'image/png'},

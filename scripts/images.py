@@ -1,7 +1,7 @@
 """Builds every image the site uses from the community data set:
 item icons, large weapon art, the map overviews and the full-resolution map tiles.
 Usage: python scripts/images.py <path-to-arcraiders-data>   (writes to ./build)"""
-import base64, io, json, math, os, sys
+import base64, io, json, math, os, re, sys
 from multiprocessing import Pool
 from PIL import Image
 Image.MAX_IMAGE_PIXELS = None
@@ -39,6 +39,28 @@ def mf_icon(i):
             return None
     return p
 
+SKT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'skill_tree.json')
+
+def skill_icon(job):
+    # skill tree icons from MetaForge's skill builder, downloaded once and cached; the page draws its own glyph if one is missing
+    sid, name, url = job
+    slug = re.sub(r'-+', '-', re.sub(r'[^a-z0-9]+', '-', name.lower().replace("'", ""))).strip('-')
+    p = os.path.join(MF_DIR, 'skills', slug + '.png')
+    if not os.path.exists(p):
+        try:
+            import urllib.request
+            os.makedirs(os.path.dirname(p), exist_ok=True)
+            req = urllib.request.Request(url.replace('{slug}', slug), headers={'User-Agent': 'raidkits-build (+https://raidkits.com)'})
+            raw = urllib.request.urlopen(req, timeout=30).read()
+            Image.open(io.BytesIO(raw)).verify()
+            open(p, 'wb').write(raw)
+        except Exception:
+            return 'sk_' + sid, None
+    im = Image.open(p).convert('RGBA'); bb = im.getbbox()
+    if bb: im = im.crop(bb)
+    w, h = im.size; s = 96 / max(w, h)
+    return 'sk_' + sid, b64(im.resize((max(1, round(w * s)), max(1, round(h * s))), Image.LANCZOS), 82)
+
 def icon(i):
     p = find(i)
     if not p: return i, None
@@ -73,11 +95,11 @@ MAPS = {'dam': M + 'legacy/dam_battlegrounds.png', 'buried': M + 'legacy/buried_
         'gate': M + 'legacy/the_blue_gate.png', 'stella_u': M + 'stella_montis_upper.png', 'stella_l': M + 'stella_montis_lower.png',
         'riven': M + 'riven-tides/v2/high/2', 'pendola': M + 'pendola-pass/v2/high/2'}
 T = 1024
-# maps the data set has no image for yet: a copy kept in the repo (template/maps/<key>.webp)
+# map images kept in the repo (template/maps/<key>.webp) are used instead of the data set's
 LOCAL = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'template', 'maps')
 def mapjob(key):
     src = MAPS[key]
-    if not os.path.exists(src) and os.path.exists(os.path.join(LOCAL, key + '.webp')): src = os.path.join(LOCAL, key + '.webp')
+    if os.path.exists(os.path.join(LOCAL, key + '.webp')): src = os.path.join(LOCAL, key + '.webp')   # our own copy wins
     if os.path.isdir(src): im = stitch(src)
     elif os.path.exists(src): im = Image.open(src).convert('RGB')
     else: return key, None, None
@@ -105,8 +127,11 @@ if __name__ == '__main__':
         icons = {i: d for i, d in pool.map(icon, ids, chunksize=8) if d}
         big = {f: d for f, d in pool.map(bigicon, fams) if d}
         maps = pool.map(mapjob, list(MAPS))
+        skt = json.load(open(SKT_PATH)) if os.path.exists(SKT_PATH) else None
+        sk = pool.map(skill_icon, [(k, v['n'], skt['icon_url']) for k, v in skt['skills'].items()]) if skt else []
+    icons.update({k: d for k, d in sk if d})
     json.dump(icons, open(OUT + '/icons.json', 'w'), separators=(',', ':'))
     json.dump(big, open(OUT + '/icons_big.json', 'w'), separators=(',', ':'))
     json.dump({k: o for k, o, _ in maps if o}, open(OUT + '/maps_img.json', 'w'), separators=(',', ':'))
     json.dump({k: m for k, _, m in maps if m}, open(OUT + '/tiles_meta.json', 'w'), separators=(',', ':'))
-    print(len(icons), 'icons,', len(big), 'weapon images,', sum(1 for _, o, _ in maps if o), 'maps')
+    print(len(icons), 'icons,', len(big), 'weapon images,', sum(1 for _, o, _ in maps if o), 'maps,', sum(1 for _, d in sk if d), 'of', len(sk), 'skill icons')

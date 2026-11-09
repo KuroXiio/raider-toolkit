@@ -702,6 +702,14 @@ for k,q in sorted(qall.items(), key=lambda kv:(qorder.get(kv[0],9999),kv[0])):
 print('quests:', len(quests))
 print('blueprints:', len(bps), 'entries,', sum(1 for e in bps if 'rs' in e), 'researchable')
 
+# ---- map images were replaced: move the hand-placed key pins onto the new images (new = a*old + b)
+LEG=json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'map_legacy.json'))) if os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)),'map_legacy.json')) else {}
+def _mv(p):
+    if not p or p[0] not in LEG: return p
+    a,bx,by=LEG[p[0]]; return [p[0],round(a*p[1]+bx),round(a*p[2]+by)]+list(p[3:])
+for k in keys:
+    if k.get('pin'): k['pin']=_mv(k['pin'])
+    if k.get('xp'): k['xp']=[_mv(p) for p in k['xp']]
 # ---- MetaForge (metaforge.app/arc-raiders): newer values, missing items and spawn hints. Written by scripts/metaforge.py.
 OUTD=os.environ.get('OUT','build'); mfp=os.path.join(OUTD,'mf.json')
 mfd=json.load(open(mfp)) if os.path.exists(mfp) else {}
@@ -743,7 +751,10 @@ if mfd.get('items'):
     print('MetaForge merge:', filled, 'items updated,', added, 'added')
 json.dump(mf_icons,open(os.path.join(OUTD,'mf_icons.json'),'w'))
 
-data={'items':out,'mf':mfinfo,'stations':stations,'events':events,'guide':guide,'weapons':weapons,'mods':mods,'keys':keys,'qr':qr,'ev':ev,'bp':blueprints,'quests':quests}
+# ---- skill tree (2.0): kept by hand in scripts/skill_tree.json, the data set still has the old tree ----
+SKT=json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'skill_tree.json')))
+skills={'br':SKT['branches'],'s':{k:{x:v[x] for x in ('n','m','d','v','g') if x in v} for k,v in SKT['skills'].items()},'pts':SKT['points'],'gate':SKT['gates'],'src':SKT['src'],'builds':SKT.get('builds',[])}
+data={'skills':skills,'items':out,'mf':mfinfo,'stations':stations,'events':events,'guide':guide,'weapons':weapons,'mods':mods,'keys':keys,'qr':qr,'ev':ev,'bp':blueprints,'quests':quests}
 js='var DB='+json.dumps(data,separators=(',',':'),ensure_ascii=False)+';'
 open(os.path.join(os.environ.get('OUT','build'),'data.js'),'w').write(js)
 print(len(js),'bytes', len(out),'items', len(guide),'guide entries')

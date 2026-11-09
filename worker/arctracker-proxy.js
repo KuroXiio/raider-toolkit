@@ -9,6 +9,13 @@
 //   ALLOWED_ORIGINS  (Text)    https://raidkits.com,https://www.raidkits.com,https://kuroxiio.github.io
 //   DISCORD_WEBHOOK  (Secret)  the Discord webhook URL of the channel that gets the reports (REPORT_WEBHOOK works too)
 //   REPORT_PING      (Text, optional) Discord user ID to ping on every report. Defaults to Kuro's. Set it to "none" to turn the ping off.
+//   VOTES            (KV namespace binding, optional) stores the likes on the skill tree's recommended builds.
+//                    Workers & Pages → KV → Create a namespace (e.g. raidkits-votes), then Worker → Settings → Bindings → KV namespace, variable name VOTES.
+//                    Without it the site simply hides the like counts.
+//
+// 3. Build likes: GET /votes returns the like count of every recommended build, POST /vote adds or takes back one like.
+//    Only the build id and its count are stored. The visitor's IP address is used for a day in Cloudflare's cache so the same
+//    visitor can't like a build twice; it is never stored with the likes.
 
 const API = "https://arctracker.io/api/v2/user/";
 const PER_PAGE = 500;
@@ -28,7 +35,10 @@ export default {
     };
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     if (!allowed.includes(origin)) return json({ error: "This relay only answers the Raider Toolkit site." }, 403, cors);
-    if (req.method === "POST" && new URL(req.url).pathname.replace(/\/+$/, "") === "/report") return report(req, env, cors);
+    const route = new URL(req.url).pathname.replace(/\/+$/, "");
+    if (req.method === "POST" && route === "/report") return report(req, env, cors);
+    if (req.method === "GET" && route === "/votes") return votes(env, cors);
+    if (req.method === "POST" && route === "/vote") return vote(req, env, cors);
     if (req.method !== "GET") return json({ error: "Method not allowed" }, 405, cors);
     if (!env.ARC_APP_KEY) return json({ error: "The relay is missing its app key." }, 500, cors);
 
@@ -117,4 +127,33 @@ async function report(req, env, cors) {
   }) });
   if (!r.ok) return json({ error: "The report could not be delivered. Try again later." }, 502, cors);
   return json({ ok: true }, 200, cors);
+}
+
+// ---- likes on recommended builds ----
+const VOTE_ID = /^[a-z0-9-]{2,40}$/;
+async function votes(env, cors) {
+  if (!env.VOTES) return json({ off: true }, 200, cors);
+  const out = {}; let cursor;
+  do {
+    const page = await env.VOTES.list({ prefix: "b:", cursor });
+    page.keys.forEach((k) => { out[k.name.slice(2)] = (k.metadata && k.metadata.n) || 0; });
+    cursor = page.list_complete ? null : page.cursor;
+  } while (cursor);
+  return new Response(JSON.stringify({ votes: out }), { status: 200, headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "public, max-age=60" } });
+}
+async function vote(req, env, cors) {
+  if (!env.VOTES) return json({ off: true }, 200, cors);
+  let d; try { d = JSON.parse(await req.text()); } catch (e) { return json({ error: "Bad request" }, 400, cors); }
+  const id = String((d && d.id) || ""), v = d && d.v === -1 ? -1 : 1;
+  if (!VOTE_ID.test(id)) return json({ error: "Unknown build" }, 400, cors);
+  // the same visitor can't like the same build twice in a day (counted in Cloudflare's edge cache, not stored)
+  const ip = req.headers.get("CF-Connecting-IP") || "unknown";
+  const key = new Request("https://vote-limit.invalid/" + encodeURIComponent(ip) + "/" + id);
+  const cache = caches.default, hit = await cache.match(key), last = hit ? parseInt(await hit.text(), 10) : 0;
+  const cur = await env.VOTES.getWithMetadata("b:" + id), n0 = (cur.metadata && cur.metadata.n) || 0;
+  if (last === v || (v === -1 && last !== 1 && n0 === 0)) return json({ id, n: n0 }, 200, cors);
+  const n = Math.max(0, n0 + v);
+  await env.VOTES.put("b:" + id, "", { metadata: { n } });
+  await cache.put(key, new Response(String(v), { headers: { "Cache-Control": "max-age=86400" } }));
+  return json({ id, n }, 200, cors);
 }

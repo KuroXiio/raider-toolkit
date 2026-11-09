@@ -1,0 +1,53 @@
+  /* ---------- Routing ---------- */
+  var VIEWS = ["home", "workshop", "weapons", "blueprints", "quests", "items", "maps", "keys", "list", "info", "privacy", "skills"];
+  var started = {};
+  var VIEW_TITLE = { workshop: "Workshop planner", weapons: "Weapon calculator", blueprints: "Blueprint tracker", quests: "Quest tracker", items: "Item finder", maps: "Map intel", keys: "Keys & keycards", list: "Shopping list", info: "Info, sources & legal", privacy: "Privacy policy", skills: "Skill tree" };
+  function setTitle() {
+    var h = (location.hash || "").replace("#", "").split("?")[0];
+    document.title = VIEW_TITLE[h] ? t(VIEW_TITLE[h]) + " · Raider Toolkit" : "Raider Toolkit";
+  }
+  function route() {
+    var full = (location.hash || "").replace("#", ""), h = full.split("?")[0];
+    if (VIEWS.indexOf(h) < 0) h = "home";
+    var sm = full.match(/[?&]share=([A-Za-z0-9_-]+)/); if (sm) shareRead(sm[1]);
+    VIEWS.forEach(function (v) { $("#v-" + v).classList.toggle("on", v === h); });
+    Array.prototype.forEach.call(document.querySelectorAll("#nav a"), function (a) {
+      if (a.dataset.v === h) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("#nav .ndd"), function (d) { d.classList.toggle("cur", !!d.querySelector('a[aria-current="page"]')); });
+    navClose();
+    if (h === "maps") { setSbw(); mvApply(); }
+    if (h === "weapons") centerWSel();
+    if (h === "items") { renderUseChips(); renderItems(false); }
+    if (h === "blueprints") renderBp();
+    if (h === "quests") renderQuests();
+    if (h === "skills") { skRead(full); renderSkills(); }
+    if (window.__scene) { if (h === "home") window.__scene.start(); else window.__scene.stop(); }
+    setTitle();
+    window.scrollTo(0, 0);
+  }
+  window.addEventListener("hashchange", route);
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest("[data-goto]"); if (!a) return;
+    e.preventDefault();
+    var id = a.dataset.goto;
+    if (location.hash !== "#home") location.hash = "#home";
+    setTimeout(function () { var el = document.getElementById(id); if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.pageYOffset - 80, behavior: "smooth" }); }, 60);
+  });
+  /* auto-hide the top bar: hides while scrolling down, comes back when scrolling up or pointing at the top edge */
+  (function () {
+    var lastY = window.pageYOffset, hidden = false, bar = document.querySelector("header.top");
+    function set(h) { if (h === hidden) return; hidden = h; document.body.classList.toggle("hh", h); }
+    window.addEventListener("scroll", function () {
+      var y = window.pageYOffset;
+      if (y < 80) set(false);
+      else if (y > lastY + 6) set(true);
+      else if (y < lastY - 6) set(false);
+      lastY = y;
+    }, { passive: true });
+    document.addEventListener("mousemove", function (e) { if (hidden && e.clientY < 28) set(false); }, { passive: true });
+    bar.addEventListener("focusin", function () { set(false); });
+    window.addEventListener("hashchange", function () { set(false); lastY = 0; });
+  })();
+  function go(v) { if (location.hash === "#" + v) route(); else location.hash = v; }
+

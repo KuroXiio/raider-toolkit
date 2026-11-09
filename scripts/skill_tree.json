@@ -1,0 +1,821 @@
+{
+ "note": "The ARC Raiders skill tree since update 2.0 (Frozen Trail, 8 Oct 2026). The community data set still has the old 45-skill tree, so this file is kept by hand. Layout per branch, bottom to top: a start skill, two paths of two skills, a pick-1-of-2 choice (needs 10 points in the branch), three paths of two skills, and an end choice of three where you can take two (the first needs 30 points in the branch, the second 40). The second skill of a path needs a point in the first; the choice needs a point at the end of one of the paths below it. In game the middle choice is one diamond node that opens a pick-one-of-two panel, and the end is two diamond nodes sharing a panel of three skills. Values at max ranks: MetaForge skill builder. Icons: MetaForge skill builder. No patch after 2.0 (2.0.2 to 2.3.0) changed the tree.",
+ "src": [
+  "Embark Studios, Frozen Trail 2.0 patch notes, Oct 8 2026",
+  "Gamer Guides skill tree guide, Oct 26 2026",
+  "All Things How, 2.0 skill tree, Oct 2026",
+  "MetaForge skill builder (2.0 tree)",
+  "TimeSaver, Oct 2026"
+ ],
+ "points": {
+  "levels": 76,
+  "max": 91
+ },
+ "gates": {
+  "choice": 10,
+  "end": [
+   30,
+   40
+  ]
+ },
+ "icon_url": "https://static.metaforge.app/arc-raiders/skill-builder-icons/{slug}.png",
+ "branches": [
+  {
+   "k": "cond",
+   "n": "Conditioning",
+   "c": "#2fd36b",
+   "start": "used_to_the_weight",
+   "early": [
+    [
+     "three_deep_breaths",
+     "vigorous_vaulter"
+    ],
+    [
+     "stubborn_mule",
+     "vault_n_carry"
+    ]
+   ],
+   "choice": [
+    "mules_gallop",
+    "back_on_your_feet"
+   ],
+   "late": [
+    [
+     "downed_but_determined",
+     "crawl_before_you_walk"
+    ],
+    [
+     "broad_shoulders",
+     "speedy_mule"
+    ],
+    [
+     "loaded_arms",
+     "proficient_pryer"
+    ]
+   ],
+   "end": [
+    "security_breach",
+    "weapon_bash",
+    "bull_rush"
+   ]
+  },
+  {
+   "k": "mob",
+   "n": "Mobility",
+   "c": "#ffc400",
+   "start": "youthful_lungs",
+   "early": [
+    [
+     "sure_footed_scrambler",
+     "ready_to_roll"
+    ],
+    [
+     "nimble_climber",
+     "fight_or_flight"
+    ]
+   ],
+   "choice": [
+    "vault_spring",
+    "vaults_on_vaults_on_vaults"
+   ],
+   "late": [
+    [
+     "effortless_roll",
+     "slip_and_slide"
+    ],
+    [
+     "right_back_at_it",
+     "off_the_wall"
+    ],
+    [
+     "marathon_runner",
+     "swift_start"
+    ]
+   ],
+   "end": [
+    "sprinting_on_fumes",
+    "wall_run",
+    "in_the_flow"
+   ]
+  },
+  {
+   "k": "surv",
+   "n": "Survival",
+   "c": "#ff4d4d",
+   "start": "in_round_crafting",
+   "early": [
+    [
+     "looters_instincts",
+     "silent_scavenger"
+    ],
+    [
+     "sturdy_ankles",
+     "agile_croucher"
+    ]
+   ],
+   "choice": [
+    "quick_roll",
+    "minesweeper"
+   ],
+   "late": [
+    [
+     "gentle_pressure",
+     "a_little_extra"
+    ],
+    [
+     "traveling_tinkerer",
+     "looters_luck"
+    ],
+    [
+     "stylish_landing",
+     "turtle_crawl"
+    ]
+   ],
+   "end": [
+    "road_warrior",
+    "nomadic_crafting",
+    "field_repair"
+   ]
+  }
+ ],
+ "skills": {
+  "used_to_the_weight": {
+   "n": "Used To The Weight",
+   "m": 1,
+   "g": "shield",
+   "d": "Wearing a shield doesn't slow you down as much."
+  },
+  "three_deep_breaths": {
+   "n": "Three Deep Breaths",
+   "m": 5,
+   "g": "lungs",
+   "d": "When an action drains your stamina, you recover from exhaustion sooner.",
+   "v": "At 5/5 exhaustion ends at 10 stamina."
+  },
+  "vigorous_vaulter": {
+   "n": "Vigorous Vaulter",
+   "m": 1,
+   "g": "vault",
+   "d": "Vaulting is no longer slowed down while you're exhausted."
+  },
+  "stubborn_mule": {
+   "n": "Stubborn Mule",
+   "m": 5,
+   "g": "pack",
+   "d": "Being overloaded hurts your stamina regeneration less. Buffed in 2.0.",
+   "v": "At 5/5 the overload buffer is 30."
+  },
+  "vault_n_carry": {
+   "n": "Vault 'n' Carry",
+   "m": 1,
+   "g": "vault",
+   "d": "Lets you vault while holding a carryable."
+  },
+  "mules_gallop": {
+   "n": "Mule's Gallop",
+   "m": 1,
+   "g": "pack",
+   "d": "Lets you sprint while overloaded.",
+   "v": "Overloaded sprint speed 52.5%."
+  },
+  "back_on_your_feet": {
+   "n": "Back On Your Feet",
+   "m": 1,
+   "g": "heart",
+   "d": "While you're critically hurt, your health regenerates up to a limit.",
+   "v": "Regenerates up to 40 health (raised from 30 in 2.0)."
+  },
+  "downed_but_determined": {
+   "n": "Downed But Determined",
+   "m": 5,
+   "g": "heart",
+   "d": "When you're downed, it takes longer before you collapse.",
+   "v": "Bleed-out rate -5% per point, -25% at 5/5."
+  },
+  "crawl_before_you_walk": {
+   "n": "Crawl Before You Walk",
+   "m": 5,
+   "g": "crawl",
+   "d": "You crawl faster while downed.",
+   "v": "Crawl speed +10% per point, +50% at 5/5."
+  },
+  "broad_shoulders": {
+   "n": "Broad Shoulders",
+   "m": 5,
+   "g": "pack",
+   "d": "Increases the maximum weight you can carry.",
+   "v": "+2 carry limit per point, +10 at 5/5."
+  },
+  "speedy_mule": {
+   "n": "Speedy Mule",
+   "m": 5,
+   "g": "pack",
+   "d": "Being heavily overloaded slows you down less.",
+   "v": "At 5/5 overloaded move speed +40%."
+  },
+  "loaded_arms": {
+   "n": "Loaded Arms",
+   "m": 1,
+   "g": "pack",
+   "d": "Your equipped weapon counts less toward your carry weight.",
+   "v": "Equipped weapon weight -50%."
+  },
+  "proficient_pryer": {
+   "n": "Proficient Pryer",
+   "m": 5,
+   "g": "pry",
+   "d": "Breaching doors and containers is faster.",
+   "v": "At 5/5 breach time -30%."
+  },
+  "security_breach": {
+   "n": "Security Breach",
+   "m": 1,
+   "g": "pry",
+   "d": "Lets you breach Security Lockers."
+  },
+  "weapon_bash": {
+   "n": "Weapon Bash",
+   "m": 1,
+   "g": "fist",
+   "d": "Lets you perform a melee attack using your equipped weapon."
+  },
+  "bull_rush": {
+   "n": "Bull Rush",
+   "m": 1,
+   "g": "fist",
+   "d": "Sprinting with your weapon stowed knocks back Raiders and ARC you run into.",
+   "v": "Needs a 3.25 m/s sprint with your weapon stowed."
+  },
+  "youthful_lungs": {
+   "n": "Youthful Lungs",
+   "m": 1,
+   "g": "lungs",
+   "d": "Increases your max stamina."
+  },
+  "sure_footed_scrambler": {
+   "n": "Sure-Footed Scrambler",
+   "m": 5,
+   "g": "climb",
+   "d": "You can scramble up steep slopes for longer while sprinting.",
+   "v": "At 5/5 scramble time +2 s."
+  },
+  "ready_to_roll": {
+   "n": "Ready To Roll",
+   "m": 5,
+   "g": "roll",
+   "d": "Widens the timing window for a Recovery Roll after a fall.",
+   "v": "Recovery roll window +10% per point."
+  },
+  "nimble_climber": {
+   "n": "Nimble Climber",
+   "m": 5,
+   "g": "climb",
+   "d": "You climb and vault faster.",
+   "v": "At 5/5 ladder and vault speed +15%."
+  },
+  "fight_or_flight": {
+   "n": "Fight Or Flight",
+   "m": 5,
+   "g": "bolt",
+   "d": "When you're hurt in combat, you get some stamina back. Has a cooldown. Buffed in 2.0.",
+   "v": "+5 stamina per point, +25 at 5/5."
+  },
+  "vault_spring": {
+   "n": "Vault Spring",
+   "m": 1,
+   "g": "vault",
+   "d": "Lets you jump at the end of a vault."
+  },
+  "vaults_on_vaults_on_vaults": {
+   "n": "Vaults On Vaults On Vaults",
+   "m": 1,
+   "g": "vault",
+   "d": "Vaulting no longer costs stamina.",
+   "v": "Vault stamina cost 0 (normally up to 15)."
+  },
+  "effortless_roll": {
+   "n": "Effortless Roll",
+   "m": 5,
+   "g": "roll",
+   "d": "Dodge rolls cost less stamina.",
+   "v": "At 5/5 roll stamina cost -34%."
+  },
+  "slip_and_slide": {
+   "n": "Slip And Slide",
+   "m": 5,
+   "g": "speed",
+   "d": "You slide further and faster.",
+   "v": "At 5/5 slide friction -25%."
+  },
+  "right_back_at_it": {
+   "n": "Right Back At It",
+   "m": 1,
+   "g": "roll",
+   "d": "You recover faster after a heavy landing.",
+   "v": "Landing recovery 1.25x faster."
+  },
+  "off_the_wall": {
+   "n": "Off The Wall",
+   "m": 5,
+   "g": "climb",
+   "d": "Your Wall Leap goes further.",
+   "v": "At 5/5 wall leap speed +50%."
+  },
+  "marathon_runner": {
+   "n": "Marathon Runner",
+   "m": 5,
+   "g": "bolt",
+   "d": "Moving around costs less stamina.",
+   "v": "At 5/5 movement stamina cost -15%."
+  },
+  "swift_start": {
+   "n": "Swift Start",
+   "m": 5,
+   "g": "speed",
+   "d": "The burst of speed when you start sprinting lasts longer.",
+   "v": "At 5/5 sprint boost +10 s."
+  },
+  "sprinting_on_fumes": {
+   "n": "Sprinting On Fumes",
+   "m": 1,
+   "g": "bolt",
+   "d": "While sprinting, your stamina never runs out completely. Any other action or taking damage cancels it.",
+   "v": "Kicks in at 2.2 stamina or less."
+  },
+  "wall_run": {
+   "n": "Wall Run",
+   "m": 1,
+   "g": "climb",
+   "d": "Sprint into a wall to run up it for a few steps.",
+   "v": "Needs a speed of 4 m/s."
+  },
+  "in_the_flow": {
+   "n": "In The Flow",
+   "m": 1,
+   "g": "speed",
+   "d": "Chaining mobility moves while sprinting raises your speed and lowers their stamina cost.",
+   "v": "At full flow: stamina costs -65%, vault speed +25%."
+  },
+  "in_round_crafting": {
+   "n": "In-Round Crafting",
+   "m": 1,
+   "g": "craft",
+   "d": "Unlocks field crafting while topside."
+  },
+  "looters_instincts": {
+   "n": "Looter's Instincts",
+   "m": 5,
+   "g": "eye",
+   "d": "Loot is revealed faster when you search a container.",
+   "v": "At 5/5 search time -25%."
+  },
+  "silent_scavenger": {
+   "n": "Silent Scavenger",
+   "m": 5,
+   "g": "quiet",
+   "d": "Looting makes less noise.",
+   "v": "At 5/5 looting sound -50%."
+  },
+  "sturdy_ankles": {
+   "n": "Sturdy Ankles",
+   "m": 5,
+   "g": "fall",
+   "d": "You take less fall damage from non-lethal heights.",
+   "v": "At 5/5 fall damage -15%."
+  },
+  "agile_croucher": {
+   "n": "Agile Croucher",
+   "m": 5,
+   "g": "speed",
+   "d": "You move faster while crouched.",
+   "v": "At 5/5 crouch speed +15%."
+  },
+  "quick_roll": {
+   "n": "Quick Roll",
+   "m": 1,
+   "g": "roll",
+   "d": "A faster dodge roll that costs less stamina but covers a shorter distance."
+  },
+  "minesweeper": {
+   "n": "Minesweeper",
+   "m": 1,
+   "g": "mine",
+   "d": "Mines and explosive deployables can be defused when you're close to them."
+  },
+  "gentle_pressure": {
+   "n": "Gentle Pressure",
+   "m": 5,
+   "g": "quiet",
+   "d": "Breaching makes less noise.",
+   "v": "At 5/5 breach sound -50%."
+  },
+  "a_little_extra": {
+   "n": "A Little Extra",
+   "m": 1,
+   "g": "pry",
+   "d": "Breaching an object gives you crafting materials."
+  },
+  "traveling_tinkerer": {
+   "n": "Traveling Tinkerer",
+   "m": 1,
+   "g": "craft",
+   "d": "Unlocks more items to field craft."
+  },
+  "looters_luck": {
+   "n": "Looter's Luck",
+   "m": 5,
+   "g": "eye",
+   "d": "While looting, there's a chance to reveal twice as many items at once.",
+   "v": "At 5/5 a 33% chance."
+  },
+  "stylish_landing": {
+   "n": "Stylish Landing",
+   "m": 5,
+   "g": "fall",
+   "d": "You can do a Recovery Roll from greater heights.",
+   "v": "At 5/5 recovery roll height +150 cm."
+  },
+  "turtle_crawl": {
+   "n": "Turtle Crawl",
+   "m": 5,
+   "g": "crawl",
+   "d": "You take less damage while downed.",
+   "v": "At 5/5 damage while downed -33%."
+  },
+  "road_warrior": {
+   "n": "Road Warrior",
+   "m": 1,
+   "g": "craft",
+   "d": "Increases the ammo and ARC Powercells you loot from ARC, and lets you recycle at full efficiency during a round."
+  },
+  "nomadic_crafting": {
+   "n": "Nomadic Crafting",
+   "m": 1,
+   "g": "craft",
+   "d": "Lets you field craft a much wider range of items."
+  },
+  "field_repair": {
+   "n": "Field Repair",
+   "m": 1,
+   "g": "craft",
+   "d": "Lets you repair weapons, shields and gadgets during a round, up to 30% durability."
+  }
+ },
+ "builds": [
+  {
+   "id": "gg-looter",
+   "n": "Solo Looter",
+   "by": "Gamer Guides",
+   "url": "https://gamer-guides.com/arc-raiders/skill-tree-guide/",
+   "tags": [
+    "PvE",
+    "Looting",
+    "Solo"
+   ],
+   "note": "Security Breach and Road Warrior, with Mule's Gallop for heavy runs.",
+   "a": {
+    "used_to_the_weight": 1,
+    "three_deep_breaths": 3,
+    "stubborn_mule": 5,
+    "vault_n_carry": 1,
+    "mules_gallop": 1,
+    "downed_but_determined": 3,
+    "broad_shoulders": 5,
+    "speedy_mule": 5,
+    "loaded_arms": 1,
+    "proficient_pryer": 5,
+    "security_breach": 1,
+    "youthful_lungs": 1,
+    "sure_footed_scrambler": 1,
+    "ready_to_roll": 3,
+    "nimble_climber": 5,
+    "vaults_on_vaults_on_vaults": 1,
+    "marathon_runner": 3,
+    "in_round_crafting": 1,
+    "looters_instincts": 5,
+    "silent_scavenger": 5,
+    "sturdy_ankles": 1,
+    "agile_croucher": 5,
+    "quick_roll": 1,
+    "gentle_pressure": 5,
+    "a_little_extra": 1,
+    "traveling_tinkerer": 1,
+    "looters_luck": 5,
+    "road_warrior": 1
+   },
+   "seed": "gg-start"
+  },
+  {
+   "id": "gg-pvp",
+   "n": "PvP Fighter",
+   "by": "Gamer Guides",
+   "url": "https://gamer-guides.com/arc-raiders/skill-tree-guide/",
+   "tags": [
+    "PvP"
+   ],
+   "note": "Back On Your Feet, Weapon Bash and In The Flow.",
+   "a": {
+    "used_to_the_weight": 1,
+    "three_deep_breaths": 5,
+    "vigorous_vaulter": 1,
+    "stubborn_mule": 3,
+    "back_on_your_feet": 1,
+    "downed_but_determined": 5,
+    "crawl_before_you_walk": 5,
+    "broad_shoulders": 5,
+    "loaded_arms": 1,
+    "proficient_pryer": 3,
+    "weapon_bash": 1,
+    "youthful_lungs": 1,
+    "nimble_climber": 5,
+    "fight_or_flight": 5,
+    "vault_spring": 1,
+    "effortless_roll": 5,
+    "slip_and_slide": 5,
+    "right_back_at_it": 1,
+    "off_the_wall": 2,
+    "marathon_runner": 5,
+    "in_the_flow": 1,
+    "in_round_crafting": 1,
+    "looters_instincts": 1,
+    "sturdy_ankles": 5,
+    "agile_croucher": 3,
+    "quick_roll": 1,
+    "stylish_landing": 3
+   },
+   "seed": "gg-start"
+  },
+  {
+   "id": "gg-runner",
+   "n": "Stamina Runner",
+   "by": "Gamer Guides",
+   "url": "https://gamer-guides.com/arc-raiders/skill-tree-guide/",
+   "tags": [
+    "PvP",
+    "Mobility"
+   ],
+   "note": "Both Mobility end skills: Sprinting On Fumes and In The Flow.",
+   "a": {
+    "used_to_the_weight": 1,
+    "three_deep_breaths": 5,
+    "vigorous_vaulter": 1,
+    "stubborn_mule": 3,
+    "mules_gallop": 1,
+    "broad_shoulders": 5,
+    "speedy_mule": 3,
+    "youthful_lungs": 1,
+    "sure_footed_scrambler": 5,
+    "ready_to_roll": 1,
+    "nimble_climber": 5,
+    "fight_or_flight": 5,
+    "vaults_on_vaults_on_vaults": 1,
+    "effortless_roll": 5,
+    "slip_and_slide": 5,
+    "right_back_at_it": 1,
+    "marathon_runner": 5,
+    "swift_start": 5,
+    "sprinting_on_fumes": 1,
+    "in_the_flow": 1,
+    "in_round_crafting": 1,
+    "sturdy_ankles": 5,
+    "agile_croucher": 4,
+    "quick_roll": 1,
+    "stylish_landing": 5
+   },
+   "seed": "gg-start"
+  },
+  {
+   "id": "gg-support",
+   "n": "Team Support",
+   "by": "Gamer Guides",
+   "url": "https://gamer-guides.com/arc-raiders/skill-tree-guide/",
+   "tags": [
+    "Squad",
+    "Crafting"
+   ],
+   "note": "Minesweeper, Nomadic Crafting and Field Repair, plus Security Breach.",
+   "a": {
+    "used_to_the_weight": 1,
+    "three_deep_breaths": 5,
+    "vigorous_vaulter": 1,
+    "stubborn_mule": 3,
+    "back_on_your_feet": 1,
+    "downed_but_determined": 5,
+    "crawl_before_you_walk": 5,
+    "broad_shoulders": 5,
+    "loaded_arms": 1,
+    "proficient_pryer": 3,
+    "security_breach": 1,
+    "youthful_lungs": 1,
+    "nimble_climber": 3,
+    "in_round_crafting": 1,
+    "looters_instincts": 5,
+    "silent_scavenger": 5,
+    "sturdy_ankles": 1,
+    "agile_croucher": 4,
+    "minesweeper": 1,
+    "gentle_pressure": 5,
+    "a_little_extra": 1,
+    "traveling_tinkerer": 1,
+    "looters_luck": 5,
+    "stylish_landing": 5,
+    "turtle_crawl": 5,
+    "nomadic_crafting": 1,
+    "field_repair": 1
+   },
+   "seed": "gg-start"
+  },
+  {
+   "id": "gg-start",
+   "n": "First 24 points",
+   "by": "Gamer Guides",
+   "url": "https://gamer-guides.com/arc-raiders/skill-tree-guide/",
+   "tags": [
+    "New players"
+   ],
+   "note": "The stamina core in Mobility, In-Round Crafting, Looter's Instincts and Stubborn Mule.",
+   "a": {
+    "used_to_the_weight": 1,
+    "stubborn_mule": 3,
+    "youthful_lungs": 1,
+    "sure_footed_scrambler": 1,
+    "ready_to_roll": 1,
+    "nimble_climber": 5,
+    "fight_or_flight": 2,
+    "vaults_on_vaults_on_vaults": 1,
+    "marathon_runner": 5,
+    "in_round_crafting": 1,
+    "looters_instincts": 3
+   }
+  },
+  {
+   "id": "pug-pendola",
+   "n": "Pendola Pass looter",
+   "by": "Power Up Gaming",
+   "url": "https://powerupgaming.co.uk/2026/10/08/arc-raiders-frozen-trail-new-skill-tree-builds-pendola-pass/",
+   "tags": [
+    "PvE",
+    "Looting"
+   ],
+   "note": "Security Breach and Road Warrior, built for Pendola Pass.",
+   "a": {
+    "youthful_lungs": 1,
+    "nimble_climber": 5,
+    "fight_or_flight": 4,
+    "vaults_on_vaults_on_vaults": 1,
+    "marathon_runner": 3,
+    "in_round_crafting": 1,
+    "looters_instincts": 5,
+    "silent_scavenger": 5,
+    "quick_roll": 1,
+    "traveling_tinkerer": 1,
+    "looters_luck": 5,
+    "gentle_pressure": 5,
+    "a_little_extra": 1,
+    "sturdy_ankles": 5,
+    "agile_croucher": 1,
+    "road_warrior": 1,
+    "used_to_the_weight": 1,
+    "stubborn_mule": 5,
+    "three_deep_breaths": 5,
+    "vigorous_vaulter": 1,
+    "mules_gallop": 1,
+    "broad_shoulders": 5,
+    "loaded_arms": 1,
+    "proficient_pryer": 5,
+    "speedy_mule": 5,
+    "vault_n_carry": 1,
+    "security_breach": 1
+   },
+   "stages": [
+    {
+     "n": "Phase 1: Mobility stamina",
+     "a": {
+      "youthful_lungs": 1,
+      "nimble_climber": 5,
+      "fight_or_flight": 4,
+      "vaults_on_vaults_on_vaults": 1,
+      "marathon_runner": 3
+     }
+    },
+    {
+     "n": "Phase 2: Survival looting",
+     "a": {
+      "in_round_crafting": 1,
+      "looters_instincts": 5,
+      "silent_scavenger": 4,
+      "quick_roll": 1,
+      "traveling_tinkerer": 1,
+      "looters_luck": 5
+     }
+    },
+    {
+     "n": "Phase 3: Conditioning to Security Breach",
+     "a": {
+      "used_to_the_weight": 1,
+      "stubborn_mule": 5,
+      "three_deep_breaths": 5,
+      "vigorous_vaulter": 1,
+      "mules_gallop": 1,
+      "broad_shoulders": 5,
+      "loaded_arms": 1,
+      "proficient_pryer": 5,
+      "speedy_mule": 5,
+      "vault_n_carry": 1,
+      "security_breach": 1
+     }
+    },
+    {
+     "n": "Phase 4: Survival to Road Warrior",
+     "a": {
+      "gentle_pressure": 5,
+      "a_little_extra": 1,
+      "sturdy_ankles": 5,
+      "agile_croucher": 1,
+      "silent_scavenger": 1,
+      "road_warrior": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "aoeah-pve",
+   "n": "PvE all-rounder",
+   "by": "AOEAH",
+   "url": "https://www.aoeah.com/news/4869--arc-raiders-20-best-skill-tree-builds-frozen-trail-update",
+   "tags": [
+    "PvE"
+   ],
+   "note": "Security Breach and Sprinting On Fumes, Quick Roll in Survival.",
+   "a": {
+    "youthful_lungs": 1,
+    "nimble_climber": 5,
+    "fight_or_flight": 5,
+    "vaults_on_vaults_on_vaults": 1,
+    "effortless_roll": 5,
+    "right_back_at_it": 1,
+    "marathon_runner": 5,
+    "slip_and_slide": 2,
+    "swift_start": 5,
+    "sprinting_on_fumes": 1,
+    "used_to_the_weight": 1,
+    "stubborn_mule": 5,
+    "three_deep_breaths": 3,
+    "vigorous_vaulter": 1,
+    "mules_gallop": 1,
+    "loaded_arms": 1,
+    "broad_shoulders": 5,
+    "downed_but_determined": 5,
+    "proficient_pryer": 3,
+    "crawl_before_you_walk": 5,
+    "security_breach": 1,
+    "in_round_crafting": 1,
+    "looters_instincts": 5,
+    "silent_scavenger": 4,
+    "quick_roll": 1,
+    "gentle_pressure": 1,
+    "traveling_tinkerer": 1,
+    "a_little_extra": 1
+   }
+  },
+  {
+   "id": "aoeah-pvp",
+   "n": "PvP survivor",
+   "by": "AOEAH",
+   "url": "https://www.aoeah.com/news/4869--arc-raiders-20-best-skill-tree-builds-frozen-trail-update",
+   "tags": [
+    "PvP"
+   ],
+   "note": "Back On Your Feet, Turtle Crawl and Sprinting On Fumes.",
+   "a": {
+    "youthful_lungs": 1,
+    "nimble_climber": 5,
+    "fight_or_flight": 5,
+    "vaults_on_vaults_on_vaults": 1,
+    "effortless_roll": 5,
+    "right_back_at_it": 1,
+    "marathon_runner": 5,
+    "slip_and_slide": 5,
+    "swift_start": 5,
+    "sprinting_on_fumes": 1,
+    "used_to_the_weight": 1,
+    "stubborn_mule": 3,
+    "three_deep_breaths": 5,
+    "vigorous_vaulter": 1,
+    "back_on_your_feet": 1,
+    "loaded_arms": 1,
+    "downed_but_determined": 5,
+    "crawl_before_you_walk": 5,
+    "in_round_crafting": 1,
+    "looters_instincts": 5,
+    "silent_scavenger": 4,
+    "quick_roll": 1,
+    "gentle_pressure": 1,
+    "traveling_tinkerer": 1,
+    "stylish_landing": 1,
+    "a_little_extra": 1,
+    "turtle_crawl": 5
+   }
+  }
+ ]
+}
