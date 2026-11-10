@@ -22,7 +22,7 @@ def text(crate_glob, names):
 LIC = [('MIT', text('serde-1*', ['LICENSE-MIT'])), ('Apache-2.0', text('serde-1*', ['LICENSE-APACHE'])),
        ('MPL-2.0', text('cssparser-0*', ['LICENSE'])), ('Unicode-3.0', text('icu_collections-*', ['LICENSE'])),
        ('BSD-3-Clause', text('alloc-no-stdlib-*', ['LICENSE'])), ('Zlib', text('zlib-rs-*', ['LICENSE'])),
-       ('Zlib (foldhash)', text('foldhash-*', ['LICENSE']))]
+       ('Zlib (foldhash)', text('foldhash-*', ['LICENSE'])), ('ISC', text('untrusted-0*', ['LICENSE.txt'])), ('ISC (rustls-webpki)', text('rustls-webpki-*', ['LICENSE']))]
 out = ['RAIDER TOOLKIT COMPANION', 'THIRD-PARTY NOTICES', '',
        'The app is built from software made by others. Thank you to all of them. Their licences are below.', '',
        'APP FRAMEWORK', 'Tauri (https://tauri.app) and its plugins: MIT or Apache-2.0. Copyright (c) the Tauri Programme within The Commons Conservancy.', '',

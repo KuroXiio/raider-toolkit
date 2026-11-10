@@ -20,6 +20,19 @@
       setSbw(); mvApply();
       var rm = full.match(/[?&]route=([A-Za-z0-9_-]+)/);   // #maps?route=r… opens a shared route
       if (rm) { try { history.replaceState(null, "", location.pathname + location.search + "#maps"); } catch (e) {} planLoadShared(rm[1]); }
+      // #maps?map=dam, &item=toaster, &key=…, &quest=… (used by the companion app's map tab and other links)
+      var pm = full.match(/[?&]map=([a-z_]+)/), pi = full.match(/[?&]item=([a-z0-9_]+)/), pk = full.match(/[?&]key=([a-z0-9_]+)/), pq = full.match(/[?&]quest=([a-z0-9_]+)/);
+      if (!rm && (pm || pi || pk || pq)) {
+        try { history.replaceState(null, "", location.pathname + location.search + "#maps"); } catch (e) {}
+        var mk = pm && (MAPS[pm[1]] ? pm[1] : pm[1].indexOf("stella_") === 0 ? "stella" : "");
+        if (pm && pm[1].indexOf("stella_") === 0) MV.layer = pm[1].slice(7);
+        setTimeout(function () {
+          if (pi) mapShowItem(pi[1], mk || undefined);
+          else if (pk) showKeyOnMap(pk[1]);
+          else if (pq) mapShowQuest(pq[1], mk || undefined);
+          else if (mk) selectMap(mk);
+        }, 0);
+      }
     }
     if (h === "weapons") {
       var cm = full.match(/[?&]code=([^&]+)/);   // #weapons?code=ARC-… opens that build (used by the Discord bot)

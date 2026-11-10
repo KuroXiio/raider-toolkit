@@ -32,9 +32,17 @@ jobs:
       - uses: swatinem/rust-cache@v2
         with:
           workspaces: companion/src-tauri -> target
+      - name: Check the update key is set up
+        shell: bash
+        run: |
+          if grep -q PUBKEY_PENDING companion/src-tauri/tauri.conf.json; then echo "::error::The update public key is missing in companion/src-tauri/tauri.conf.json"; exit 1; fi
+          if [ -z "${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}" ]; then echo "::error::Add the TAURI_SIGNING_PRIVATE_KEY secret (see companion/README.md)"; exit 1; fi
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # signs the update files, so installed apps only accept updates made with this key
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           projectPath: companion
           tauriScript: npx --yes @tauri-apps/cli@2
@@ -42,8 +50,9 @@ jobs:
           releaseName: Raider Toolkit Companion v__VERSION__
           releaseDraft: true
           prerelease: false
+          includeUpdaterJson: true
           releaseBody: |
-            A small always-on-top window with your Raider Toolkit shopping list, map conditions and item search, plus a panel you open with a keybind (Ctrl+Shift+Space by default).
+            An overlay with your Raider Toolkit shopping list, map condition, followed quests and keys, plus a panel you open with a keybind (Ctrl+Shift+Space by default) with the interactive map, quests, keys, search and settings. Installed copies update themselves once this release is published.
 
             It is an ordinary Windows window. It never reads, changes or connects to the game: no game files, memory, screen capture, injected code or simulated input. Everything it shows comes from raidkits.com and what you type in.
 

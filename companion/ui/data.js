@@ -13,17 +13,21 @@
     hotkeyOverlay: "Ctrl+Shift+H",         // shows and hides the overlay
     overlay: true,                         // false: hidden completely
     style: "stack",                        // "stack" (lines under each other) or "line" (one row)
-    parts: { cond: true, next: true, prog: true, items: true, maps: false, soon: false },
-    order: ["cond", "next", "prog", "items", "maps", "soon"],   // the overlay's sections, top to bottom (or left to right)
+    parts: { cond: true, prog: true, items: true, quests: true, keys: true, maps: false },
+    order: ["cond", "prog", "items", "quests", "keys", "maps"],   // the overlay's parts, top to bottom (or left to right)
+    widgets: {},                           // parts unpinned into their own window: { items: { pinned: false, pos: {...}, size: { w, h } } } (size in em)
+    listMax: 8,                            // items shown by the list part while it is pinned in the overlay
+    onlyMap: true,                         // the overlay's list shows only items found on your selected map
+    autoUpdate: true,                      // check for a new version when the app starts and every 6 hours
     size: 1,                               // on top of the automatic scaling to the screen height
     bg: 0.8,                               // opacity of the overlay's background, 0.3 to 1
     pos: { a: "tr", x: 0.012, y: 0.1 },    // anchored to a corner or edge, offsets as a share of the screen
     panelBg: 0.95,                         // opacity of the panel's background
   };
-  var SECTIONS = { cond: "Condition on your map, with a countdown", next: "The next condition on your map", prog: "List progress",
-    items: "Items you still need (up to 4)", maps: "Other maps with a condition right now", soon: "Coming up next on all maps (3)" };
-  /* the documents the user accepts on first start; change this date when they change, and the app asks again */
-  var TERMS_VERSION = "2026-11-10";
+  var SECTIONS = { cond: "Condition on your map, with a countdown", prog: "List progress", items: "Items you still need",
+    quests: "Quests you follow", keys: "Keys you follow, and where they go", maps: "Other maps with a condition right now" };
+  /* the documents the user accepts on first start. Change this when any of them changes (see README), and the app asks again. */
+  var TERMS_VERSION = "2026-11-10.2";
 
   function read(k, d) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } }
   function write(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
@@ -70,6 +74,29 @@
     var done = ids.filter(function (id) { return l.items[id].have >= l.items[id].need; }).length;
     return { done: done, total: ids.length };
   }
+  /* is an item found on this map? marked spots there, or a guide that names the map */
+  function onMap(id, m) {
+    var x = byId[id]; if (!x) return false;
+    if (x.sp && x.sp[m]) return true;
+    var name = (D && D.maps && D.maps[m]) || "";
+    return !!(x.gm && name && x.gm.indexOf(name) > -1);
+  }
+  /* quests and keys you follow: { quests: { id: { done: [objective numbers] } }, keys: [ids] } */
+  function follow() { var f = read("rtc-follow", null) || {}; f.quests = f.quests || {}; f.keys = f.keys || []; return f; }
+  function saveFollow(f) { write("rtc-follow", f); }
+  function toggleQuest(id) { var f = follow(); if (f.quests[id]) delete f.quests[id]; else f.quests[id] = { done: [] }; saveFollow(f); return !!f.quests[id]; }
+  function toggleKey(id) { var f = follow(), i = f.keys.indexOf(id); if (i > -1) f.keys.splice(i, 1); else f.keys.push(id); saveFollow(f); return i < 0; }
+  function quest(id) { return D && (D.quests || []).filter(function (x) { return x.id === id; })[0]; }
+  function key(id) { return D && (D.keys || []).filter(function (x) { return x.id === id; })[0]; }
+  /* the interactive map on raidkits.com, as the app's Map tab shows it */
+  function mapUrl(o) {
+    o = o || {}; var q = [];
+    if (o.map) q.push("map=" + o.map);
+    if (o.item) q.push("item=" + o.item); else if (o.key) q.push("key=" + o.key); else if (o.quest) q.push("quest=" + o.quest);
+    return SITE + "?embed=1#maps" + (q.length ? "?" + q.join("&") : "");
+  }
+  function widget(k) { var w = (settings().widgets || {})[k] || {}; return { pinned: w.pinned !== false, pos: w.pos || null, size: w.size || null }; }
+  function setWidget(k, v) { var s = settings(); s.widgets = s.widgets || {}; s.widgets[k] = Object.assign(widget(k), v); write("rtc-settings", s); return s; }
 
   /* a "Share list" link from the site: #list?share= + "z" (deflate-raw) or "j" + base64url JSON {g:[{l, i:{item: qty}}]} */
   function b64u(s) { s = s.replace(/-/g, "+").replace(/_/g, "/"); while (s.length % 4) s += "="; var b = atob(s), u = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
@@ -145,6 +172,8 @@
     SITE: SITE, REGIONS: REGIONS, MAP_ORDER: MAP_ORDER, SHORT: SHORT, esc: esc, fmt: fmt,
     data: function () { return D; }, item: function (id) { return byId[id]; }, load: load,
     settings: settings, setSetting: setSetting, DEFAULTS: DEFAULTS, SECTIONS: SECTIONS, TERMS_VERSION: TERMS_VERSION,
+    onMap: onMap, follow: follow, saveFollow: saveFollow, toggleQuest: toggleQuest, toggleKey: toggleKey, quest: quest, key: key, mapUrl: mapUrl, widget: widget, setWidget: setWidget,
+    reset: function () { ["rtc-settings", "rtc-list", "rtc-follow", "rtc-placed", "rtc-hotkey-err", "rtc-update"].forEach(function (k) { localStorage.removeItem(k); }); },
     accepted: function () { var a = read("rtc-accepted", null); return !!(a && a.v === TERMS_VERSION); },
     acceptedAt: function () { var a = read("rtc-accepted", null); return a && a.at; },
     accept: function () { write("rtc-accepted", { v: TERMS_VERSION, at: new Date().toISOString() }); }, list: list, addItem: addItem, setHave: setHave, removeItem: removeItem, saveList: saveList,

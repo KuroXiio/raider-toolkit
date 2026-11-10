@@ -1,7 +1,7 @@
 RAIDER TOOLKIT COMPANION
 LICENCE AGREEMENT AND TERMS OF USE
 
-Last updated: 10 November 2026
+Last updated: 10 November 2026 (second version: updates and the map tab)
 
 Please read this before installing. By installing or using Raider Toolkit Companion ("the app") you agree to these terms. If you don't agree, don't install or use it.
 
@@ -33,10 +33,14 @@ The app is provided "as is", without any warranty, express or implied, including
 To the fullest extent the law allows, I am not liable for any damage or loss arising from installing, using or being unable to use the app or the information in it, including loss of game progress, items or account access. Nothing in these terms limits liability that cannot be limited by law, or takes away rights you have as a consumer under the law of the country you live in.
 
 8. UPDATES AND ENDING
-I may change, update or stop offering the app at any time. You can stop using it at any time by uninstalling it (Windows Settings > Apps). These terms may be updated with a new version of the app; the date at the top shows when.
+The app checks for new versions and offers to install them; updates are signed so only updates from me are installed. You can turn the automatic check off in Settings. An update may change what the app does; when these terms or the privacy policy change, the app asks you to accept them again before you go on using it.
+I may change, update or stop offering the app at any time. You can stop using it at any time by uninstalling it: Windows Settings > Apps > Installed apps > Raider Toolkit Companion > Uninstall.
 
-9. PRIVACY
+9. THE MAP TAB
+The Map tab shows pages from raidkits.com inside the app. Those pages and their content are provided under the same terms as the rest of the app (sections 2, 5, 6 and 7).
+
+10. PRIVACY
 How the app handles data is described in PRIVACY.txt.
 
-10. LAW
+11. LAW
 These terms are governed by Swedish law, without taking away any mandatory protection you have under the law of the country you live in.

@@ -1619,3 +1619,6 @@ html.drwon .cartbtn { display: none; }
 .ppshare .btn { align-self: flex-start; }
 .ppshare input { width: 100%; box-sizing: border-box; font: inherit; font-size: .78rem; padding: 7px 9px; border-radius: 8px; border: 1px solid rgba(255,255,255,.14); background: rgba(0,0,0,.3); color: #d9d5ea; }
 .ppshared { color: var(--mint); }
+/* inside the companion app's map tab (?embed=1): just the page, no site header, footer or floating buttons */
+html.embed header.top, html.embed footer.foot, html.embed .cartbtn, html.embed .botchip { display: none !important; }
+html.embed main { padding-top: 0 !important; }

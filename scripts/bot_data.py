@@ -39,6 +39,13 @@ for i in items:
         if i.get(k) not in (None, ''): o[k] = i[k]
     if i.get('d'): o['d'] = i['d'][:300]
     if os.path.exists(OUT + '/site/i/' + i['id'] + '.webp'): o['ic'] = 1   # icon at <site>/i/<id>.webp
+    sp = (i.get('sp') or {}).get('c') or {}
+    if sp:   # marked spots per map (the two Stella Montis floors count as one map), for "only items on this map"
+        c = {}
+        for k, n in sp.items():
+            m = 'stella' if k.startswith('stella_') else k
+            c[m] = c.get(m, 0) + n
+        o['sp'] = c
     if i.get('rc'): o['rc'] = [[nm(k), q] for k, q in i['rc'].items()]
     if i.get('cb'):
         o['cb'] = ', '.join(BENCH.get(b, b) + (' L' + str(i['sl']) if i.get('sl') else '') for b in i['cb'])
@@ -54,7 +61,8 @@ for i in items:
 
 keys = []
 for k in DB.get('keys', []):
-    o = {'id': k['id'], 'n': nm(k['id']), 'm': MAPS.get(k.get('m'), k.get('m') or ''), 'door': k.get('door') or ''}
+    o = {'id': k['id'], 'n': nm(k['id']), 'm': MAPS.get(k.get('m'), k.get('m') or ''), 'mk': k.get('m') or '', 'door': k.get('door') or ''}
+    if k.get('pin'): o['pin'] = 1
     if k.get('get'): o['get'] = k['get']
     if k.get('loot'): o['loot'] = k['loot']
     keys.append(o)
@@ -91,7 +99,8 @@ mods = {k: {'n': m.get('n', k), 'r': m.get('r')} for k, m in (DB.get('mods') or 
 
 quests = []
 for q in DB.get('quests', []):
-    o = {'id': q['id'], 'n': q['n'], 'tr': q.get('tr', ''), 'm': [MAPS.get(m, m) for m in q.get('m', [])], 'o': q.get('o', [])[:8]}
+    o = {'id': q['id'], 'n': q['n'], 'tr': q.get('tr', ''), 'm': [MAPS.get(m, m) for m in q.get('m', [])], 'mk': q.get('m', []), 'o': q.get('o', [])[:8]}
+    if (q.get('mk') or {}).get('c'): o['pin'] = 1   # has spots on the map
     if q.get('g'): o['g'] = [[nm(k), n] for k, n in q['g']]
     if q.get('r'): o['r'] = [[nm(k), n] for k, n in q['r']]
     quests.append(o)

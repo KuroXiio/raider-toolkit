@@ -27,3 +27,15 @@ Unofficial fan app, not affiliated with or endorsed by Embark Studios. Embark de
 The Windows installer is built by GitHub Actions (`.github/workflows/companion.yml`): run it from the Actions tab or push a tag like `companion-v0.1.0`. It creates a draft release; check it, then publish.
 
 To run it on your own PC: install Rust and Node, then in this folder run `npx @tauri-apps/cli@2 dev`.
+
+## Releasing an update
+
+1. Raise the version in `src-tauri/tauri.conf.json` and `src-tauri/Cargo.toml` (for example 0.2.0 → 0.2.1).
+2. Push. GitHub Actions builds the installer and the signed update files into a draft release `companion-v<version>`.
+3. Install the draft's installer yourself and check it. Then press **Publish**: every installed copy offers the update (it checks at start and every 6 hours).
+
+Signing: the private key lives only in the repository secrets `TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`; the public key is in `tauri.conf.json` (`plugins.updater.pubkey`). Keep a backup of the private key: without it, installed copies can't be updated.
+
+## When something changes what the app sends, stores or does
+
+Update the documents in `ui/legal/` (privacy policy, licence agreement, safety notes) in the same change, raise `TERMS_VERSION` in `ui/data.js` so every user sees and accepts them again, and run `python3 scripts/notices.py` if dependencies changed. The installer shows `ui/legal/EULA.txt` and installs the whole `legal` folder.
