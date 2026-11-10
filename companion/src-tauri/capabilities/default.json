@@ -1,0 +1,34 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "What the overlay and the panel may do: move, size and hide their own windows, let clicks through, read which screen they are on, and open raidkits.com and Discord links in the browser. Nothing else.",
+  "windows": [
+    "overlay",
+    "panel"
+  ],
+  "permissions": [
+    "core:default",
+    "core:window:allow-show",
+    "core:window:allow-hide",
+    "core:window:allow-set-focus",
+    "core:window:allow-start-dragging",
+    "core:window:allow-set-ignore-cursor-events",
+    "core:window:allow-set-position",
+    "core:window:allow-set-size",
+    {
+      "identifier": "opener:allow-open-url",
+      "allow": [
+        {
+          "url": "https://raidkits.com/*"
+        },
+        {
+          "url": "https://discord.gg/*"
+        },
+        {
+          "url": "https://discord.com/*"
+        }
+      ]
+    },
+    "core:window:allow-minimize"
+  ]
+}

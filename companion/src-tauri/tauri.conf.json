@@ -1,0 +1,79 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Raider Toolkit Companion",
+  "version": "0.1.0",
+  "identifier": "com.raidkits.companion",
+  "build": {
+    "frontendDist": "../ui"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "overlay",
+        "title": "Raider Toolkit overlay",
+        "url": "overlay.html",
+        "width": 320,
+        "height": 160,
+        "x": 0,
+        "y": 0,
+        "decorations": false,
+        "transparent": true,
+        "shadow": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "resizable": false,
+        "focus": false,
+        "visible": false,
+        "dragDropEnabled": false
+      },
+      {
+        "label": "panel",
+        "title": "Raider Toolkit",
+        "url": "panel.html",
+        "width": 400,
+        "height": 660,
+        "minWidth": 340,
+        "minHeight": 420,
+        "center": true,
+        "decorations": false,
+        "transparent": true,
+        "shadow": false,
+        "alwaysOnTop": true,
+        "resizable": true,
+        "visible": false,
+        "dragDropEnabled": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' https://raidkits.com data:; connect-src 'self' https://raidkits.com ipc: http://ipc.localhost; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "nsis"
+    ],
+    "publisher": "Kuro",
+    "copyright": "Unofficial fan project, not affiliated with Embark Studios",
+    "category": "Utility",
+    "shortDescription": "Raider Toolkit Companion",
+    "longDescription": "An overlay with your Raider Toolkit shopping list and map conditions, and a panel you open with a keybind. It never reads, changes or connects to the game.",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser"
+      }
+    },
+    "licenseFile": "../ui/legal/EULA.txt",
+    "resources": {
+      "../ui/legal/*": "legal/"
+    },
+    "license": "MIT"
+  }
+}

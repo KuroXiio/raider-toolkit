@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Raider Toolkit overlay</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  /* everything is sized in em, so one font-size scales the whole overlay to the screen */
+  html, body { background: transparent; height: auto; width: max-content; }
+  body { font-size: calc(15px * var(--scale, 1)); padding: 0.5em; display: inline-block; }
+  #hud { display: inline-flex; flex-direction: column; gap: 0.3em; padding: 0.6em 0.85em; border-radius: 0.9em; background: rgba(var(--bg), var(--bga, .8)); border: 1px solid rgba(255,255,255,.12); white-space: nowrap;
+         color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+  #hud.line { flex-direction: row; align-items: center; gap: 1.1em; }
+  .ln { display: flex; align-items: center; gap: 0.5em; font-size: 1em; }
+  .cond b { font-weight: 700; font-size: 1.12em; }
+  .cond .t { font-family: var(--mono); font-weight: 700; font-size: 1.12em; color: var(--cyan); }
+  .cond .m { color: #d6d3e6; font-weight: 600; font-size: 0.86em; }
+  .next { color: #e6e3f2; }
+  .next span:first-child { color: #9ca3c4; font-size: 0.86em; }
+  .next .mono { font-size: 0.92em; color: #d6d3e6; }
+  .prog .mono { font-weight: 700; }
+  .bar { width: 6em; height: 0.36em; border-radius: 0.2em; background: rgba(255,255,255,.12); overflow: hidden; }
+  .bar i { display: block; height: 100%; background: linear-gradient(90deg, #22d65f, #5ff2ea); }
+  .items { display: flex; flex-direction: column; gap: 0.15em; font-size: 0.92em; }
+  .items .m { color: #9ca3c4; font-size: 0.9em; font-weight: 600; }
+  .items .dot { width: 0.45em; height: 0.45em; }
+  #hud.line .items { flex-direction: row; gap: 0.9em; }
+  .it { display: flex; align-items: center; gap: 0.4em; }
+  .it .mono { color: var(--mint); }
+  .it img, .it .ph { width: 1.4em; height: 1.4em; object-fit: contain; }
+  .dot { width: 0.55em; height: 0.55em; }
+  /* while the panel is open the overlay can be moved: outline and a hint */
+  body.edit #hud { border: 1px dashed rgba(95,242,234,.9); cursor: move; }
+  body.edit #hud * { pointer-events: none; }   /* the whole box is the drag handle */
+  .hint { display: none; font-size: 0.78em; color: var(--cyan); }
+  body.edit .hint { display: block; }
+</style>
+</head>
+<body>
+<div id="hud" data-tauri-drag-region></div>
+<script src="data.js"></script>
+<script src="overlay.js"></script>
+</body>
+</html>

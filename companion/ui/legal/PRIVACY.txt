@@ -1,0 +1,39 @@
+RAIDER TOOLKIT COMPANION
+PRIVACY POLICY
+
+Last updated: 10 November 2026
+
+THE SHORT VERSION
+- No account, no analytics, no tracking, no ads, no crash reports.
+- Your settings and shopping list stay on your own computer.
+- The app downloads Raider Toolkit's public data and item pictures from raidkits.com. Like any website, the host sees your IP address when that happens.
+- The app never reads anything from ARC Raiders.
+
+WHO IS RESPONSIBLE
+Kuro, a private individual in Sweden, makes the app and is the data controller under the EU General Data Protection Regulation (GDPR). Contact: Discord user kuro_1, or the Raider Toolkit Discord (https://discord.gg/NE3ughZTxn).
+
+WHAT IS SAVED ON YOUR COMPUTER
+The app saves your settings (keybinds, overlay layout, region, chosen map), your shopping list and a copy of the downloaded data, so it works offline and remembers your choices. This is stored only on your computer, in the app's data folders (%LOCALAPPDATA%\com.raidkits.companion, and the panel's size and place in %APPDATA%\com.raidkits.companion). It is never sent anywhere. Uninstalling the app and deleting those folders removes it.
+
+WHAT THE APP DOWNLOADS
+- https://raidkits.com/bot.json: the public Raider Toolkit data (items, keys, quests, map conditions). Checked when the app starts and about every 30 minutes, downloaded again when it is more than 6 hours old.
+- Item pictures from https://raidkits.com/i/ when they are shown.
+raidkits.com is hosted on GitHub Pages. When your computer downloads these files, GitHub (a US company) receives your IP address and standard request details, as with any website, and keeps them in its logs for security. See GitHub's privacy statement: https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement
+Nothing about you, your list or your settings is sent with these requests.
+
+WHAT THE APP DOES NOT DO
+- It does not read game memory, game files, logs or your screen, and collects no information about your game, account or matches.
+- It has no analytics, telemetry, advertising or tracking of any kind.
+- It sends nothing you type to anyone.
+
+LINKS
+Links in the app (raidkits.com, Discord) open in your web browser. Those sites' own privacy policies apply.
+
+MICROSOFT WEBVIEW2
+The app draws its windows with Microsoft Edge WebView2, a part of Windows. Microsoft may collect diagnostic data from Windows components according to your Windows privacy settings. That is between you and Microsoft; the app doesn't send Microsoft anything itself.
+
+YOUR RIGHTS
+Under the GDPR you can ask what personal data is held about you and have it corrected or deleted, and you can object to its use. In practice the app holds no personal data about you anywhere but your own computer. If you think your data is handled wrongly, you can complain to the Swedish Authority for Privacy Protection (IMY, https://www.imy.se/en/) or to the data protection authority where you live.
+
+CHANGES
+If the app starts handling data differently, this policy is updated with the new version and the date at the top changes.

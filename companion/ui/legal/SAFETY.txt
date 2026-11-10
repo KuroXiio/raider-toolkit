@@ -1,0 +1,31 @@
+RAIDER TOOLKIT COMPANION
+WHAT THE APP DOES, AND WHAT IT DOESN'T
+
+Last updated: 10 November 2026
+
+The app is two ordinary Windows windows that sit on top of other windows, the way Discord, a browser or a music player can:
+- The overlay: a small panel with adjustable opacity, showing your map condition, timers and shopping list progress. Clicks always pass straight through it, except while the panel is open, when you can drag it to a new spot.
+- The panel: your shopping list, map conditions, search and settings, opened with a keybind or the tray icon.
+
+IT NEVER:
+- reads, scans or changes ARC Raiders' memory
+- reads or changes the game's files, settings or logs
+- captures, records or reads the screen
+- injects code into the game or hooks into its graphics (it is not an in-game overlay like those that draw inside the game)
+- sends keypresses, mouse movements or any other input to the game
+- installs drivers or services, or runs as administrator
+- looks for the game, its folder or its process
+
+WHAT IT DOES USE
+- Data: the public Raider Toolkit data from raidkits.com, and what you type in yourself.
+- Keybinds: the standard Windows hotkey registration (RegisterHotKey), the same feature Discord and Steam use for their shortcuts. It is not a keyboard hook and does not see any other keys. Both keybinds can be changed or turned off in Settings.
+- Window permissions: the windows may only move, resize, show and hide themselves, let clicks pass through, see which screen they are on, and open raidkits.com and Discord links in your browser. The full list is in the source code, in companion/src-tauri/capabilities/default.json.
+
+DISPLAY MODE
+Use the game in Borderless or Windowed mode. In exclusive fullscreen Windows draws the game above everything else, so the overlay can't show; the app does nothing to get around that.
+
+CHECK IT YOURSELF
+The source code is public: https://github.com/KuroXiio/raider-toolkit (the companion folder). The installer is built from it by GitHub Actions.
+
+THE GAME'S RULES STILL APPLY
+Embark Studios decides which programs may be used with ARC Raiders. Their FAQ says overlays and game assistants are allowed only if they don't interfere with gameplay or give an unfair advantage, and asks players who are unsure to contact their support. The app is built to stay well inside that, but it is your choice and your account: see EULA.txt.

@@ -1,0 +1,47 @@
+name: Build companion app
+
+# Builds the Windows installer for Raider Toolkit Companion and puts it in a DRAFT release.
+# Nothing is public until you open the draft under Releases, check it and press Publish.
+# Runs from the Actions tab ("Run workflow"), or when a tag like companion-v0.1.0 is pushed.
+on:
+  workflow_dispatch:
+  push:
+    tags: ["companion-v*"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: companion
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: companion/src-tauri -> target
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: companion
+          tauriScript: npx --yes @tauri-apps/cli@2
+          tagName: companion-v__VERSION__
+          releaseName: Raider Toolkit Companion v__VERSION__
+          releaseDraft: true
+          prerelease: false
+          releaseBody: |
+            A small always-on-top window with your Raider Toolkit shopping list, map conditions and item search, plus a panel you open with a keybind (Ctrl+Shift+Space by default).
+
+            It is an ordinary Windows window. It never reads, changes or connects to the game: no game files, memory, screen capture, injected code or simulated input. Everything it shows comes from raidkits.com and what you type in.
+
+            Unofficial fan app, not affiliated with or endorsed by Embark Studios. Embark decides which programs are allowed with their game; use it at your own risk.
+
+            Windows may show "Windows protected your PC" the first time, because the app isn't code-signed. Press More info → Run anyway.

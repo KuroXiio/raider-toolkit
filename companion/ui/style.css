@@ -1,0 +1,29 @@
+/* Raider Toolkit Companion: shared look (same fonts and colours as raidkits.com) */
+@font-face { font-family: "Barlow"; font-weight: 400; src: url(fonts/barlow-latin-400-normal.woff2) format("woff2"); }
+@font-face { font-family: "Barlow"; font-weight: 500; src: url(fonts/barlow-latin-500-normal.woff2) format("woff2"); }
+@font-face { font-family: "Barlow"; font-weight: 600; src: url(fonts/barlow-latin-600-normal.woff2) format("woff2"); }
+@font-face { font-family: "Barlow"; font-weight: 700; src: url(fonts/barlow-latin-600-normal.woff2) format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-weight: 400; src: url(fonts/jetbrains-mono-latin-400-normal.woff2) format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-weight: 700; src: url(fonts/jetbrains-mono-latin-500-normal.woff2) format("woff2"); }
+@font-face { font-family: "Urbanist"; font-weight: 700; src: url(fonts/urbanist-latin-700-normal.woff2) format("woff2"); }
+@font-face { font-family: "Urbanist"; font-weight: 800; src: url(fonts/urbanist-latin-800-normal.woff2) format("woff2"); }
+:root {
+  --bg: 12, 9, 22; --alpha: .84; --fg: #ece9f5; --dim: #9ca3c4; --faint: #8d88a6; --mint: #b4dcc8; --cyan: #5ff2ea;
+  --line: rgba(255,255,255,.1); --card: rgba(255,255,255,.04);
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace; --display: "Urbanist", "Segoe UI", sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: transparent; color: var(--fg); font: 400 14px/1.4 "Barlow", "Segoe UI", system-ui, sans-serif; -webkit-font-smoothing: antialiased; user-select: none; overflow: hidden; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.mono { font-family: var(--mono); }
+.dim { color: var(--dim); }
+.logo { width: 20px; height: 20px; border-radius: 6px; flex-shrink: 0; background: linear-gradient(135deg, #15122a 0 30%, #ff2d2d 30% 42%, #ffc400 42% 54%, #22d65f 54% 66%, #5ff2ea 66% 78%, #2f3ee0 78%); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #5a5672; flex-shrink: 0; }
+.dot.on { background: var(--cyan); box-shadow: 0 0 9px var(--cyan); }
+.ibtn { width: 32px; height: 32px; border-radius: 8px; border: 0; background: transparent; color: var(--dim); display: grid; place-items: center; }
+.ibtn:hover { background: rgba(255,255,255,.08); color: var(--fg); }
+.ibtn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.r-Common { --rc: #9aa3ad; } .r-Uncommon { --rc: #22d65f; } .r-Rare { --rc: #3fa9ff; } .r-Epic { --rc: #c06bff; } .r-Legendary { --rc: #ffc400; } .r-Amplified { --rc: #ff5d8f; }
+.icon { width: 30px; height: 30px; border-radius: 7px; flex-shrink: 0; border: 1.5px solid var(--rc, #5a5672); background: rgba(255,255,255,.05); object-fit: contain; padding: 2px; }
