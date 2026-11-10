@@ -14,11 +14,12 @@
     return (planCnt[ck] = o);
   }
   function planItems() {
-    var key = mapImgKey(), c = function (id) { var s = mkSpots(id); return s[key] || 0; }, out = [], seen = {};
-    shop.g.forEach(function (g) { Object.keys(g.items).forEach(function (id) { if (!seen[id] && planMissing(id) && c(id)) { seen[id] = 1; out.push({ id: id, n: planMissing(id), src: "list" }); } }); });
-    planSt.add.forEach(function (id) { if (!seen[id] && c(id)) { seen[id] = 1; out.push({ id: id, n: 1, src: "add" }); } });
+    var key = mapImgKey(), c = function (id) { var s = mkSpots(id); return s[key] || 0; }, out = [], seen = {}, F = MV.plan && MV.plan.fixed;
+    if (F) F.forEach(function (id) { if (!seen[id] && IDX[id] && c(id)) { seen[id] = 1; out.push({ id: id, n: 1, src: "share" }); } });
+    else shop.g.forEach(function (g) { Object.keys(g.items).forEach(function (id) { if (!seen[id] && planMissing(id) && c(id)) { seen[id] = 1; out.push({ id: id, n: planMissing(id), src: "list" }); } }); });
+    if (!F) planSt.add.forEach(function (id) { if (!seen[id] && c(id)) { seen[id] = 1; out.push({ id: id, n: 1, src: "add" }); } });
     out.forEach(function (x) {
-      x.spots = c(x.id); x.on = !planSt.off[x.id];
+      x.spots = c(x.id); x.on = F ? !MV.plan.fixOff[x.id] : !planSt.off[x.id];
       var sp = planSplit(x.id); x.loot = sp ? sp.loot : x.spots; x.arc = sp ? sp.arc : 0; x.types = sp ? sp.types : {};
       x.kind = x.loot ? "loot" : "arc";
     });
@@ -151,6 +152,7 @@
       }).join("") + "</div>";
       el.innerHTML = h; return;
     }
+    if (P.fixed) h += '<p class="mlnote2 ppshared">' + esc(t("Shared route")) + ' · <button type="button" class="pplink" data-pown>' + esc(t("use my own list instead")) + "</button></p>";
     h += '<h6>1 · ' + esc(t("What you need")) + "</h6>";
     h += its.length ? '<div class="ppits">' + its.map(function (x) {
       return '<label class="mlr"><input type="checkbox" data-pit="' + x.id + '"' + (x.on ? " checked" : "") + ">" + thumb(x.id) + "<span>" + esc(nm(x.id)) + (x.src === "list" ? ' <small class="dim">×' + x.n + "</small>" : "") + "</span><small>" + fmt(x.spots) + "</small>" + (x.src === "add" ? '<button type="button" class="mlx" data-pdel="' + x.id + '" aria-label="' + esc(t("Remove")) + '">×</button>' : "") + "</label>";
@@ -169,6 +171,7 @@
       h += '<ol class="ppst">' + P.stops.map(function (st, k) { return "<li><i>" + (k + 1) + "</i><span><b>" + esc(planStopName(st, data)) + "</b><small>" + esc(st.cov.map(nm).join(", ")) + "</small></span></li>"; }).join("") +
         (P.end != null ? '<li class="ex"><i>E</i><span><b>' + esc(data.n[P.end] || t("Extraction")) + "</b><small>" + esc(t("Extract")) + "</small></span></li>" : "") + "</ol>";
       if (P.short && P.short.length) h += '<p class="mlnote2">' + esc(t("Not enough stops for")) + ": " + esc(P.short.map(nm).join(", ")) + ". " + esc(t("Raise the max stops.")) + "</p>";
+      h += '<div class="ppshare"><button type="button" class="btn orb sm" data-pshare>' + esc(t("Share route")) + "</button>" + (P.shareUrl ? '<input readonly value="' + esc(P.shareUrl) + '" aria-label="' + esc(t("Route link")) + '">' : "") + "</div>";
       h += '<p class="mlsrc">' + esc(t("Straight lines between stops, not walking paths. Containers are random, so a stop can come up empty.")) + "</p>";
     } else if (!P.spawn && its.length) h += '<p class="mlsrc">' + esc(t("Pick your spawn and the route draws itself.")) + "</p>";
     el.innerHTML = h;
@@ -210,6 +213,35 @@
       window.scrollTo({ top: Math.max(0, top), behavior: "instant" });
     }, 80);
   }
+  function planShare() {
+    var P = MV.plan, data = MK[mapImgKey()]; if (!P || !P.spawn || !P.stops || !data) return;
+    var o = { v: 1, k: mapImgKey(), s: [Math.round(P.spawn[0] * 10) / 10, Math.round(P.spawn[1] * 10) / 10], e: P.end != null ? P.end : -1, n: planSt.max,
+      i: planItems().filter(function (x) { return x.on && x.kind === "loot"; }).map(function (x) { return x.id; }),
+      x: P.end != null ? (data.n[P.end] || MKT[data.m[P.end][2]][2]) : "", c: P.stops.length };
+    var url = location.origin + location.pathname + "#maps?route=r" + b64u(new TextEncoder().encode(JSON.stringify(o)));
+    P.shareUrl = url; renderPlan();
+    var done = function () { toast(t("Route link copied. Paste it anywhere, or into /share in Discord."), true); };
+    try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, function () {}); } catch (er) {}
+    var i = $("#mplanp .ppshare input"); if (i) { i.focus(); i.select(); }
+  }
+  function planLoadShared(code) {
+    var o; try { o = JSON.parse(new TextDecoder().decode(unb64u(code.slice(1)))); } catch (er) { o = null; }
+    var key = o && String(o.k || ""), m = key.indexOf("stella_") === 0 ? "stella" : key;
+    if (!o || code[0] !== "r" || !MAPS[m] || !Array.isArray(o.i) || !Array.isArray(o.s)) { toast(t("That route link is broken or incomplete."), true); return; }
+    if (m === "stella") MV.layer = key.slice(7);
+    MV.item = MV.quest = ""; MV.plan = null; curMap = m; MV.z = 1; MV.x = 0; MV.y = 0; renderMapList(); renderMapDetail();
+    setTimeout(function () {
+      planOpen(); var P = MV.plan;
+      P.fixed = o.i.filter(function (id) { return IDX[id]; }).slice(0, 60); P.fixOff = {}; P.spawn = [+o.s[0] || 0, +o.s[1] || 0]; P.picking = false;
+      planSt.max = P.max = Math.max(3, Math.min(80, +o.n || 20));
+      mkGet(key, function (data) {
+        if (MV.plan !== P) return;
+        P.ext = data && planExits(data).indexOf(+o.e) > -1 ? +o.e : "auto";
+        planRefresh(); planFit();
+        var box = $("#mview"); if (box) window.scrollTo({ top: Math.max(0, box.getBoundingClientRect().top + window.pageYOffset - 80), behavior: "instant" });
+      });
+    }, 80);
+  }
   function planClose() { MV.plan = null; renderPlan(); mkKeyPins(); mkTabsSync(); var b = $("#mview [data-mplan]"); if (b) b.setAttribute("aria-expanded", "false"); mkSoon(); }
   function planRefresh() { if (MV.plan && MV.plan.spawn) planCompute(); renderPlan(); mkSoon(); }
   function planPick(e, box) {
@@ -231,6 +263,8 @@
     if (!MV.plan) return false;
     if (e.target.closest("[data-pclose]")) { planClose(); return true; }
     var pm = e.target.closest("[data-pmap]"); if (pm) { var sc = planMapScores(), k = pm.dataset.pmap; if (k === "stella" && sc.stella) MV.layer = sc.stella.best.slice(7); selectMap(k); return true; }
+    if (e.target.closest("[data-pshare]")) { planShare(); return true; }
+    if (e.target.closest("[data-pown]")) { MV.plan.fixed = null; MV.plan.shareUrl = ""; planRefresh(); return true; }
     if (e.target.closest("[data-pmin]")) { MV.plan.min = !MV.plan.min; renderPlan(); return true; }
     var tb = e.target.closest("[data-ptab]"); if (tb) { MV.plan.tab = tb.dataset.ptab; renderPlan(); mkSoon(); return true; }
     if (e.target.closest("[data-ppick]")) { MV.plan.picking = !MV.plan.picking; renderPlan(); mkSoon(); return true; }
@@ -240,6 +274,7 @@
   }
   function planChange(e) {
     var c = e.target; if (!MV.plan) return false;
+    if (c.dataset && c.dataset.pit && MV.plan.fixed) { if (c.checked) delete MV.plan.fixOff[c.dataset.pit]; else MV.plan.fixOff[c.dataset.pit] = 1; planRefresh(); return true; }
     if (c.dataset && c.dataset.pit) { if (c.checked) delete planSt.off[c.dataset.pit]; else planSt.off[c.dataset.pit] = 1; planSave(); planRefresh(); return true; }
     if (c.id === "ppext") { MV.plan.ext = c.value; planRefresh(); return true; }
     if (c.id === "ppmax") { planSt.max = MV.plan.max = +c.value; planSave(); planRefresh(); return true; }

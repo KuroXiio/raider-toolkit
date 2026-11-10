@@ -16,7 +16,11 @@
     });
     Array.prototype.forEach.call(document.querySelectorAll("#nav .ndd"), function (d) { d.classList.toggle("cur", !!d.querySelector('a[aria-current="page"]')); });
     navClose();
-    if (h === "maps") { setSbw(); mvApply(); }
+    if (h === "maps") {
+      setSbw(); mvApply();
+      var rm = full.match(/[?&]route=([A-Za-z0-9_-]+)/);   // #maps?route=r… opens a shared route
+      if (rm) { try { history.replaceState(null, "", location.pathname + location.search + "#maps"); } catch (e) {} planLoadShared(rm[1]); }
+    }
     if (h === "weapons") {
       var cm = full.match(/[?&]code=([^&]+)/);   // #weapons?code=ARC-… opens that build (used by the Discord bot)
       if (cm) { try { history.replaceState(null, "", location.pathname + location.search + "#weapons"); } catch (e) {} var er = applyCode(decodeURIComponent(cm[1])); if (er) toast(er, true); }

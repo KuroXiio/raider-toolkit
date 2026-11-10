@@ -1615,3 +1615,7 @@ html.drwon .cartbtn { display: none; }
 .botchip:hover i { transform: translateX(3px); }
 .botchip .bs { display: none; }
 @media (max-width: 640px) { .botchip .bl { display: none; } .botchip .bs { display: inline; } }
+.ppshare { display: flex; flex-direction: column; gap: 8px; margin: 12px 0 4px; }
+.ppshare .btn { align-self: flex-start; }
+.ppshare input { width: 100%; box-sizing: border-box; font: inherit; font-size: .78rem; padding: 7px 9px; border-radius: 8px; border: 1px solid rgba(255,255,255,.14); background: rgba(0,0,0,.3); color: #d9d5ea; }
+.ppshared { color: var(--mint); }

@@ -96,9 +96,29 @@ for q in DB.get('quests', []):
     if q.get('r'): o['r'] = [[nm(k), n] for k, n in q['r']]
     quests.append(o)
 
+# the skill tree, so the bot can read shared builds (#skills?b=…): one character per point, in tree order
+sk_tree = {'ids': skids, 'n': {x: SK['s'][x]['n'] for x in skids if x in SK.get('s', {})},
+           'br': [{'n': b['n'], 'ids': [x for x in skids if branch_of[x] is b], 'pick': list(b['choice']) + list(b['end'])} for b in SK.get('br', [])],
+           'lv': (SK.get('pts') or {}).get('levels', 76)}
+
+# small map pictures for the bot's map condition cards
+maps_img = {}
+try:
+    from PIL import Image, ImageEnhance
+    os.makedirs(OUT + '/site/bot', exist_ok=True)
+    for k in MAPS:
+        src = OUT + '/site/m/' + k + '.webp'
+        if not os.path.exists(src): src = OUT + '/site/m/' + k + '_l.webp'
+        if not os.path.exists(src): continue
+        im = Image.open(src).convert('RGB'); im.thumbnail((640, 640))
+        im = ImageEnhance.Contrast(ImageEnhance.Brightness(im).enhance(1.7)).enhance(1.15)   # the renders are dark; brighter reads better at Discord's small size
+        im.save(OUT + '/site/bot/' + k + '.jpg', quality=82, optimize=True); maps_img[k] = 'bot/' + k + '.jpg'
+except ImportError:
+    pass
+
 ev = DB.get('ev') or {}
 bot = {'v': 1, 'built': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d'), 'patch': cfg.get('patch', ''), 'site': (cfg.get('siteUrl') or '').rstrip('/') + '/',
-       'maps': MAPS, 'items': out_items, 'keys': keys, 'builds': builds, 'weapons': weapons, 'mods': mods, 'quests': quests,
+       'maps': MAPS, 'items': out_items, 'keys': keys, 'builds': builds, 'weapons': weapons, 'mods': mods, 'quests': quests, 'skills': sk_tree, 'mapimg': maps_img,
        'ev': {'t0': ev.get('t0'), 'per': ev.get('per'), 'm': ev.get('m', {})} if ev else None}
 os.makedirs(OUT + '/site', exist_ok=True)
 raw = json.dumps(bot, separators=(',', ':'), ensure_ascii=False)

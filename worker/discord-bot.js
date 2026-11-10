@@ -4,6 +4,7 @@
 //   /item <name>          value, recycling, crafting, what it is needed for and where to find it
 //   /weapon <code|name>   a weapon build from the site's "Copy build code" (ARC-…): picture, tier, attachments, DPS
 //   /list <link|code>     a shared shopping list from the site, in short
+//   /share <link|code>    anything shared from the site: weapon codes, shopping lists, skill builds and routes
 //   /quest <name>         trader, maps, objectives, hand-ins and rewards
 //   /key <name>           which door a key opens, where, and how to get it
 //   /mapconditions [map]  map conditions now and the next one per map, with live countdowns
@@ -40,6 +41,8 @@ const COMMANDS = [
     options: [{ type: 3, name: "code", description: "Build code (ARC-…) or a weapon name", required: true, autocomplete: true, max_length: 400 }] },
   { name: "list", description: "Share a shopping list: paste its share link or code", ...WHERE,
     options: [{ type: 3, name: "link", description: "Share link or code from the shopping list", required: true, max_length: 6000 }] },
+  { name: "share", description: "Share something from Raider Toolkit: a weapon code, shopping list, skill build or route link", ...WHERE,
+    options: [{ type: 3, name: "link", description: "The link or code you copied on the site", required: true, max_length: 6000 }] },
   { name: "quest", description: "A quest: trader, maps, objectives and rewards", ...WHERE,
     options: [{ type: 3, name: "name", description: "Quest name", required: true, autocomplete: true }] },
   { name: "key", description: "Which door a key opens and how to get it", ...WHERE,
@@ -85,6 +88,7 @@ async function interactions(req, env) {
     if (name === "item") return msg(itemReply(d, opts.name));
     if (name === "weapon") return msg(weaponReply(d, opts.code));
     if (name === "list") return msg(await listReply(d, opts.link));
+    if (name === "share") return msg(await shareReply(d, opts.link));
     if (name === "quest") return msg(questReply(d, opts.name));
     if (name === "key") return msg(keyReply(d, opts.name));
     if (name === "mapconditions") return msg(condReply(d, opts.map, opts.region));
@@ -205,19 +209,6 @@ function itemReply(d, q) {
   return { embeds: [embed], components: [button("Open in Raider Toolkit", url)] };
 }
 
-function keyReply(d, q) {
-  const k = find(d.keys, q);
-  if (!k) return notFound("key", q);
-  const fields = [];
-  if (k.m) fields.push({ name: "Map", value: k.m, inline: true });
-  if (k.door) fields.push({ name: "Opens", value: cut(k.door, 1024) });
-  if (k.get) fields.push({ name: "How to get it", value: cut(k.get, 1024) });
-  if (k.loot) fields.push({ name: "Inside", value: cut(k.loot, 1024) });
-  const it = d.items.find((x) => x.id === k.id), embed = { title: k.n, url: d.site + "#keys", color: ACCENT, fields, footer: footer(d) };
-  if (it && it.ic) embed.thumbnail = { url: d.site + "i/" + it.id + ".webp" };
-  return { embeds: [embed], components: [button("All keys on Raider Toolkit", d.site + "#keys")] };
-}
-
 /* map conditions: same rotation and region shift as the site's map page */
 function evAt(ev, m, h, off) {
   const c = ev.m[m]; if (!c) return "";
@@ -238,58 +229,86 @@ function evState(ev, m, now, off) {
   return { cur, ends, next, at: t0 + (h + j) * H };
 }
 const ts = (ms, f) => "<t:" + Math.floor(ms / 1000) + ":" + (f || "R") + ">";
+
+/* ---------- the other cards: one clean style (the item card above stays as it is) ---------- */
+const MUTED = 0x34304a, SKILL = 0xb98cff;
+function card(d, o) { return Object.assign({ author: { name: "Raider Toolkit", url: d.site, icon_url: d.site + "icon-192.png" }, color: ACCENT }, o); }
+function links(...b) { return [{ type: 1, components: b.filter(Boolean).slice(0, 5).map((x) => ({ type: 2, style: 5, label: x[0], url: x[1] })) }]; }
+const mapPic = (d, k) => (d.mapimg && d.mapimg[k] ? d.site + d.mapimg[k] : null);
+const mapName = (d, k) => (d.maps && d.maps[k]) || MAP_NAMES[k] || k;
+
+function keyReply(d, q) {
+  const k = find(d.keys, q);
+  if (!k) return notFound("key", q);
+  const it = d.items.find((x) => x.id === k.id), fields = [];
+  if (k.get) fields.push({ name: "How to get it", value: cut(k.get, 1024) });
+  if (k.loot) fields.push({ name: "Inside", value: cut(k.loot, 1024) });
+  const e = card(d, { title: k.n, url: d.site + "#keys", description: (k.m ? "**" + k.m + "** · " : "") + cut(k.door || "", 1500), fields });
+  if (it && it.ic) e.thumbnail = { url: d.site + "i/" + it.id + ".webp" };
+  return { embeds: [e], components: links(["All keys", d.site + "#keys"]) };
+}
+
+function questReply(d, q) {
+  const x = find(d.quests || [], q);
+  if (!x) return notFound("quest", q);
+  const top = [x.tr, x.m && x.m.length ? x.m.join(", ") : ""].filter(Boolean).join(" · ");
+  const fields = [];
+  if (x.g && x.g.length) fields.push({ name: "Hand in", value: list(x.g.map((r) => r[1] + "× " + r[0]), 6, "\n"), inline: true });
+  if (x.r && x.r.length) fields.push({ name: "Rewards", value: list(x.r.map((r) => r[1] + "× " + r[0]), 6, "\n"), inline: true });
+  const obj = (x.o || []).slice(0, 6).map((o) => "› " + o).join("\n");
+  return { embeds: [card(d, { title: x.n, url: d.site + "#quests", description: cut((top ? "**" + top + "**\n" : "") + obj, 2000), fields })], components: links(["Quest tracker", d.site + "#quests"]) };
+}
+
 function condReply(d, map, region) {
   const ev = d.ev;
   if (!ev || !ev.m) return { content: "No map condition data right now.", flags: 64 };
   const reg = REGIONS.find((r) => r[0] === region) || REGIONS[0], now = Date.now();
   const keys = (map ? [map] : MAP_ORDER).filter((k) => ev.m[k]);
-  const fields = keys.map((k) => {
+  if (!keys.length) return { content: "No condition data for that map.", flags: 64 };
+  const embeds = keys.map((k, n) => {
     const s = evState(ev, k, now, reg[2]);
-    const lines = [s.cur ? "**Now:** " + s.cur + " · ends " + ts(s.ends) : "**Now:** no condition"];
-    lines.push(s.next ? "**Next:** " + s.next + " " + ts(s.at) + " (" + ts(s.at, "t") + ")" : "**Next:** nothing in the next day");
-    return { name: (d.maps && d.maps[k]) || MAP_NAMES[k] || k, value: lines.join("\n") };
+    const lines = [s.cur ? "🟢 **" + s.cur + "** · ends " + ts(s.ends) : "⚪ No condition right now"];
+    lines.push(s.next ? "Next: **" + s.next + "** " + ts(s.at) + " · " + ts(s.at, "t") : "Nothing else in the next day");
+    const e = { title: mapName(d, k), url: d.site + "#maps", description: lines.join("\n"), color: s.cur ? ACCENT : MUTED };
+    const pic = mapPic(d, k);
+    if (pic) { if (map) e.image = { url: pic }; else e.thumbnail = { url: pic }; }
+    if (n === 0) e.author = { name: "Map conditions · " + reg[1], url: d.site + "#maps", icon_url: d.site + "icon-192.png" };
+    if (n === keys.length - 1) e.footer = { text: "From the recorded rotation · check the in-game map before you count on it" };
+    return e;
   });
-  if (!fields.length) return { content: "No condition data for that map.", flags: 64 };
-  return {
-    embeds: [{ title: "Map conditions · " + reg[1], url: d.site + "#maps", color: ACCENT, fields,
-      description: "Worked out from the recorded rotation. Usually right, but check the in-game map screen before you count on it.",
-      footer: footer(d) }],
-    components: [button("Open the maps", d.site + "#maps")],
-  };
+  return { embeds, components: links(["Open the maps", d.site + "#maps"]) };
 }
 
+/* skill builds: the site's share code is one character per point, in tree order */
+const SKA = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+function skillSummary(d, code) {
+  const T = d.skills; if (!T) return null;
+  const c = {};
+  let pts = 0;
+  for (const ch of code) { const id = T.ids[SKA.indexOf(ch)]; if (id) { c[id] = (c[id] || 0) + 1; pts++; } }
+  if (!pts) return null;
+  const per = T.br.map((b) => [b.n, b.ids.reduce((n, id) => n + (c[id] || 0), 0)]);
+  const picks = [].concat(...T.br.map((b) => b.pick.filter((id) => c[id]).map((id) => T.n[id] || id)));
+  return { pts, per, picks };
+}
+function skillCard(d, title, sum, note, url) {
+  const fields = sum.per.map((x) => ({ name: x[0], value: "**" + x[1] + "**", inline: true }));
+  if (sum.picks.length) fields.push({ name: "Key picks", value: list(sum.picks, 10) });
+  return card(d, { title, url, color: SKILL, description: note || undefined, fields });
+}
 function buildReply(d, q) {
   const builds = d.builds || [];
   if (!q) {
-    const lines = builds.map((b) => "**[" + b.n + "](" + d.site + "#skills?b=" + b.code + ")** · " + b.by + (b.tags && b.tags.length ? " · " + b.tags.join(", ") : ""));
-    return { embeds: [{ title: "Recommended skill builds", url: d.site + "#skills", color: 0xb98cff, description: cut(lines.join("\n") + "\n\nUse `/build name:` for the details of one build.", 4096), footer: footer(d) }],
-      components: [button("Open the skill tree", d.site + "#skills")] };
+    const lines = builds.map((b) => "**[" + b.n + "](" + d.site + "#skills?b=" + b.code + ")** · " + b.by + (b.tags && b.tags.length ? " · *" + b.tags.join(", ") + "*" : ""));
+    return { embeds: [card(d, { title: "Recommended skill builds", url: d.site + "#skills", color: SKILL, description: cut(lines.join("\n") + "\n\nPick one with `/build name:`, or share your own with `/share`.", 4096) })],
+      components: links(["Open the skill tree", d.site + "#skills"]) };
   }
   const b = find(builds, q);
   if (!b) return notFound("build", q);
   const planner = d.site + "#skills?b=" + b.code;
-  const fields = [
-    { name: "Points", value: b.per.map((x) => x[0] + " " + x[1]).join(" · ") + " (" + b.pts + " total)" },
-  ];
-  if (b.picks && b.picks.length) fields.push({ name: "Key picks", value: list(b.picks, 10) });
-  if (b.tags && b.tags.length) fields.push({ name: "Good for", value: b.tags.join(", "), inline: true });
-  if (b.by) fields.push({ name: "From", value: b.url ? "[" + b.by + "](" + b.url + ")" : b.by, inline: true });
-  const row = { type: 1, components: [{ type: 2, style: 5, label: "Open in the planner", url: planner }] };
-  if (b.url) row.components.push({ type: 2, style: 5, label: "Read the guide", url: b.url });
-  return { embeds: [{ title: b.n, url: planner, color: 0xb98cff, description: b.note || undefined, fields, footer: footer(d) }], components: [row] };
-}
-
-function aboutReply(d) {
-  return {
-    embeds: [{ title: "Raider Toolkit", url: d.site, color: ACCENT, footer: footer(d),
-      description: "ARC Raiders fan tools: Workshop planner, weapon calculator, blueprint and quest tracker, item finder, maps, keys, skill tree and a shopping list.\n\n" +
-        "**Commands**\n`/item` value, recycling, crafting and where to find it\n`/weapon` share a weapon build code\n`/list` share a shopping list\n`/quest` objectives and rewards\n`/key` which door a key opens\n`/mapconditions` map conditions now and next\n`/build` recommended skill builds\n\n" +
-        "Unofficial fan project, not affiliated with Embark Studios." }],
-    components: [{ type: 1, components: [
-      { type: 2, style: 5, label: "Open Raider Toolkit", url: d.site },
-      { type: 2, style: 5, label: "Add the bot", url: "https://discord.com/oauth2/authorize?client_id=" + (BOT_ENV.app || "1569687605166080112") },
-    ] }],
-  };
+  const sum = { pts: b.pts, per: b.per, picks: b.picks || [] };
+  const e = skillCard(d, b.n, sum, (b.note ? b.note + "\n" : "") + "*" + [b.by, ...(b.tags || [])].filter(Boolean).join(" · ") + " · " + b.pts + " points*", planner);
+  return { embeds: [e], components: links(["Open in the planner", planner], b.url && ["Read the guide", b.url]) };
 }
 
 /* weapon build codes: ARC- + base64url("RT1|weapon|owned|from tier|to tier|amplified|slot=mod,slot=mod") */
@@ -313,22 +332,23 @@ function readWeaponCode(d, code) {
 }
 function weaponReply(d, q) {
   q = String(q || "").trim();
-  let b = /^arc-/i.test(q) ? readWeaponCode(d, q) : null, code = b ? q : "";
-  if (!b && /^arc-/i.test(q)) return { content: "That build code couldn't be read. Copy it again with **Copy build code** in the weapon calculator.", flags: 64 };
+  const m = q.match(/ARC-[A-Za-z0-9_-]+/i);
+  let b = m ? readWeaponCode(d, m[0]) : null;
+  const code = b ? m[0] : "";
+  if (!b && m) return { content: "That build code couldn't be read. Copy it again with **Copy build code** in the weapon calculator.", flags: 64 };
   if (!b) { const w = find(d.weapons, q); if (!w) return notFound("weapon", q); b = { w, to: w.nt, amp: false, mods: {} }; }
   const w = b.w, url = d.site + "#weapons" + (code ? "?code=" + encodeURIComponent(code) : "");
-  const att = SLOT_ORDER.filter((k) => w.slots[k]).map((k) => SLOT_NAME[k] + ": " + (b.mods[k] ? "**" + d.mods[b.mods[k]].n + "**" : "none"));
-  const fields = [];
-  if (code) fields.push({ name: "Attachments", value: att.join("\n") || "This weapon takes no attachments." });
-  else fields.push({ name: "Attachment slots", value: SLOT_ORDER.filter((k) => w.slots[k]).map((k) => SLOT_NAME[k]).join(", ") || "None" });
-  const dps = w.dps[b.to - 1], mag = w.mag[b.to - 1];
+  const slots = SLOT_ORDER.filter((k) => w.slots[k]);
+  const desc = code
+    ? (slots.map((k) => "`" + SLOT_NAME[k].padEnd(8) + "` " + (b.mods[k] ? "**" + d.mods[b.mods[k]].n + "**" : "–")).join("\n") || "No attachment slots")
+    : "Slots: " + (slots.map((k) => SLOT_NAME[k]).join(", ") || "none") + "\n*Paste a code from Copy build code to share a build with its attachments.*";
+  const dps = w.dps[b.to - 1], mag = w.mag[b.to - 1], fields = [];
   if (dps != null) fields.push({ name: "DPS", value: fmt(dps), inline: true });
   if (mag != null) fields.push({ name: "Magazine", value: String(mag), inline: true });
-  fields.push({ name: "Type", value: w.t + " · " + w.r, inline: true });
-  const embed = { title: w.n + (w.nt > 1 ? " · Tier " + ROMAN[b.to] : "") + (b.amp ? " · Amplified" : ""), url, color: RARITY[w.r] || ACCENT, fields, footer: footer(d) };
-  if (w.img) embed.image = { url: d.site + "w/" + w.id + ".webp" };
-  if (!code) embed.description = "Paste a build code from the weapon calculator (**Copy build code**) to share a build with its attachments.";
-  return { embeds: [embed], components: [button(code ? "Open this build" : "Open the weapon calculator", url)] };
+  fields.push({ name: w.t, value: w.r, inline: true });
+  const e = card(d, { title: w.n + (w.nt > 1 ? " · Tier " + ROMAN[b.to] : "") + (b.amp ? " · Amplified" : ""), url, color: RARITY[w.r] || ACCENT, description: desc, fields });
+  if (w.img) e.image = { url: d.site + "w/" + w.id + ".webp" };
+  return { embeds: [e], components: links([code ? "Open this build" : "Weapon calculator", url]) };
 }
 
 /* shared shopping lists: "#list?share=" + "z" (deflate-raw) or "j" (plain) + base64url JSON {v, g:[{k, l, i:{item: qty}, n}]} */
@@ -349,23 +369,59 @@ async function listReply(d, q) {
   g.forEach((x) => Object.entries(x.i || {}).forEach(([k, n]) => { if (names[k] && +n > 0) tot[k] = (tot[k] || 0) + Math.min(+n, 99999); }));
   const ids = Object.keys(tot).sort((a, b) => tot[b] - tot[a]);
   const url = d.site + "#list?share=" + code;
+  const half = Math.ceil(Math.min(ids.length, 10) / 2), col = (a) => a.map((k) => tot[k] + "× " + names[k]).join("\n");
   const fields = [];
-  if (g.length) fields.push({ name: "For", value: list(g.map((x) => cut(String(x.l || "Shared list"), 80)), 5, "\n") });
-  if (ids.length) fields.push({ name: "Biggest needs", value: list(ids.map((k) => tot[k] + "× " + names[k]), 8, "\n") });
+  if (ids.length) {
+    fields.push({ name: "Needs", value: col(ids.slice(0, half)), inline: true });
+    if (ids.length > 1) fields.push({ name: "​", value: col(ids.slice(half, 10)), inline: true });
+  }
+  const desc = "For " + list(g.map((x) => cut(String(x.l || "Shared list"), 60)), 4) + (ids.length > 10 ? "\n*and " + (ids.length - 10) + " more items*" : "");
   return {
-    embeds: [{ title: "Shopping list · " + ids.length + " item" + (ids.length === 1 ? "" : "s"), url: url.length <= 2000 ? url : d.site + "#list", color: 0x5ff2ea, fields, footer: footer(d) }],
-    components: [button("Open the full list", url.length <= 512 ? url : d.site + "#list")],
+    embeds: [card(d, { title: "Shopping list · " + ids.length + " item" + (ids.length === 1 ? "" : "s"), url: url.length <= 2000 ? url : d.site + "#list", color: 0x5ff2ea, description: desc, fields })],
+    components: links(["Open the full list", url.length <= 512 ? url : d.site + "#list"]),
   };
 }
 
-function questReply(d, q) {
-  const x = find(d.quests || [], q);
-  if (!x) return notFound("quest", q);
-  const fields = [];
-  if (x.tr) fields.push({ name: "Trader", value: x.tr, inline: true });
-  if (x.m && x.m.length) fields.push({ name: "Maps", value: x.m.join(", "), inline: true });
-  if (x.o && x.o.length) fields.push({ name: "Objectives", value: list(x.o.map((o) => "• " + o), 6, "\n") });
-  if (x.g && x.g.length) fields.push({ name: "Hand in", value: list(x.g.map((r) => r[1] + "× " + r[0]), 8) });
-  if (x.r && x.r.length) fields.push({ name: "Rewards", value: list(x.r.map((r) => r[1] + "× " + r[0]), 8) });
-  return { embeds: [{ title: x.n, url: d.site + "#quests", color: ACCENT, fields, footer: footer(d) }], components: [button("Quest tracker", d.site + "#quests")] };
+/* shared routes: "#maps?route=r" + base64url JSON {k: map, s: spawn, e: exit, n: max stops, i: items, x: exit name, c: stops} */
+function routeReply(d, code) {
+  let o;
+  try { o = JSON.parse(new TextDecoder().decode(b64uText(code.slice(1)))); } catch (e) { o = null; }
+  const k = o && String(o.k || ""), m = k.indexOf("stella_") === 0 ? "stella" : k;
+  if (!o || !MAP_NAMES[m] || !Array.isArray(o.i)) return { content: "That route link couldn't be read. Press **Share route** on the map page and paste the whole link.", flags: 64 };
+  const names = {}; d.items.forEach((x) => { names[x.id] = x.n; });
+  const its = o.i.filter((id) => names[id]).map((id) => names[id]);
+  const url = d.site + "#maps?route=" + code;
+  const where = mapName(d, m) + (m === "stella" ? (k.endsWith("_u") ? " (upper)" : " (lower)") : "");
+  const e = card(d, { title: "Route · " + where, url: url.length <= 2000 ? url : d.site + "#maps", color: 0xb98cff,
+    description: [(o.c ? "**" + o.c + " stops**" : ""), o.x ? "out at **" + o.x + "**" : ""].filter(Boolean).join(" · ") || "A planned route",
+    fields: its.length ? [{ name: "Looking for", value: list(its, 12) }] : [] });
+  const pic = mapPic(d, m); if (pic) e.thumbnail = { url: pic };
+  return { embeds: [e], components: links(["Open the route", url.length <= 512 ? url : d.site + "#maps"]) };
+}
+
+/* /share: works out what was pasted */
+async function shareReply(d, q) {
+  q = String(q || "").trim();
+  if (/ARC-[A-Za-z0-9_-]+/i.test(q)) return weaponReply(d, q);
+  const r = q.match(/route=(r[A-Za-z0-9_-]+)/) || q.match(/^(r[A-Za-z0-9_-]{20,})$/);
+  if (r) return routeReply(d, r[1]);
+  if (/share=/.test(q) || /^[zj][A-Za-z0-9_-]{10,}$/.test(q)) return listReply(d, q);
+  const s = q.match(/skills\?(?:[^#\s]*&)?b=([0-9A-Za-z]+)/);
+  if (s) {
+    const sum = skillSummary(d, s[1]);
+    if (!sum) return { content: "That skill build link couldn't be read. Press **Share build** on the skill tree page and paste the whole link.", flags: 64 };
+    const p = q.match(/[?&]p=(\d+)/), url = d.site + "#skills?b=" + s[1] + (p ? "&p=" + p[1] : "");
+    return { embeds: [skillCard(d, "Skill build · " + sum.pts + " points", sum, "", url)], components: links(["Open in the planner", url.length <= 512 ? url : d.site + "#skills"]) };
+  }
+  return { content: "That doesn't look like something from Raider Toolkit. Paste a weapon code (ARC-…), or a **Share list**, **Share build** or **Share route** link.", flags: 64 };
+}
+
+function aboutReply(d) {
+  return {
+    embeds: [card(d, { author: undefined, title: "Raider Toolkit", url: d.site,
+      description: "ARC Raiders fan tools: Workshop planner, weapon calculator, blueprint and quest tracker, item finder, maps with route planning, keys, skill tree and a shopping list.\n\n" +
+        "`/item` `/quest` `/key` look things up\n`/mapconditions` what is on each map now and next\n`/build` recommended skill builds\n`/share` post a weapon, list, skill build or route you made\n\n*Unofficial fan project, not affiliated with Embark Studios.*",
+      image: { url: d.site + "og.jpg" } })],
+    components: links(["Open Raider Toolkit", d.site], ["Add the bot", "https://discord.com/oauth2/authorize?client_id=" + (BOT_ENV.app || "1569687605166080112")]),
+  };
 }
