@@ -17,7 +17,11 @@
     Array.prototype.forEach.call(document.querySelectorAll("#nav .ndd"), function (d) { d.classList.toggle("cur", !!d.querySelector('a[aria-current="page"]')); });
     navClose();
     if (h === "maps") { setSbw(); mvApply(); }
-    if (h === "weapons") centerWSel();
+    if (h === "weapons") {
+      var cm = full.match(/[?&]code=([^&]+)/);   // #weapons?code=ARC-… opens that build (used by the Discord bot)
+      if (cm) { try { history.replaceState(null, "", location.pathname + location.search + "#weapons"); } catch (e) {} var er = applyCode(decodeURIComponent(cm[1])); if (er) toast(er, true); }
+      centerWSel();
+    }
     if (h === "items") {
       var qm = full.match(/[?&]q=([^&]*)/);   // #items?q=Toaster opens the finder with that search (used by the Discord bot)
       if (qm) {

@@ -1,11 +1,16 @@
 // Raider Toolkit – Discord bot (Cloudflare Worker)
 //
 // Slash commands answered straight from this worker, so no PC has to stay on:
-//   /item <name>        value, recycling, crafting, what it is needed for and where to find it
-//   /key <name>         which door a key opens, where, and how to get it
-//   /conditions [map]   map conditions now and next, with live countdowns
-//   /build [name]       recommended 2.x skill builds, with a link that opens them in the planner
-//   /raidkits           what the bot does and a link to the site
+//   /item <name>          value, recycling, crafting, what it is needed for and where to find it
+//   /weapon <code|name>   a weapon build from the site's "Copy build code" (ARC-…): picture, tier, attachments, DPS
+//   /list <link|code>     a shared shopping list from the site, in short
+//   /quest <name>         trader, maps, objectives, hand-ins and rewards
+//   /key <name>           which door a key opens, where, and how to get it
+//   /mapconditions [map]  map conditions now and the next one per map, with live countdowns
+//   /build [name]         recommended 2.x skill builds, with a link that opens them in the planner
+//   /raidkits             what the bot does and a link to the site
+//
+// Names autocomplete as you type, and the choice sends the item's ID, so the bot always gets the exact item.
 //
 // The data comes from <site>/bot.json, which the site's daily build writes, so the bot is always as up to date as the site.
 //
@@ -31,9 +36,15 @@ const WHERE = { integration_types: [0, 1], contexts: [0, 1, 2] };
 const COMMANDS = [
   { name: "item", description: "Look up an item: value, recycling, crafting and where to find it", ...WHERE,
     options: [{ type: 3, name: "name", description: "Item name", required: true, autocomplete: true }] },
+  { name: "weapon", description: "Share a weapon build: paste the code from the weapon calculator", ...WHERE,
+    options: [{ type: 3, name: "code", description: "Build code (ARC-…) or a weapon name", required: true, autocomplete: true, max_length: 400 }] },
+  { name: "list", description: "Share a shopping list: paste its share link or code", ...WHERE,
+    options: [{ type: 3, name: "link", description: "Share link or code from the shopping list", required: true, max_length: 6000 }] },
+  { name: "quest", description: "A quest: trader, maps, objectives and rewards", ...WHERE,
+    options: [{ type: 3, name: "name", description: "Quest name", required: true, autocomplete: true }] },
   { name: "key", description: "Which door a key opens and how to get it", ...WHERE,
     options: [{ type: 3, name: "name", description: "Key name", required: true, autocomplete: true }] },
-  { name: "conditions", description: "Map conditions now and next, with timers", ...WHERE,
+  { name: "mapconditions", description: "Map conditions now and next, with timers", ...WHERE,
     options: [
       { type: 3, name: "map", description: "Only this map", choices: MAP_ORDER.map((k) => ({ name: MAP_NAMES[k], value: k })) },
       { type: 3, name: "region", description: "Server region (default Europe)", choices: REGIONS.map((r) => ({ name: r[1], value: r[0] })) },
@@ -45,8 +56,10 @@ const COMMANDS = [
 
 let CACHE = { t: 0, d: null };
 
+let BOT_ENV = {};
 export default {
   async fetch(req, env, ctx) {
+    BOT_ENV = { app: env.DISCORD_APP_ID };
     const path = new URL(req.url).pathname.replace(/\/+$/, "");
     if (req.method === "POST" && (path === "/interactions" || path === "")) return interactions(req, env);
     if (req.method === "GET" && path === "/register") return register(env);
@@ -70,8 +83,11 @@ async function interactions(req, env) {
   if (i.type !== 2) return msg({ content: "Unknown request.", flags: 64 });
   try {
     if (name === "item") return msg(itemReply(d, opts.name));
+    if (name === "weapon") return msg(weaponReply(d, opts.code));
+    if (name === "list") return msg(await listReply(d, opts.link));
+    if (name === "quest") return msg(questReply(d, opts.name));
     if (name === "key") return msg(keyReply(d, opts.name));
-    if (name === "conditions") return msg(condReply(d, opts.map, opts.region));
+    if (name === "mapconditions") return msg(condReply(d, opts.map, opts.region));
     if (name === "build") return msg(buildReply(d, opts.name));
     if (name === "raidkits") return msg(aboutReply(d));
   } catch (e) {
@@ -146,9 +162,10 @@ function find(list, q) {
 }
 function autocomplete(d, cmd, options) {
   const f = (options || []).find((o) => o.focused) || {};
-  const list = cmd === "item" ? d.items : cmd === "key" ? d.keys : cmd === "build" ? d.builds : [];
+  const list = { item: d.items, key: d.keys, build: d.builds, quest: d.quests, weapon: d.weapons }[cmd] || [];
+  if (cmd === "weapon" && /^arc-/i.test(String(f.value || "").trim())) return [];   // a pasted code is sent as typed (choices are capped at 100 characters)
   return rank(list, f.value, (x) => x.n).slice(0, 25).map((x) => ({
-    name: (cmd === "build" ? x.n + " · " + x.by : cmd === "key" && x.m ? x.n + " · " + x.m : x.n).slice(0, 100), value: x.id,
+    name: (cmd === "build" ? x.n + " · " + x.by : cmd === "key" && x.m ? x.n + " · " + x.m : cmd === "quest" && x.tr ? x.n + " · " + x.tr : cmd === "weapon" ? x.n + " · " + x.t : x.n).slice(0, 100), value: x.id,
   }));
 }
 
@@ -266,8 +283,89 @@ function aboutReply(d) {
   return {
     embeds: [{ title: "Raider Toolkit", url: d.site, color: ACCENT, footer: footer(d),
       description: "ARC Raiders fan tools: Workshop planner, weapon calculator, blueprint and quest tracker, item finder, maps, keys, skill tree and a shopping list.\n\n" +
-        "**Commands**\n`/item` value, recycling, crafting and where to find it\n`/key` which door a key opens\n`/conditions` map conditions now and next\n`/build` recommended skill builds\n\n" +
+        "**Commands**\n`/item` value, recycling, crafting and where to find it\n`/weapon` share a weapon build code\n`/list` share a shopping list\n`/quest` objectives and rewards\n`/key` which door a key opens\n`/mapconditions` map conditions now and next\n`/build` recommended skill builds\n\n" +
         "Unofficial fan project, not affiliated with Embark Studios." }],
-    components: [button("Open Raider Toolkit", d.site)],
+    components: [{ type: 1, components: [
+      { type: 2, style: 5, label: "Open Raider Toolkit", url: d.site },
+      { type: 2, style: 5, label: "Add the bot", url: "https://discord.com/oauth2/authorize?client_id=" + (BOT_ENV.app || "1569687605166080112") },
+    ] }],
   };
+}
+
+/* weapon build codes: ARC- + base64url("RT1|weapon|owned|from tier|to tier|amplified|slot=mod,slot=mod") */
+const ROMAN = ["", "I", "II", "III", "IV", "V"];
+const SLOT_NAME = { muzzle: "Muzzle", special: "Special", grip: "Grip", magazine: "Magazine", stock: "Stock" };
+const SLOT_ORDER = ["muzzle", "special", "grip", "magazine", "stock"];
+function b64uText(s) {
+  s = s.replace(/-/g, "+").replace(/_/g, "/"); while (s.length % 4) s += "=";
+  const b = atob(s), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i);
+  return u;
+}
+function readWeaponCode(d, code) {
+  try {
+    const p = new TextDecoder().decode(b64uText(String(code).trim().replace(/^ARC-/i, ""))).split("|");
+    const w = d.weapons.find((x) => x.id === p[1]);
+    if (p[0] !== "RT1" || !w) return null;
+    const to = Math.min(w.nt, Math.max(1, +p[4] || w.nt)), mods = {};
+    (p[6] || "").split(",").filter(Boolean).forEach((kv) => { const a = kv.split("="); if (w.slots[a[0]] && w.slots[a[0]].includes(a[1]) && d.mods[a[1]]) mods[a[0]] = a[1]; });
+    return { w, to, amp: p[5] === "1", mods };
+  } catch (e) { return null; }
+}
+function weaponReply(d, q) {
+  q = String(q || "").trim();
+  let b = /^arc-/i.test(q) ? readWeaponCode(d, q) : null, code = b ? q : "";
+  if (!b && /^arc-/i.test(q)) return { content: "That build code couldn't be read. Copy it again with **Copy build code** in the weapon calculator.", flags: 64 };
+  if (!b) { const w = find(d.weapons, q); if (!w) return notFound("weapon", q); b = { w, to: w.nt, amp: false, mods: {} }; }
+  const w = b.w, url = d.site + "#weapons" + (code ? "?code=" + encodeURIComponent(code) : "");
+  const att = SLOT_ORDER.filter((k) => w.slots[k]).map((k) => SLOT_NAME[k] + ": " + (b.mods[k] ? "**" + d.mods[b.mods[k]].n + "**" : "none"));
+  const fields = [];
+  if (code) fields.push({ name: "Attachments", value: att.join("\n") || "This weapon takes no attachments." });
+  else fields.push({ name: "Attachment slots", value: SLOT_ORDER.filter((k) => w.slots[k]).map((k) => SLOT_NAME[k]).join(", ") || "None" });
+  const dps = w.dps[b.to - 1], mag = w.mag[b.to - 1];
+  if (dps != null) fields.push({ name: "DPS", value: fmt(dps), inline: true });
+  if (mag != null) fields.push({ name: "Magazine", value: String(mag), inline: true });
+  fields.push({ name: "Type", value: w.t + " · " + w.r, inline: true });
+  const embed = { title: w.n + (w.nt > 1 ? " · Tier " + ROMAN[b.to] : "") + (b.amp ? " · Amplified" : ""), url, color: RARITY[w.r] || ACCENT, fields, footer: footer(d) };
+  if (w.img) embed.image = { url: d.site + "w/" + w.id + ".webp" };
+  if (!code) embed.description = "Paste a build code from the weapon calculator (**Copy build code**) to share a build with its attachments.";
+  return { embeds: [embed], components: [button(code ? "Open this build" : "Open the weapon calculator", url)] };
+}
+
+/* shared shopping lists: "#list?share=" + "z" (deflate-raw) or "j" (plain) + base64url JSON {v, g:[{k, l, i:{item: qty}, n}]} */
+async function listReply(d, q) {
+  const m = String(q || "").match(/share=([A-Za-z0-9_-]+)/), code = m ? m[1] : String(q || "").trim();
+  let g;
+  try {
+    if (!/^[zj][A-Za-z0-9_-]+$/.test(code)) throw 0;
+    let bytes = b64uText(code.slice(1));
+    if (code[0] === "z") bytes = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).arrayBuffer());
+    g = JSON.parse(new TextDecoder().decode(bytes)).g;
+    if (!Array.isArray(g)) throw 0;
+  } catch (e) {
+    return { content: "That shopping list link couldn't be read. Use **Share list** on the site and paste the whole link.", flags: 64 };
+  }
+  const names = {}; d.items.forEach((x) => { names[x.id] = x.n; });
+  const tot = {};
+  g.forEach((x) => Object.entries(x.i || {}).forEach(([k, n]) => { if (names[k] && +n > 0) tot[k] = (tot[k] || 0) + Math.min(+n, 99999); }));
+  const ids = Object.keys(tot).sort((a, b) => tot[b] - tot[a]);
+  const url = d.site + "#list?share=" + code;
+  const fields = [];
+  if (g.length) fields.push({ name: "For", value: list(g.map((x) => cut(String(x.l || "Shared list"), 80)), 5, "\n") });
+  if (ids.length) fields.push({ name: "Biggest needs", value: list(ids.map((k) => tot[k] + "× " + names[k]), 8, "\n") });
+  return {
+    embeds: [{ title: "Shopping list · " + ids.length + " item" + (ids.length === 1 ? "" : "s"), url: url.length <= 2000 ? url : d.site + "#list", color: 0x5ff2ea, fields, footer: footer(d) }],
+    components: [button("Open the full list", url.length <= 512 ? url : d.site + "#list")],
+  };
+}
+
+function questReply(d, q) {
+  const x = find(d.quests || [], q);
+  if (!x) return notFound("quest", q);
+  const fields = [];
+  if (x.tr) fields.push({ name: "Trader", value: x.tr, inline: true });
+  if (x.m && x.m.length) fields.push({ name: "Maps", value: x.m.join(", "), inline: true });
+  if (x.o && x.o.length) fields.push({ name: "Objectives", value: list(x.o.map((o) => "• " + o), 6, "\n") });
+  if (x.g && x.g.length) fields.push({ name: "Hand in", value: list(x.g.map((r) => r[1] + "× " + r[0]), 8) });
+  if (x.r && x.r.length) fields.push({ name: "Rewards", value: list(x.r.map((r) => r[1] + "× " + r[0]), 8) });
+  return { embeds: [{ title: x.n, url: d.site + "#quests", color: ACCENT, fields, footer: footer(d) }], components: [button("Quest tracker", d.site + "#quests")] };
 }

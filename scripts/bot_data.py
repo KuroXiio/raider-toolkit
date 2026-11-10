@@ -28,7 +28,7 @@ def add_craft(out, rec):
 for i in items: add_craft(i['n'], i.get('rp'))
 for w in DB.get('weapons', []): add_craft(w['n'], w.get('rec'))
 for k, m in (DB.get('mods') or {}).items(): add_craft(m.get('n', k), m.get('rec'))
-quests = {k: [q['n'] for q in v] for k, v in (DB.get('qr') or {}).items()}
+qneed = {k: [q['n'] for q in v] for k, v in (DB.get('qr') or {}).items()}
 guide = DB.get('guide') or {}
 bpfind = {b['b']: b.get('f') for b in (DB.get('bp') or {}).get('list', []) if b.get('b') and b.get('f')}
 
@@ -46,7 +46,7 @@ for i in items:
     if need.get(i['id']): o['ws'] = need[i['id']]
     if craft.get(i['id']):
         c = set(craft[i['id']]); o['cr'] = sorted(x for x in c if x + ' I' not in c)   # "Ferro" and "Ferro I" are the same craft
-    if quests.get(i['id']): o['qs'] = quests[i['id']]
+    if qneed.get(i['id']): o['qs'] = qneed[i['id']]
     g = guide.get(i['id'])
     if g and g.get('w'): o['g'] = g['w']; o['gm'] = [MAPS.get(m, m) for m in g.get('m', [])]
     elif bpfind.get(i['id']): o['g'] = bpfind[i['id']]
@@ -76,11 +76,31 @@ for bd in SK.get('builds', []):
     builds.append({'id': bd['id'], 'n': bd['n'], 'by': bd.get('by', ''), 'url': bd.get('url', ''), 'tags': bd.get('tags', []), 'note': bd.get('note', ''),
                    'pts': pts, 'per': per, 'picks': picks, 'code': code + ('&p=' + str(pts) if pts > lv else '')})
 
+# weapons (for /weapon build codes) and the attachments they can take
+weapons, mods_used = [], set()
+for w in DB.get('weapons', []):
+    if w.get('wip'): continue
+    ste = w.get('ste') or []
+    o = {'id': w['id'], 'n': w['n'], 't': w.get('t'), 'r': w.get('r'), 'nt': len(w.get('tiers') or []) or 1,
+         'dps': [round(x['damage'] * x['fireRate']) if x and x.get('damage') is not None and x.get('fireRate') is not None else None for x in ste],
+         'mag': w.get('mag') or [], 'slots': {k: v for k, v in (w.get('slots') or {}).items()}}
+    if os.path.exists(OUT + '/site/w/' + w['id'] + '.webp'): o['img'] = 1   # big picture at <site>/w/<id>.webp
+    for v in o['slots'].values(): mods_used.update(v)
+    weapons.append(o)
+mods = {k: {'n': m.get('n', k), 'r': m.get('r')} for k, m in (DB.get('mods') or {}).items() if k in mods_used}
+
+quests = []
+for q in DB.get('quests', []):
+    o = {'id': q['id'], 'n': q['n'], 'tr': q.get('tr', ''), 'm': [MAPS.get(m, m) for m in q.get('m', [])], 'o': q.get('o', [])[:8]}
+    if q.get('g'): o['g'] = [[nm(k), n] for k, n in q['g']]
+    if q.get('r'): o['r'] = [[nm(k), n] for k, n in q['r']]
+    quests.append(o)
+
 ev = DB.get('ev') or {}
 bot = {'v': 1, 'built': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d'), 'patch': cfg.get('patch', ''), 'site': (cfg.get('siteUrl') or '').rstrip('/') + '/',
-       'maps': MAPS, 'items': out_items, 'keys': keys, 'builds': builds,
+       'maps': MAPS, 'items': out_items, 'keys': keys, 'builds': builds, 'weapons': weapons, 'mods': mods, 'quests': quests,
        'ev': {'t0': ev.get('t0'), 'per': ev.get('per'), 'm': ev.get('m', {})} if ev else None}
 os.makedirs(OUT + '/site', exist_ok=True)
 raw = json.dumps(bot, separators=(',', ':'), ensure_ascii=False)
 open(OUT + '/site/bot.json', 'w', encoding='utf-8').write(raw)
-print('bot.json', len(raw) // 1024, 'KB ·', len(out_items), 'items ·', len(keys), 'keys ·', len(builds), 'builds')
+print('bot.json', len(raw) // 1024, 'KB ·', len(out_items), 'items ·', len(keys), 'keys ·', len(builds), 'builds ·', len(weapons), 'weapons ·', len(quests), 'quests')
