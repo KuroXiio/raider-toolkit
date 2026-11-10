@@ -10,5 +10,6 @@ python3 scripts/metaforge.py
 python3 scripts/build_data.py data-src
 python3 scripts/images.py data-src
 python3 scripts/assemble.py data-src
+python3 scripts/bot_data.py
 node --check build/check.js
 echo "Done: open build/site/index.html"

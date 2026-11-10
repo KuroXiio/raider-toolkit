@@ -18,7 +18,14 @@
     navClose();
     if (h === "maps") { setSbw(); mvApply(); }
     if (h === "weapons") centerWSel();
-    if (h === "items") { renderUseChips(); renderItems(false); }
+    if (h === "items") {
+      var qm = full.match(/[?&]q=([^&]*)/);   // #items?q=Toaster opens the finder with that search (used by the Discord bot)
+      if (qm) {
+        $("#q").value = decodeURIComponent(qm[1].replace(/\+/g, " ")); $("#fType").value = "All types"; fRar = "All"; renderRarChips();
+        try { history.replaceState(null, "", location.pathname + location.search + "#items"); } catch (e) {}
+      }
+      renderUseChips(); renderItems(!!qm);
+    }
     if (h === "blueprints") renderBp();
     if (h === "quests") renderQuests();
     if (h === "skills") { skRead(full); renderSkills(); }
