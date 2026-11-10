@@ -1,0 +1,34 @@
+name: Deploy Discord bot
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "worker/discord-bot.js"
+      - "worker/bot.wrangler.toml"
+      - ".github/workflows/bot.yml"
+  workflow_dispatch:        # "Run workflow" button in the Actions tab
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bot
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy the bot to Cloudflare
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: worker
+          command: deploy --config bot.wrangler.toml
+      - name: Register the slash commands
+        run: |
+          sleep 15
+          curl -fsS https://raidkits-bot.hnhdyfy7tb.workers.dev/register

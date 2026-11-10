@@ -1,0 +1,8 @@
+# Deploy settings for the Discord bot Worker (used by .github/workflows/bot.yml).
+# keep_vars keeps DISCORD_PUBLIC_KEY, DISCORD_APP_ID and other variables set in the Cloudflare dashboard;
+# secrets such as DISCORD_BOT_TOKEN are never touched by a deploy.
+name = "raidkits-bot"
+main = "discord-bot.js"
+compatibility_date = "2026-11-01"
+workers_dev = true
+keep_vars = true
