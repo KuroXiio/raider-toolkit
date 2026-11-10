@@ -1605,11 +1605,13 @@ html.drwon .cartbtn { display: none; }
 .skbbtn .btn { width: 100%; justify-content: center; }
 .dcbtns { display: flex; flex-wrap: wrap; gap: 10px; }
 /* Discord bot announcement at the top of the home page */
-.botchip { display: inline-flex; align-items: center; gap: 10px; max-width: 100%; margin-bottom: 22px; padding: 5px 15px 5px 5px; border-radius: 99px; background: rgba(13,11,28,.62); border: 1px solid rgba(255,255,255,.12); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); color: #d9d5ea; text-decoration: none; font-size: .86rem; line-height: 1.25; transition: border-color .15s, transform .15s; }
+.ctawrap { display: flex; flex-direction: column; gap: 14px; width: fit-content; max-width: 100%; }
+.botchip { display: flex; align-items: center; gap: 10px; width: 100%; contain: inline-size; box-sizing: border-box; padding: 5px 15px 5px 5px; border-radius: 99px; background: rgba(13,11,28,.62); border: 1px solid rgba(255,255,255,.12); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); color: #d9d5ea; text-decoration: none; font-size: .86rem; line-height: 1.25; transition: border-color .15s, transform .15s; }
 .botchip:hover, .botchip:focus-visible { border-color: rgba(98,243,234,.55); transform: translateY(-1px); }
 .botmark svg { width: 30px; height: 30px; display: block; filter: drop-shadow(0 3px 8px rgba(0,0,0,.45)); }
 .botchip b { font-family: var(--f-mono); font-size: .66rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #0c0916; background: var(--mint); padding: 3px 8px; border-radius: 99px; flex-shrink: 0; }
-.botchip i { font-style: normal; color: var(--mint); transition: transform .15s; }
+.botchip i { font-style: normal; color: var(--mint); transition: transform .15s; margin-left: auto; }
+.botchip .bl, .botchip .bs { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .botchip:hover i { transform: translateX(3px); }
 .botchip .bs { display: none; }
 @media (max-width: 640px) { .botchip .bl { display: none; } .botchip .bs { display: inline; } }
