@@ -79,7 +79,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEIxNTU1NjFGM0U0NTQ0RDkKUldUWlJFVStIMVpWc2NGUVJnKzJmQXU2QmpFWGR6bnkzTXM4emUzQUNzcjhCMXJndzJobTVpb1EK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDdCQjA5QUU5MTkzQjc5MjgKUldRb2VUc1o2WnF3ZXc1NDlMM1FKTzZVK3hFUk1aQjlJVVJFWEZzWUtoN09ublFaUkNaTHpkc3UK",
       "endpoints": [
         "https://github.com/KuroXiio/raider-toolkit/releases/latest/download/latest.json"
       ],
