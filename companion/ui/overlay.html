@@ -5,44 +5,82 @@
 <title>Raider Toolkit overlay</title>
 <link rel="stylesheet" href="style.css">
 <style>
-  /* everything is sized in em, so one font-size scales the whole overlay to the screen */
+  /* everything is sized in em, so one font-size scales the whole overlay to the screen.
+     Each part is its own card, in the same style as the map widget. */
   html, body { background: transparent; height: auto; width: max-content; }
-  body { font-size: calc(15px * var(--scale, 1)); padding: 0.5em; display: inline-block; }
-  #hud { display: inline-flex; flex-direction: column; gap: 0.4em; padding: 0.6em 0.85em; border-radius: 0.9em; background: rgba(var(--bg), var(--bga, .8)); border: 1px solid rgba(255,255,255,.12); white-space: nowrap; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
-  #hud.line { flex-direction: row; align-items: flex-start; gap: 1.2em; }
+  body { font-size: calc(15px * var(--scale, 1)); padding: 0.9em; display: inline-block; }
+  #hud { display: inline-flex; flex-direction: column; align-items: stretch; gap: 0.55em; color: var(--fg); }
+  #hud.line { flex-direction: row; align-items: flex-start; }
   #hud:empty { display: none; }
-  .part { position: relative; display: flex; flex-direction: column; gap: 0.15em; }
-  .ln { display: flex; align-items: center; gap: 0.5em; }
-  .cond b { font-weight: 700; font-size: 1.12em; }
-  .t { font-family: var(--mono); font-weight: 700; font-size: 1.05em; color: var(--cyan); }
-  .m { color: #9ca3c4; font-size: 0.86em; font-weight: 600; }
-  .mono { font-family: var(--mono); }
-  .bar { width: 6em; height: 0.36em; border-radius: 0.2em; background: rgba(255,255,255,.12); overflow: hidden; }
-  .bar i { display: block; height: 100%; background: linear-gradient(90deg, #22d65f, #5ff2ea); }
-  .ttl { color: #9ca3c4; font-size: 0.78em; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
-  .rows { display: flex; flex-direction: column; gap: 0.12em; font-size: 0.93em; }
-  .r { display: flex; align-items: center; gap: 0.45em; min-width: 0; }
-  .r .nm { overflow: hidden; text-overflow: ellipsis; }
-  .r .q { color: var(--mint); font-family: var(--mono); margin-left: auto; padding-left: 0.6em; }
+  .part { position: relative; display: flex; flex-direction: column; min-width: 15em; max-width: 22em; border-radius: 1em; overflow: hidden;
+          background: rgba(var(--bg), var(--bga, .86)); border: 1px solid rgba(255,255,255,.12); box-shadow: 0 0.25em 0.8em rgba(0,0,0,.35); }
+  .part.map { width: 22.5em; max-width: none; }
+  .bd { padding: 0.65em 0.95em 0.75em; display: flex; flex-direction: column; gap: 0.3em; }
+  /* the header: dot, map name, condition chip, timer or buttons */
+  .mh { display: flex; align-items: center; gap: 0.55em; padding: 0.6em 0.55em 0.6em 0.95em; white-space: nowrap; }
+  .mh .nm { font-weight: 700; font-size: 0.95em; overflow: hidden; text-overflow: ellipsis; }
+  .chip { flex-shrink: 0; font-size: 0.78em; font-weight: 600; color: #0c0916; background: var(--mint); padding: 0.12em 0.5em; border-radius: 0.4em; white-space: nowrap; }
+  .chip.off { background: rgba(255,255,255,.1); color: var(--dim); }
+  .sp { flex: 1; }
+  .t { font-family: var(--mono); font-weight: 700; color: var(--cyan); }
+  .nx { display: flex; justify-content: space-between; gap: 1em; font-size: 0.86em; color: var(--dim); white-space: nowrap; }
+  .nx .mono { color: var(--fg); }
+  .ttl { font-family: var(--mono); color: var(--faint); font-size: 0.72em; letter-spacing: .12em; text-transform: uppercase; display: flex; justify-content: space-between; gap: 1em; }
+  .ttl.hi { color: var(--cyan); }
+  .head { font-family: var(--display); font-weight: 800; font-size: 1.2em; line-height: 1.15; white-space: normal; }
+  .sub { font-size: 0.86em; color: var(--mint); white-space: normal; }
+  .rows { display: flex; flex-direction: column; font-size: 0.92em; }
+  .r { display: grid; grid-template-columns: auto 1fr auto; align-items: center; column-gap: 0.55em; min-height: 1.75em; }
+  .r + .r { border-top: 1px solid rgba(255,255,255,.06); }
+  .r.solo { grid-template-columns: 1fr auto; }
+  .r .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .r .q { font-family: var(--mono); font-weight: 700; text-align: right; white-space: nowrap; }
+  .r .q i { font-style: normal; color: var(--faint); font-weight: 400; }
   .r img, .r .ph { width: 1.4em; height: 1.4em; object-fit: contain; flex-shrink: 0; }
-  .r.sub { color: #d6d3e6; font-size: 0.9em; padding-left: 1.1em; }
-  .r.door { white-space: normal; color: #d6d3e6; font-size: 0.88em; padding-left: 1.1em; max-width: 22em; }
-  .more { color: #9ca3c4; font-size: 0.85em; }
+  .r .n { font-family: var(--mono); color: var(--dim); width: 1.2em; }
+  .r.dn { color: #7c7894; } .r.dn .nm { text-decoration: line-through; }
+  .r.e .n { color: var(--key, #ffc400); }
+  .r.qo { grid-template-columns: 1fr; color: #d6d3e6; font-size: 0.92em; padding-left: 0.9em; min-height: 1.5em; border-top: 0; }
+  .r.door { grid-template-columns: 1fr; color: #d6d3e6; font-size: 0.88em; white-space: normal; border-top: 0; min-height: 0; padding-bottom: 0.2em; }
+  .r .m { color: var(--dim); font-size: 0.86em; font-weight: 600; }
+  .more { color: var(--dim); font-size: 0.82em; white-space: normal; }
+  .bar { height: 0.36em; border-radius: 0.2em; background: rgba(255,255,255,.12); overflow: hidden; }
+  .bar i { display: block; height: 100%; background: linear-gradient(90deg, #22d65f, #5ff2ea); }
   .dot { width: 0.55em; height: 0.55em; }
-  /* while the panel is open, the overlay can be moved, and parts unpinned or pinned back */
-  body.edit #hud { border: 1px dashed rgba(95,242,234,.9); cursor: move; }
+  /* the map */
+  .mapbox { position: relative; height: 14em; background: #151224; }
+  .part.route .mapbox { height: 11.5em; }
+  .mapbox canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .mapbox .wait { position: absolute; inset: 0; display: grid; place-items: center; color: var(--dim); font-size: 0.85em; }
+  .lg { display: flex; flex-wrap: wrap; gap: 0.3em 0.9em; font-size: 0.8em; color: #b9b4cc; }
+  .lg span { display: inline-flex; align-items: center; gap: 0.35em; }
+  .lg .l { width: 0.62em; height: 0.62em; border-radius: 50%; background: var(--cyan); }
+  .lg .k { width: 0.62em; height: 0.62em; border-radius: 0.15em; background: #ffc400; }
+  .lg .qq { width: 0; height: 0; border-left: 0.33em solid transparent; border-right: 0.33em solid transparent; border-bottom: 0.62em solid #ff7ab6; }
+  .lg .e { width: 0.62em; height: 0.62em; border-radius: 50%; background: #ffc400; }
+  .btns { display: flex; gap: 0.5em; margin-top: 0.35em; }
+  .b { flex: none; min-height: 2.6em; padding: 0 0.85em; border-radius: 0.65em; border: 1px solid rgba(255,255,255,.16); background: transparent; color: var(--fg); font-weight: 600; font-size: 0.9em; display: inline-flex; align-items: center; justify-content: center; gap: 0.5em; }
+  .b.go { flex: 1; border: 0; background: var(--cyan); color: #0c0916; font-weight: 700; }
+  .ib { width: 2em; height: 2em; border-radius: 0.5em; border: 0; background: transparent; color: var(--dim); display: grid; place-items: center; padding: 0; flex-shrink: 0; }
+  .ib svg { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .kbh { font-size: 0.72em; color: var(--faint); white-space: normal; margin-top: 0.15em; }
+  /* while the panel is open, the overlay can be moved, its buttons clicked, and parts unpinned or pinned back */
+  body.edit #hud { outline: 1px dashed rgba(95,242,234,.9); outline-offset: 0.25em; border-radius: 1em; cursor: move; }
   body.edit #hud * { pointer-events: none; }
-  .pin { display: none; position: absolute; top: -0.2em; right: -0.4em; width: 1.6em; height: 1.6em; border-radius: 0.4em; border: 1px solid rgba(95,242,234,.7); background: rgba(12,9,22,.9); color: var(--cyan); padding: 0; font-size: 0.85em; cursor: pointer; }
+  body.edit #hud .act { pointer-events: auto; cursor: pointer; }
+  .pin { display: none; position: absolute; top: 0.35em; right: 0.35em; width: 1.6em; height: 1.6em; border-radius: 0.4em; border: 1px solid rgba(95,242,234,.7); background: rgba(12,9,22,.9); color: var(--cyan); padding: 0; font-size: 0.85em; cursor: pointer; z-index: 2; }
   body.edit .pin { display: grid; place-items: center; pointer-events: auto !important; }
-  .hint { display: none; font-size: 0.75em; color: var(--cyan); white-space: normal; max-width: 18em; }
+  .part.map .pin { top: auto; bottom: 0.35em; }
+  .hint { display: none; font-size: 0.75em; color: var(--cyan); white-space: normal; max-width: 18em; text-shadow: 0 1px 2px #000; }
   body.edit .hint { display: block; }
   /* an unpinned part in its own window: fills the window, the content shows as much as fits */
   html.w, html.w body { width: 100%; height: 100%; overflow: hidden; }
   html.w body { display: block; padding: 0.3em; }
   html.w #hud { display: flex; width: 100%; height: 100%; overflow: hidden; }
-  html.w .part { flex: 1; min-height: 0; overflow: hidden; }
+  html.w .part { flex: 1; min-height: 0; max-width: none; width: auto; }
+  html.w .part.map .mapbox { flex: 1; height: auto; min-height: 6em; }
   html.w .rows { overflow: hidden; }
-  .grip { display: none; position: absolute; right: 0.25em; bottom: 0.25em; width: 1.3em; height: 1.3em; cursor: nwse-resize; pointer-events: auto !important;
+  .grip { display: none; position: absolute; right: 0.25em; bottom: 0.25em; width: 1.3em; height: 1.3em; cursor: nwse-resize; pointer-events: auto !important; z-index: 3;
           background: linear-gradient(135deg, transparent 50%, var(--cyan) 50% 58%, transparent 58% 70%, var(--cyan) 70% 78%, transparent 78%); border: 0; padding: 0; }
   html.w body.edit .grip { display: block; }
 </style>
@@ -51,6 +89,8 @@
 <div id="hud" data-tauri-drag-region></div>
 <button type="button" class="grip" id="grip" aria-label="Drag to resize"></button>
 <script src="data.js"></script>
+<script src="sync.js"></script>
+<script src="mapview.js"></script>
 <script src="overlay.js"></script>
 </body>
 </html>

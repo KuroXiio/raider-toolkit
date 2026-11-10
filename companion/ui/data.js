@@ -13,8 +13,13 @@
     hotkeyOverlay: "Ctrl+Shift+H",         // shows and hides the overlay
     overlay: true,                         // false: hidden completely
     style: "stack",                        // "stack" (lines under each other) or "line" (one row)
-    parts: { cond: true, prog: true, items: true, quests: true, keys: true, maps: false },
-    order: ["cond", "prog", "items", "quests", "keys", "maps"],   // the overlay's parts, top to bottom (or left to right)
+    parts: { map: true, cond: false, prog: true, items: true, quests: true, keys: true, maps: false },
+    order: ["map", "cond", "prog", "items", "quests", "keys", "maps"],   // the overlay's parts, top to bottom (or left to right)
+    mapView: "map",                        // the map widget: "map", "route" (the route you sent from the site) or "min" (just the header)
+    floor: "u",                            // Stella Montis: "u" upper or "l" lower floor
+    layers: { list: true, keys: true, quests: true, ext: true },   // what the maps show
+    keys: { route: "Ctrl+Shift+R", next: "Ctrl+Shift+N", prev: "Ctrl+Shift+P", mapsize: "Ctrl+Shift+J", bigmap: "Ctrl+Shift+M" },   // only active while the game or this app is in front
+    gameOnly: true,                        // show the overlay only while ARC Raiders (or this app) is the window in front
     widgets: {},                           // parts unpinned into their own window: { items: { pinned: false, pos: {...}, size: { w, h } } } (size in em)
     listMax: 8,                            // items shown by the list part while it is pinned in the overlay
     onlyMap: true,                         // the overlay's list shows only items found on your selected map
@@ -24,13 +29,15 @@
     pos: { a: "tr", x: 0.012, y: 0.1 },    // anchored to a corner or edge, offsets as a share of the screen
     panelBg: 0.95,                         // opacity of the panel's background
   };
-  var SECTIONS = { cond: "Condition on your map, with a countdown", prog: "List progress", items: "Items you still need",
+  var SECTIONS = { map: "Map, with your pins and route", cond: "Condition on your map, with a countdown", prog: "List progress", items: "Items you still need",
     quests: "Quests you follow", keys: "Keys you follow, and where they go", maps: "Other maps with a condition right now" };
-  /* the documents the user accepts on first start. Change this when any of them changes (see README), and the app asks again. */
-  var TERMS_VERSION = "2026-11-10.2";
+  /* TERMS_VERSION: the licence agreement the user must accept. Raise it only when a change affects what users agree to
+     (see README); the app then blocks until they accept. PRIVACY_VERSION: raise it when the privacy policy changes;
+     the app then shows a one-time notice, without blocking. */
+  var TERMS_VERSION = "2026-11-10.3", PRIVACY_VERSION = "2026-11-10.4";
 
   function read(k, d) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } }
-  function write(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function write(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} if (window.RTSync) RTSync.touched(k); }
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
   var fmt = function (n) { return Number(n || 0).toLocaleString("en-US"); };
 
@@ -55,6 +62,7 @@
     var s = read("rtc-settings", {});
     Object.keys(DEFAULTS).forEach(function (k) { if (s[k] === undefined) s[k] = JSON.parse(JSON.stringify(DEFAULTS[k])); });
     Object.keys(DEFAULTS.parts).forEach(function (k) { if (s.parts[k] === undefined) s.parts[k] = DEFAULTS.parts[k]; });
+    ["layers", "keys"].forEach(function (g) { Object.keys(DEFAULTS[g]).forEach(function (k) { if (s[g][k] === undefined) s[g][k] = DEFAULTS[g][k]; }); });
     s.order = (Array.isArray(s.order) ? s.order : []).filter(function (k) { return SECTIONS[k]; });
     DEFAULTS.order.forEach(function (k) { if (s.order.indexOf(k) < 0) s.order.push(k); });
     return s;
@@ -73,6 +81,12 @@
     var l = list(), ids = l.order.filter(function (id) { return l.items[id]; });
     var done = ids.filter(function (id) { return l.items[id].have >= l.items[id].need; }).length;
     return { done: done, total: ids.length };
+  }
+  /* "0.2.0" < "0.10.1": compares version numbers part by part */
+  function versionLess(a, b) {
+    var x = String(a || "0").split(".").map(Number), y = String(b || "0").split(".").map(Number);
+    for (var i = 0; i < Math.max(x.length, y.length); i++) { var d = (x[i] || 0) - (y[i] || 0); if (d) return d < 0; }
+    return false;
   }
   /* is an item found on this map? marked spots there, or a guide that names the map */
   function onMap(id, m) {
@@ -95,6 +109,23 @@
     if (o.item) q.push("item=" + o.item); else if (o.key) q.push("key=" + o.key); else if (o.quest) q.push("quest=" + o.quest);
     return SITE + "?embed=1#maps" + (q.length ? "?" + q.join("&") : "");
   }
+  /* the route sent from the site's route planner: { k: map picture, n: name, spawn: [x, y], stops: [{ p: [x, y], w: "what is there", ids: [items] }], end: { p, n } }
+     and how far along it you are (the number of stops done) */
+  function route() { var r = read("rtc-route", null); return r && r.k && Array.isArray(r.stops) && Array.isArray(r.spawn) ? r : null; }
+  function setRoute(r) { if (r) write("rtc-route", r); else { localStorage.removeItem("rtc-route"); if (window.RTSync) RTSync.touched("rtc-route"); } write("rtc-route-at", 0); }
+  function routeAt() { var r = route(), n = read("rtc-route-at", 0) | 0; return r ? Math.max(0, Math.min(r.stops.length, n)) : 0; }
+  function setRouteAt(n) { var r = route(); if (r) write("rtc-route-at", Math.max(0, Math.min(r.stops.length, n | 0))); }
+  /* a "Send to app" route link from the site: #app-route= + base64url JSON (the same shape as route() above) */
+  function importRoute(text) {
+    var m = String(text || "").match(/app-route=([A-Za-z0-9_-]+)/); if (!m) return null;
+    try {
+      var o = JSON.parse(new TextDecoder().decode(b64u(m[1])));
+      if (!o || !o.k || !Array.isArray(o.stops) || !Array.isArray(o.spawn)) throw 0;
+      o.at = Date.now(); setRoute(o); return o;
+    } catch (e) { throw new Error("That route link is broken or incomplete. Use Send to app on the site's route planner again."); }
+  }
+  /* every keybind, as the app registers them: the panel, the overlay, and the route and map ones */
+  function binds(s) { s = s || settings(); var b = { panel: s.hotkey || "", overlay: s.hotkeyOverlay || "" }; Object.keys(s.keys || {}).forEach(function (k) { b[k] = s.keys[k] || ""; }); return b; }
   function widget(k) { var w = (settings().widgets || {})[k] || {}; return { pinned: w.pinned !== false, pos: w.pos || null, size: w.size || null }; }
   function setWidget(k, v) { var s = settings(); s.widgets = s.widgets || {}; s.widgets[k] = Object.assign(widget(k), v); write("rtc-settings", s); return s; }
 
@@ -172,11 +203,14 @@
     SITE: SITE, REGIONS: REGIONS, MAP_ORDER: MAP_ORDER, SHORT: SHORT, esc: esc, fmt: fmt,
     data: function () { return D; }, item: function (id) { return byId[id]; }, load: load,
     settings: settings, setSetting: setSetting, DEFAULTS: DEFAULTS, SECTIONS: SECTIONS, TERMS_VERSION: TERMS_VERSION,
-    onMap: onMap, follow: follow, saveFollow: saveFollow, toggleQuest: toggleQuest, toggleKey: toggleKey, quest: quest, key: key, mapUrl: mapUrl, widget: widget, setWidget: setWidget,
-    reset: function () { ["rtc-settings", "rtc-list", "rtc-follow", "rtc-placed", "rtc-hotkey-err", "rtc-update"].forEach(function (k) { localStorage.removeItem(k); }); },
+    versionLess: versionLess, onMap: onMap, follow: follow, saveFollow: saveFollow, toggleQuest: toggleQuest, toggleKey: toggleKey, quest: quest, key: key, mapUrl: mapUrl, widget: widget, setWidget: setWidget,
+    binds: binds, route: route, setRoute: setRoute, routeAt: routeAt, setRouteAt: setRouteAt, importRoute: importRoute,
+    reset: function () { ["rtc-sync", "rtc-settings", "rtc-list", "rtc-follow", "rtc-placed", "rtc-hotkey-err", "rtc-update", "rtc-route", "rtc-route-at"].forEach(function (k) { localStorage.removeItem(k); }); },
     accepted: function () { var a = read("rtc-accepted", null); return !!(a && a.v === TERMS_VERSION); },
     acceptedAt: function () { var a = read("rtc-accepted", null); return a && a.at; },
-    accept: function () { write("rtc-accepted", { v: TERMS_VERSION, at: new Date().toISOString() }); }, list: list, addItem: addItem, setHave: setHave, removeItem: removeItem, saveList: saveList,
+    accept: function () { write("rtc-accepted", { v: TERMS_VERSION, at: new Date().toISOString() }); write("rtc-privacy-seen", PRIVACY_VERSION); },
+    privacyNews: function () { return read("rtc-privacy-seen", "") !== PRIVACY_VERSION; },
+    privacySeen: function () { write("rtc-privacy-seen", PRIVACY_VERSION); }, list: list, addItem: addItem, setHave: setHave, removeItem: removeItem, saveList: saveList,
     progress: progress, importShare: importShare, condition: condition, clock: clock, localTime: localTime, search: search, icon: icon,
     invoke: invoke, openUrl: openUrl, win: win, desktop: !!T,
     mapName: function (k) { return (D && D.maps && D.maps[k]) || SHORT[k] || k; },

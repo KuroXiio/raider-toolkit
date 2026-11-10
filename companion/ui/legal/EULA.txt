@@ -1,7 +1,7 @@
 RAIDER TOOLKIT COMPANION
 LICENCE AGREEMENT AND TERMS OF USE
 
-Last updated: 10 November 2026 (second version: updates and the map tab)
+Last updated: 10 November 2026
 
 Please read this before installing. By installing or using Raider Toolkit Companion ("the app") you agree to these terms. If you don't agree, don't install or use it.
 
@@ -11,10 +11,13 @@ The app is a free hobby project made by Kuro, a private individual in Sweden ("I
 2. NOT OFFICIAL
 The app is an unofficial fan project. It is not made, endorsed, sponsored or approved by Embark Studios AB or anyone connected with ARC Raiders. ARC Raiders, its names, item names, artwork and trademarks belong to Embark Studios AB. They are used here only to describe the game the app is about.
 
-3. YOUR LICENCE
+3. WHAT THESE TERMS COVER
+These terms cover Raider Toolkit Companion as it is updated over time: the app itself, every update, and features added later, such as new overlay parts, windows, tabs, maps, lists or data from raidkits.com and the public sources it uses, as long as they work the way SAFETY.txt describes (an ordinary window that doesn't read, change or connect to the game).
+
+4. YOUR LICENCE
 The app is free. You may install and use it on any number of your own computers. Its source code is published under the MIT licence (see LICENSE.txt), which also lets you copy, change and share it under that licence's conditions. Fonts and other parts made by others come with their own licences (see THIRD-PARTY-NOTICES.txt).
 
-4. WHAT THE APP IS, AND THE GAME'S RULES
+5. WHAT THE APP IS, AND THE GAME'S RULES
 The app is an ordinary Windows window. It is built so that it never reads, changes or connects to ARC Raiders: it does not read game memory, game files or logs, does not capture the screen, does not inject code into the game and does not send keypresses or mouse input to it. SAFETY.txt describes exactly what it does.
 
 Even so:
@@ -23,24 +26,26 @@ Even so:
 - If Embark tells you, or says publicly, that a program like this is not allowed, stop using it.
 - Don't change the app so that it reads from, writes to or interacts with the game. A changed version is not my app, and these terms give it no backing.
 
-5. THE INFORMATION IN THE APP
+6. THE INFORMATION IN THE APP
 Item data, map conditions, timers, locations and other information come from raidkits.com, which collects them from the game's public data and community sources. They can be wrong, incomplete or out of date. Map condition timers are worked out from a recorded rotation and are estimates. Always check in the game.
 
-6. NO WARRANTY
+7. NO WARRANTY
 The app is provided "as is", without any warranty, express or implied, including warranties of fitness for a particular purpose, accuracy or uninterrupted operation.
 
-7. LIMITATION OF LIABILITY
+8. LIMITATION OF LIABILITY
 To the fullest extent the law allows, I am not liable for any damage or loss arising from installing, using or being unable to use the app or the information in it, including loss of game progress, items or account access. Nothing in these terms limits liability that cannot be limited by law, or takes away rights you have as a consumer under the law of the country you live in.
 
-8. UPDATES AND ENDING
-The app checks for new versions and offers to install them; updates are signed so only updates from me are installed. You can turn the automatic check off in Settings. An update may change what the app does; when these terms or the privacy policy change, the app asks you to accept them again before you go on using it.
+9. UPDATES AND ENDING
+The app checks for new versions and offers to install them; updates are signed so only updates from me are installed. You can turn the automatic check off in Settings. Some updates are required, for example after a game patch or to fix a serious problem: the app then asks you to install that update before it starts, and you can choose to quit instead. If you are offline, the app starts as usual. Updates may add, change or remove features within what section 3 describes.
+
+CHANGES TO THESE TERMS: if I change these terms in a way that affects what you agree to or your rights (for example new obligations, a different limitation of liability or a different governing law), the app shows you the new terms and asks you to accept them before you can go on using it. Other changes, such as clarifications, corrections and wording for new features that already fall under section 3, apply without asking again; the date at the top shows the last change. When the privacy policy changes, the app tells you the next time you open it.
 I may change, update or stop offering the app at any time. You can stop using it at any time by uninstalling it: Windows Settings > Apps > Installed apps > Raider Toolkit Companion > Uninstall.
 
-9. THE MAP TAB
-The Map tab shows pages from raidkits.com inside the app. Those pages and their content are provided under the same terms as the rest of the app (sections 2, 5, 6 and 7).
+10. THE MAP TAB
+The Map tab shows pages from raidkits.com inside the app. Those pages and their content are provided under the same terms as the rest of the app (sections 2, 6, 7 and 8).
 
-10. PRIVACY
+11. PRIVACY
 How the app handles data is described in PRIVACY.txt.
 
-11. LAW
+12. LAW
 These terms are governed by Swedish law, without taking away any mandatory protection you have under the law of the country you live in.

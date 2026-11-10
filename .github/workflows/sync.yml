@@ -1,0 +1,34 @@
+name: Deploy sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "worker/sync.js"
+      - "worker/sync.wrangler.toml"
+      - ".github/workflows/sync.yml"
+  workflow_dispatch:        # "Run workflow" button in the Actions tab
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy the sync worker to Cloudflare
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: worker
+          command: deploy --config sync.wrangler.toml
+      - name: Check that it answers
+        run: |
+          sleep 10
+          curl -fsS -o /dev/null -w "%{http_code}\n" -X OPTIONS -H "Origin: https://raidkits.com" https://raidkits-sync.hnhdyfy7tb.workers.dev/s/0000000000000000000000000000000000000000000000000000000000000000

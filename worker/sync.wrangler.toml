@@ -1,0 +1,11 @@
+# Deploy settings for the sync Worker (used by .github/workflows/sync.yml).
+# SYNC is the KV namespace "raidkits-sync" that holds synced lists (see worker/sync.js for what is stored).
+name = "raidkits-sync"
+main = "sync.js"
+compatibility_date = "2026-11-01"
+workers_dev = true
+keep_vars = true
+
+[[kv_namespaces]]
+binding = "SYNC"
+id = "94ec9a393fa8493b8a7b9690d5edb1f7"

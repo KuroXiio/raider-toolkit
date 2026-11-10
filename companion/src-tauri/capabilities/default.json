@@ -1,10 +1,11 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "What the app's windows may do: move, size, show, hide and close their own windows, open the overlay's widget windows, let clicks through, read which screen they are on, and open raidkits.com and Discord links in the browser. Nothing else.",
+  "description": "What the app's windows may do: move, size, show, hide and close their own windows, open the overlay's widget windows and the big map, let clicks through, read which screen they are on, and open raidkits.com and Discord links in the browser. Nothing else.",
   "windows": [
     "overlay",
     "panel",
+    "bigmap",
     "w-*"
   ],
   "permissions": [

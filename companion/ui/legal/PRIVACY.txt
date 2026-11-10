@@ -1,29 +1,41 @@
 RAIDER TOOLKIT COMPANION
 PRIVACY POLICY
 
-Last updated: 10 November 2026 (second version: updates and the map tab)
+Last updated: 10 November 2026
 
-THE SHORT VERSION
+OVERVIEW
 - No account, no analytics, no tracking, no ads, no crash reports.
-- Your settings and shopping list stay on your own computer.
+- Your settings and shopping list stay on your own computer, unless you turn on sync (see below).
 - The app downloads Raider Toolkit's public data and item pictures from raidkits.com, and checks GitHub for new versions. Like any website, those hosts see your IP address when that happens.
 - The Map tab shows the raidkits.com website inside the app, which works the same as visiting the site in a browser.
-- The app never reads anything from ARC Raiders.
+- The app never reads anything from ARC Raiders. To show the overlay only while you play, it checks the title of the window in front, on your computer only.
 
 WHO IS RESPONSIBLE
 Kuro, a private individual in Sweden, makes the app and is the data controller under the EU General Data Protection Regulation (GDPR). Contact: Discord user kuro_1, or the Raider Toolkit Discord (https://discord.gg/NE3ughZTxn).
 
 WHAT IS SAVED ON YOUR COMPUTER
-The app saves your settings (keybinds, overlay layout and sizes, region, chosen map), your shopping list, the quests and keys you follow and a copy of the downloaded data, so it works offline and remembers your choices. This is stored only on your computer, in the app's data folders (%LOCALAPPDATA%\com.raidkits.companion, and the panel's size and place in %APPDATA%\com.raidkits.companion). It is never sent anywhere. Uninstalling the app and deleting those folders removes it.
+The app saves your settings (keybinds, overlay layout and sizes, region, chosen map), your shopping list, the quests and keys you follow and a copy of the downloaded data, so it works offline and remembers your choices. This is stored on your computer, in the app's data folders (%LOCALAPPDATA%\com.raidkits.companion, and the panel's size and place in %APPDATA%\com.raidkits.companion). It is never sent anywhere, except what sync sends if you turn it on. Uninstalling the app and deleting those folders removes it.
 
 WHAT THE APP DOWNLOADS
 - https://raidkits.com/bot.json: the public Raider Toolkit data (items, keys, quests, map conditions). Checked when the app starts and about every 30 minutes, downloaded again when it is more than 6 hours old.
-- Item pictures from https://raidkits.com/i/ when they are shown.
+- Item pictures from https://raidkits.com/i/, and map pictures and map markers from https://raidkits.com/m/ and https://raidkits.com/mk/, when they are shown.
 raidkits.com is hosted on GitHub Pages. When your computer downloads these files, GitHub (a US company) receives your IP address and standard request details, as with any website, and keeps them in its logs for security. See GitHub's privacy statement: https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement
 Nothing about you, your list or your settings is sent with these requests.
 
 UPDATES
 When the app starts and then every 6 hours, it asks GitHub (https://github.com/KuroXiio/raider-toolkit/releases) whether a newer version exists, and downloads it when you choose to install it. GitHub receives your IP address and standard request details, as above. Nothing about you, your list or your settings is sent. Updates are signed, and the app only installs updates signed with Raider Toolkit's key. You can turn the automatic check off in Settings > Updates; "Check now" then checks only when you press it.
+
+WHICH WINDOW IS IN FRONT
+With "Only while you play" on (Settings > Overlay), the app asks Windows twice a second for the title and class name of the window in front, the same name the taskbar shows, to decide whether to show the overlay. This happens only on your computer. The title is not saved, logged or sent anywhere, and the app does not look at anything else about that window or program. Turn the setting off and the check stops.
+
+SYNC WITH RAIDKITS.COM (OPTIONAL)
+Sync is off until you turn it on (Settings > Sync in the app, or Sync on the site's shopping list). Then your shopping list and Have counts, the route you sent from the site's route planner, and the quests and keys you follow are saved on Raider Toolkit's sync service, so the app, the site and your other computers show the same list.
+- How it is labelled: sync uses a code made on your device, such as RTS-7K2Q-…. The code itself never leaves your devices. Only a SHA-256 hash of it is sent, and that hash is the only label your data has. No name, e-mail address, account, IP address or anything about your computer is stored with it. Without the code nobody, the developer included, can tell whose list it is.
+- Keep the code to yourself: anyone who has it can see and change your synced list.
+- Where: a Cloudflare Worker with Cloudflare's key-value storage (Cloudflare, Inc., a US company; see https://www.cloudflare.com/privacypolicy/). Like any web service, Cloudflare receives your IP address when the app or the site talks to it, and handles it under its own policy; the sync service itself does not store it.
+- When: the app sends changes a few seconds after you make them and checks for changes every 30 seconds while it runs.
+- How long: until you press "Delete synced data", which removes it straight away, or 180 days after the last change, when it is deleted by itself. "Stop syncing on this PC" only stops this computer; the synced copy stays for your other devices until you delete it.
+- Why: you asked for it by turning sync on (consent, GDPR Art. 6(1)(a)). Stopping or deleting withdraws it.
 
 THE MAP TAB
 The Map tab shows the interactive map from raidkits.com inside the app. It loads that web page exactly as a browser would: raidkits.com is hosted on GitHub Pages (see above), and the site counts visits with Cloudflare Web Analytics, which sets no cookies and does not store your IP address. The site's own privacy policy applies to it: https://raidkits.com/#privacy . The website may save its own settings (such as map filters) in the app's browser storage on your computer. The page is only loaded while you have the Map tab open.
@@ -31,7 +43,7 @@ The Map tab shows the interactive map from raidkits.com inside the app. It loads
 WHAT THE APP DOES NOT DO
 - It does not read game memory, game files, logs or your screen, and collects no information about your game, account or matches.
 - It has no analytics, telemetry, advertising or tracking of any kind.
-- It sends nothing you type to anyone.
+- It sends nothing you type to anyone, except your list, route and followed quests and keys to the sync service if you turn sync on.
 
 LINKS
 Links in the app (raidkits.com, Discord) open in your web browser. Those sites' own privacy policies apply.
@@ -40,7 +52,7 @@ MICROSOFT WEBVIEW2
 The app draws its windows with Microsoft Edge WebView2, a part of Windows. Microsoft may collect diagnostic data from Windows components according to your Windows privacy settings. That is between you and Microsoft; the app doesn't send Microsoft anything itself.
 
 YOUR RIGHTS
-Under the GDPR you can ask what personal data is held about you and have it corrected or deleted, and you can object to its use. In practice the app holds no personal data about you anywhere but your own computer. If you think your data is handled wrongly, you can complain to the Swedish Authority for Privacy Protection (IMY, https://www.imy.se/en/) or to the data protection authority where you live.
+Under the GDPR you can ask what personal data is held about you and have it corrected or deleted, and you can object to its use. In practice the app holds no personal data about you anywhere but your own computer, apart from a synced list if you turn sync on, which you can delete yourself with "Delete synced data". If you think your data is handled wrongly, you can complain to the Swedish Authority for Privacy Protection (IMY, https://www.imy.se/en/) or to the data protection authority where you live.
 
 CHANGES
-If the app starts handling data differently, this policy is updated with the new version and the date at the top changes.
+If the app starts handling data differently, this policy is updated in the same version of the app, the date at the top changes, and the app tells you about it the next time you open it.

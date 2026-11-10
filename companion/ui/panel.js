@@ -172,48 +172,111 @@
   /* ---------- Settings ---------- */
   var SPOTS = [["tl", "Top left"], ["tc", "Top centre"], ["tr", "Top right"], ["ml", "Left"], ["", ""], ["mr", "Right"], ["bl", "Bottom left"], ["bc", "Bottom centre"], ["br", "Bottom right"]];
   var SPOT_POS = { tl: { x: 0.012, y: 0.1 }, tc: { x: 0, y: 0.1 }, tr: { x: 0.012, y: 0.1 }, ml: { x: 0.012, y: 0 }, mr: { x: 0.012, y: 0 }, bl: { x: 0.012, y: 0.24 }, bc: { x: 0, y: 0.16 }, br: { x: 0.012, y: 0.24 } };
-  function hkRow(key, label) {
-    var v = RT.settings()[key];
-    return '<div class="row" style="flex-wrap:wrap;max-width:620px"><span class="nm" style="white-space:normal">' + esc(label) + "<br>" +
-      (state.capture === key ? '<span class="dim">Press the keys you want…</span>' : v ? '<span class="kbd">' + esc(v) + "</span>" : '<span class="dim">Off</span>') + "</span>" +
-      (state.capture === key ? '<button type="button" class="btn" data-act="hk-cancel">Cancel</button>' : '<button type="button" class="btn" data-hk="' + key + '">Change</button>' + (v ? '<button type="button" class="btn" data-hkoff="' + key + '">Turn off</button>' : "")) + "</div>";
+  /* ---------- settings: short groups, every row the same shape (what it is on the left, the control on the right) ---------- */
+  var SSECT = [["overlay", "Overlay"], ["layout", "Layout"], ["map", "Map and route"], ["keys", "Keybinds"], ["sync", "Sync"], ["updates", "Updates and data"], ["about", "About and legal"]];
+  var HK = [["hotkey", "Open or close this panel", "Works everywhere."], ["hotkeyOverlay", "Show or hide the overlay", "Works everywhere."],
+    ["k:route", "Show or hide your route", ""], ["k:next", "Next stop (stop done)", ""], ["k:prev", "Back one stop", ""], ["k:mapsize", "Minimize or expand the map", ""], ["k:bigmap", "Open or close the big map", ""]];
+  function hkVal(id) { var s = RT.settings(); return id.indexOf("k:") === 0 ? (s.keys || {})[id.slice(2)] || "" : s[id] || ""; }
+  function srow(label, desc, control, extra) {
+    return '<div class="srow' + (extra ? " " + extra : "") + '"><div class="sl"><span class="lb">' + label + "</span>" + (desc ? "<small>" + desc + "</small>" : "") + '</div><div class="sc">' + control + "</div></div>";
+  }
+  function sw(set, on, label) { return '<label class="sw"><input type="checkbox" data-set="' + set + '"' + (on ? " checked" : "") + ' aria-label="' + esc(label) + '"><span aria-hidden="true"></span></label>'; }
+  function slider(id, min, max, step, val, shown) { return '<div class="sld"><input type="range" id="' + id + '" min="' + min + '" max="' + max + '" step="' + step + '" value="' + val + '"><b id="' + id + 'v">' + shown + "</b></div>"; }
+  function hkRow(id, label, desc) {
+    var v = hkVal(id), cap = state.capture === id;
+    return srow(esc(label), desc,
+      (cap ? '<span class="dim">Press the keys…</span><button type="button" class="btn sm" data-act="hk-cancel">Cancel</button>'
+        : (v ? '<span class="kbd">' + esc(v) + "</span>" : '<span class="dim">Off</span>') + '<button type="button" class="btn sm" data-hk="' + id + '">Change</button>' + (v ? '<button type="button" class="btn sm" data-hkoff="' + id + '">Off</button>' : "")));
   }
   function settingsView() {
     if (state.doc) return '<button type="button" class="back" data-act="doc-back">‹ Back to settings</button><pre class="doc" id="doc">Loading…</pre>';
-    var s = RT.settings(), D = RT.data(), err = state.hkErr || JSON.parse(localStorage.getItem("rtc-hotkey-err") || '""'), up = JSON.parse(localStorage.getItem("rtc-update") || "null");
-    var h = '<h1 class="tt">Settings</h1><div class="h">Overlay</div>';
-    h += '<label class="chk"><input type="checkbox" data-set="overlay"' + (s.overlay ? " checked" : "") + "> Show the overlay in game</label>";
-    h += '<div class="seg2" role="group" aria-label="Overlay style"><button type="button" data-style="stack" aria-pressed="' + (s.style !== "line") + '">Stacked</button><button type="button" data-style="line" aria-pressed="' + (s.style === "line") + '">One line</button></div>';
-    h += '<p class="note">Its parts, in order. Drag the handle to move one. <b>Unpin</b> gives a part its own small window that you can move and resize while this panel is open; a bigger list window shows more items.</p><ul class="arr" id="arr">' +
+    var sec = state.sset || "overlay";
+    var h = '<h1 class="tt">Settings</h1><div class="snav" role="tablist" aria-label="Settings">' + SSECT.map(function (x) { return '<button type="button" role="tab" data-sset="' + x[0] + '" aria-selected="' + (sec === x[0]) + '">' + x[1] + "</button>"; }).join("") + '</div><div class="sbox">';
+    h += ({ overlay: setOverlay, layout: setLayout, map: setMap, keys: setKeys, sync: setSync, updates: setUpdates, about: setAbout }[sec] || setOverlay)();
+    return h + "</div>";
+  }
+  function setOverlay() {
+    var s = RT.settings(), f = state.focus;
+    var h = '<div class="h">Overlay</div>';
+    h += srow("Show the overlay", "Your keybind and the tray icon switch it too.", sw("overlay", s.overlay, "Show the overlay"));
+    h += srow("Only while you play", "Hides the overlay when another program is in front, for example when you Alt-Tab to a browser." + (f ? ' <span class="' + (f[0] ? "ok" : "dim") + '">' + (f[0] ? "ARC Raiders is in front right now." : "ARC Raiders isn't in front right now.") + "</span>" : ""), sw("gameOnly", s.gameOnly, "Only while you play"));
+    h += srow("Style", "Cards under each other, or side by side.", '<div class="seg2"><button type="button" data-style="stack" aria-pressed="' + (s.style !== "line") + '">Stacked</button><button type="button" data-style="line" aria-pressed="' + (s.style === "line") + '">Side by side</button></div>');
+    h += srow("Size", "On top of the automatic scaling to your screen height.", slider("size", 0.7, 1.6, 0.05, s.size, Math.round(s.size * 100) + "%"));
+    h += srow("Opacity", "How solid the cards are.", slider("bg", 0.3, 1, 0.05, s.bg, Math.round(s.bg * 100) + "%"));
+    h += srow("Where it sits", "Or drag it while this panel is open.", '<div class="spots">' + SPOTS.map(function (x) { return x[0] ? '<button type="button" data-spot="' + x[0] + '" aria-pressed="' + (s.pos.a === x[0]) + '" aria-label="' + x[1] + '" title="' + x[1] + '"><i></i></button>' : "<span></span>"; }).join("") + "</div>");
+    h += '<div class="h">This panel</div>' + srow("Opacity", "", slider("pbg", 0.6, 1, 0.05, s.panelBg, Math.round(s.panelBg * 100) + "%"));
+    h += '<p class="note">Places are kept as a share of the screen and sizes follow the screen height, so the layout stays the same at any resolution or screen shape. Play in Borderless or Windowed mode so the overlay can show on top of the game.</p>';
+    return h;
+  }
+  function setLayout() {
+    var s = RT.settings();
+    var h = '<div class="h">Cards in the overlay</div><p class="note">Tick the ones you want and drag the handle to change the order. <b>Unpin</b> gives a card its own small window that you can move and resize while this panel is open.</p><ul class="arr" id="arr">' +
       s.order.map(function (k, i) {
         var pinned = RT.widget(k).pinned;
         return '<li data-k="' + k + '"><span class="grip" title="Drag to move" aria-hidden="true"><i></i></span><label class="chk"><input type="checkbox" data-part="' + k + '"' + (s.parts[k] ? " checked" : "") + "> " + esc(RT.SECTIONS[k]) + "</label>" +
           '<button type="button" class="pinb" data-pinw="' + k + '" aria-pressed="' + pinned + '">' + (pinned ? "Unpin" : "Pin back") + "</button>" +
           '<button type="button" class="mv" data-mv="' + k + '" data-d="-1" aria-label="Move up"' + (i ? "" : " disabled") + '>↑</button><button type="button" class="mv" data-mv="' + k + '" data-d="1" aria-label="Move down"' + (i < s.order.length - 1 ? "" : " disabled") + ">↓</button></li>";
       }).join("") + "</ul>";
-    h += '<label class="chk"><input type="checkbox" data-set="onlyMap"' + (s.onlyMap ? " checked" : "") + "> The list shows only items found on your map (" + esc(shortOf(s.map)) + ")</label>";
-    h += '<label for="lmax" class="note">Items shown while the list is pinned: <b id="lmaxv">' + s.listMax + '</b></label><input type="range" id="lmax" min="3" max="30" step="1" value="' + s.listMax + '">';
-    h += '<label for="size" class="note">Size <b id="sizev">' + Math.round(s.size * 100) + '%</b> <span class="dim">(also follows your screen height)</span></label><input type="range" id="size" min="0.7" max="1.6" step="0.05" value="' + s.size + '">';
-    h += '<label for="bg" class="note">Opacity <b id="bgv">' + Math.round(s.bg * 100) + '%</b></label><input type="range" id="bg" min="0.3" max="1" step="0.05" value="' + s.bg + '">';
-    h += '<div class="note" style="margin-top:8px">Where it sits</div><div class="spots">' + SPOTS.map(function (x) { return x[0] ? '<button type="button" data-spot="' + x[0] + '" aria-pressed="' + (s.pos.a === x[0]) + '" aria-label="' + x[1] + '" title="' + x[1] + '"><i></i></button>' : "<span></span>"; }).join("") +
-      '</div><p class="note">Or drag it while this panel is open. Places are kept as a share of the screen and sizes follow the screen height, so the layout stays the same at any resolution or screen shape. Use the game in Borderless or Windowed mode so the overlay can show on top.</p>';
-    h += '<div class="h">Panel</div><label for="pbg" class="note">Opacity <b id="pbgv">' + Math.round(s.panelBg * 100) + '%</b></label><input type="range" id="pbg" min="0.6" max="1" step="0.05" value="' + s.panelBg + '">';
-    h += '<div class="h">Keybinds</div>' + hkRow("hotkey", "Open or close this panel") + hkRow("hotkeyOverlay", "Show or hide the overlay");
+    h += '<div class="h">The list card</div>';
+    h += srow("Only items on your map", "Shows only what can be found on " + esc(RT.mapName(s.map)) + ".", sw("onlyMap", s.onlyMap, "Only items on your map"));
+    h += srow("Items shown", "While the list card sits in the overlay. An unpinned list window shows as many as fit.", slider("lmax", 3, 30, 1, s.listMax, s.listMax));
+    return h;
+  }
+  function setMap() {
+    var s = RT.settings(), rt = RT.route(), L = s.layers;
+    var h = '<div class="h">Your map</div>';
+    h += srow("Map", "Used by the map card, the list card and the big map.", '<select id="smap">' + RT.MAP_ORDER.map(function (k) { return '<option value="' + k + '"' + (s.map === k ? " selected" : "") + ">" + esc(RT.mapName(k)) + "</option>"; }).join("") + "</select>");
+    if (s.map === "stella") h += srow("Floor", "Stella Montis has two.", '<div class="seg2"><button type="button" data-floor="u" aria-pressed="' + (s.floor !== "l") + '">Upper</button><button type="button" data-floor="l" aria-pressed="' + (s.floor === "l") + '">Lower</button></div>');
+    h += '<div class="h">Shown on the maps</div>';
+    h += srow("Shopping list", "Where the items you still need can be found.", sw("layer:list", L.list, "Shopping list"));
+    h += srow("Keys you follow", "The doors they open.", sw("layer:keys", L.keys, "Keys you follow"));
+    h += srow("Quests you follow", "Spots their objectives point to.", sw("layer:quests", L.quests, "Quests you follow"));
+    h += srow("Extracts", "", sw("layer:ext", L.ext, "Extracts"));
+    h += '<div class="h">Route</div>';
+    h += rt ? srow(esc(rt.n || "Your route"), esc(RT.mapName(RTMapName(rt.k))) + " · " + rt.stops.length + " stops · stop " + Math.min(RT.routeAt() + 1, rt.stops.length) + " is next", '<button type="button" class="btn sm" data-act="route-restart">Start over</button><button type="button" class="btn sm" data-act="route-clear">Remove</button>')
+      : '<p class="note">No route yet. Plan one on raidkits.com (Maps → Plan a route) and press <b>Send to app</b>. With sync on it arrives by itself; otherwise paste the link here.</p>';
+    h += '<div class="paste"><label for="rimp" class="note">Route link from Send to app</label><div class="pr"><input type="text" id="rimp" placeholder="https://raidkits.com/#app-route=…" autocomplete="off" spellcheck="false"><button type="button" class="btn" data-act="route-imp">Use this route</button></div>' +
+      (state.routeErr ? '<p class="err" role="alert">' + esc(state.routeErr) + "</p>" : state.routeOk ? '<p class="ok" role="status">' + esc(state.routeOk) + "</p>" : "") + "</div>";
+    return h;
+  }
+  function RTMapName(k) { return String(k).indexOf("stella_") === 0 ? "stella" : k; }
+  function setKeys() {
+    var err = state.hkErr || JSON.parse(localStorage.getItem("rtc-hotkey-err") || '""');
+    var h = '<div class="h">Keybinds</div>' + HK.slice(0, 2).map(function (x) { return hkRow(x[0], x[1], x[2]); }).join("");
+    h += '<div class="h">Map and route</div><p class="note">These work only while the game or this app is in front, so they never take keys away from other programs.</p>' + HK.slice(2).map(function (x) { return hkRow(x[0], x[1], x[2]); }).join("");
     if (err) h += '<p class="err" role="alert">Couldn\'t use ' + esc(err) + ". Another program may already use it; pick a different one.</p>";
     h += '<p class="note">Use Ctrl, Alt or Shift with a key, or an F key. They use the same standard Windows shortcut feature as Discord and Steam. The tray icon (bottom right of the taskbar) also opens this panel, shows or hides the overlay, and quits.</p>';
-    h += '<div class="h">Updates</div><p class="note">This is version ' + esc(state.version || "…") + "." + (up ? ' <b style="color:#ffd666">Version ' + esc(up.version) + " is out.</b>" : "") + "</p>";
-    h += '<label class="chk"><input type="checkbox" data-set="autoUpdate"' + (s.autoUpdate ? " checked" : "") + "> Check for new versions when the app starts and every 6 hours</label>";
-    h += '<div class="acts">' + (up ? '<button type="button" class="btn go" data-act="install">Install ' + esc(up.version) + " and restart</button>" : "") + '<button type="button" class="btn" data-act="check">Check now</button></div>' + (state.upd ? '<p class="note" role="status">' + esc(state.upd) + "</p>" : "");
-    h += '<p class="note">Updates come from the app\'s releases on GitHub and are signed, so the app only installs updates made by Raider Toolkit. Your list and settings are kept.</p>';
-    h += '<div class="h">Data</div><p class="note">' + (D ? "From raidkits.com · patch " + esc(D.patch) + " · updated " + esc(D.built) : "Not loaded yet.") + '</p><button type="button" class="btn" data-act="refresh">Update data now</button>';
-    h += '<div class="h">About</div><p class="note" style="max-width:620px">Raider Toolkit Companion is an unofficial fan app, not affiliated with or endorsed by Embark Studios. ARC Raiders and its names and art belong to Embark Studios AB.</p>' +
-      '<p class="note" style="max-width:620px">It is an ordinary window. It never reads, changes or connects to the game: no game files, memory, screen capture, injected code or simulated input. Everything it shows comes from raidkits.com and what you type in. Embark decides which programs are allowed with their game, so use it at your own risk.</p>';
-    h += '<div class="h">Legal</div><div class="res" style="max-width:620px">' + LEGAL.map(function (x) { return '<button type="button" data-doc="' + x[0] + '"><span>' + esc(x[1]) + '</span><span class="kind">' + esc(x[0]) + "</span></button>"; }).join("") + "</div>";
-    var acc = RT.acceptedAt(); if (acc) h += '<p class="note">You accepted these on ' + esc(new Date(acc).toLocaleDateString()) + ".</p>";
-    h += '<p class="note">The same files are in the app\'s install folder, under legal. <button type="button" class="link" data-url="' + RT.SITE + '">raidkits.com</button> · <button type="button" class="link" data-url="https://discord.gg/NE3ughZTxn">Discord</button></p>';
-    h += '<div class="h">Reset and uninstall</div><div class="acts"><button type="button" class="btn" data-act="reset">' + (state.resetAsk ? "Sure? Press again to reset" : "Reset everything") + "</button></div>" +
-      '<p class="note" style="max-width:620px">Reset clears your list, followed quests and keys, layout and settings. To remove the app: Windows Settings → Apps → Installed apps → Raider Toolkit Companion → Uninstall. Tick "Delete the application data" there to remove your saved data too.</p>';
     return h;
+  }
+  function setSync() { return RT.syncView ? RT.syncView(state) : ""; }
+  function setUpdates() {
+    var s = RT.settings(), D = RT.data(), up = JSON.parse(localStorage.getItem("rtc-update") || "null");
+    var h = '<div class="h">Updates</div>';
+    h += srow("Version " + esc(state.version || "…"), up ? '<b style="color:#ffd666">Version ' + esc(up.version) + " is out.</b>" : "Updates come from the app's GitHub releases and are signed, so only updates made by Raider Toolkit install.",
+      (up ? '<button type="button" class="btn sm go" data-act="install">Install ' + esc(up.version) + "</button>" : "") + '<button type="button" class="btn sm" data-act="check">Check now</button>');
+    if (state.upd) h += '<p class="note" role="status">' + esc(state.upd) + "</p>";
+    h += srow("Check automatically", "When the app starts and every 6 hours. Your list and settings are kept.", sw("autoUpdate", s.autoUpdate, "Check automatically"));
+    h += '<div class="h">Data</div>' + srow("Game data", D ? "From raidkits.com · patch " + esc(D.patch) + " · updated " + esc(D.built) : "Not loaded yet.", '<button type="button" class="btn sm" data-act="refresh">Update now</button>');
+    return h;
+  }
+  function setAbout() {
+    var h = '<div class="h">About</div><p class="note">Raider Toolkit Companion is an unofficial fan app, not affiliated with or endorsed by Embark Studios. ARC Raiders and its names and art belong to Embark Studios AB.</p>' +
+      '<p class="note">It is an ordinary window. It never reads, changes or connects to the game: no game files, memory, screen capture, injected code or simulated input. To show the overlay only while you play, it asks Windows for the title of the window in front, the same thing the taskbar shows. Everything else comes from raidkits.com and what you type in. Embark decides which programs are allowed with their game, so use it at your own risk.</p>';
+    h += '<div class="h">Legal</div><div class="res">' + LEGAL.map(function (x) { return '<button type="button" data-doc="' + x[0] + '"><span>' + esc(x[1]) + '</span><span class="kind">' + esc(x[0]) + "</span></button>"; }).join("") + "</div>";
+    var acc = RT.acceptedAt(); if (acc) h += '<p class="note">You accepted these on ' + esc(new Date(acc).toLocaleDateString()) + ". The same files are in the app's install folder, under legal.</p>";
+    h += '<p class="note"><button type="button" class="link" data-url="' + RT.SITE + '">raidkits.com</button> · <button type="button" class="link" data-url="https://discord.gg/NE3ughZTxn">Discord</button></p>';
+    h += '<div class="h">Reset and uninstall</div>' + srow("Reset everything", "Clears your list, followed quests and keys, route, layout and settings on this PC.", '<button type="button" class="btn sm" data-act="reset">' + (state.resetAsk ? "Sure? Press again" : "Reset") + "</button>");
+    h += '<p class="note">To remove the app: Windows Settings → Apps → Installed apps → Raider Toolkit Companion → Uninstall. Tick "Delete the application data" there to remove your saved data too.</p>';
+    return h;
+  }
+
+  /* ---------- a required update: nothing else works until it is installed ---------- */
+  function requiredView(req) {
+    return '<div class="gate"><h1>Update required</h1>' +
+      '<p class="note">Version <b>' + esc(req.version) + "</b> of Raider Toolkit Companion is needed to keep using it. You have version " + esc(req.have || state.version) + ". It installs in a few seconds and the app restarts by itself; your list and settings are kept.</p>" +
+      (req.notes ? '<pre class="doc">' + esc(req.notes) + "</pre>" : "") +
+      '<div class="acts"><button type="button" class="btn go" data-act="install">Install ' + esc(req.version) + ' and restart</button><button type="button" class="btn" data-act="decline">Quit</button></div>' +
+      (state.upd ? '<p class="note" role="status">' + esc(state.upd) + "</p>" : "") + "</div>";
   }
 
   /* ---------- first start: read and accept the documents ---------- */
@@ -234,18 +297,30 @@
     var f = keepFocus && document.activeElement && document.activeElement.id, pos = f && document.activeElement.selectionStart, top = view.scrollTop, ok = RT.accepted();
     document.body.classList.toggle("gate", !ok);
     document.documentElement.style.setProperty("--pbg", RT.settings().panelBg);
-    view.classList.toggle("full", ok && tab === "map");
+    var req = JSON.parse(localStorage.getItem("rtc-required") || "null");
+    view.classList.toggle("full", ok && !req && tab === "map");
+    if (req) { document.body.classList.add("gate"); view.innerHTML = requiredView(req); return; }
     if (!ok) { view.innerHTML = agreementView(); return; }
     $("nav").innerHTML = navHtml(); banner(); updPill();
     if (!RT.data()) { view.innerHTML = '<p class="note" style="margin-top:14px">Loading data from raidkits.com… If this takes long, check your internet connection.</p>'; return; }
     if (tab === "map") { if (!view.querySelector("iframe") || view.dataset.src !== (state.mapSrc || "")) { view.innerHTML = mapView(); view.dataset.src = state.mapSrc || ""; } return; }   // don't reload the map on every redraw
     view.dataset.src = "";
-    view.innerHTML = tab === "list" ? listView() : tab === "quests" ? questsView() : tab === "keys" ? keysView() : tab === "conds" ? condsView() : tab === "search" ? searchView() : settingsView();
+    var news = RT.privacyNews() ? '<div class="box" role="status" style="flex-direction:row;align-items:center;flex-wrap:wrap"><span class="note" style="flex:1;min-width:200px">The privacy policy has been updated. Nothing changes in what you need to do.</span><button type="button" class="btn sm" data-doc="PRIVACY.txt">Read it</button><button type="button" class="btn sm" data-act="privacy-ok">OK</button></div>' : "";
+    view.innerHTML = news + (tab === "list" ? listView() : tab === "quests" ? questsView() : tab === "keys" ? keysView() : tab === "conds" ? condsView() : tab === "search" ? searchView() : settingsView());
     if (tab === "list") addResults();
     if (tab === "quests") questResults();
     if (tab === "search" && !state.sel) searchResults();
     view.scrollTop = top;
     if (f && $(f)) { $(f).focus(); try { $(f).setSelectionRange(pos, pos); } catch (e) {} }
+  }
+
+  function checkNow() {
+    state.upd = "Checking…"; render();
+    RT.invoke("check_update").then(function (u) {
+      if (u) { localStorage.setItem("rtc-update", JSON.stringify({ version: u.version, notes: u.notes || "", at: Date.now() })); state.upd = "Version " + u.version + " is out."; }
+      else { localStorage.removeItem("rtc-update"); state.upd = "You have the latest version."; }
+      render();
+    }, function (er) { state.upd = "Couldn't check for updates (" + er + ")."; render(); });
   }
 
   /* ---------- events ---------- */
@@ -277,15 +352,19 @@
     if (d.pinw) { var pinned = RT.widget(d.pinw).pinned; RT.setWidget(d.pinw, { pinned: !pinned }); if (pinned) { var s = RT.settings(); s.parts[d.pinw] = true; RT.setSetting("parts", s.parts); } render(); return; }
     if (d.style) { RT.setSetting("style", d.style); render(); return; }
     if (d.spot) { var sp = SPOT_POS[d.spot]; RT.setSetting("pos", { a: d.spot, x: sp.x, y: sp.y }); render(); return; }
+    if (d.sset) { state.sset = d.sset; state.capture = ""; state.resetAsk = false; render(); view.scrollTop = 0; if (d.sset === "overlay") focusNow(); return; }
+    if (d.floor) { RT.setSetting("floor", d.floor); render(); return; }
     if (d.hk) { state.capture = d.hk; state.hkErr = ""; render(); return; }
     if (d.hkoff) { setHotkey(d.hkoff, ""); return; }
-    if (d.doc) { state.doc = d.doc; render(); view.scrollTop = 0; fetch("legal/" + d.doc).then(function (r) { return r.text(); }).then(function (tx) { var el = $("doc"); if (el) el.textContent = tx; }, function () { var el = $("doc"); if (el) el.textContent = "Couldn't open this file. It is also in the app's install folder, under legal."; }); return; }
+    if (d.doc) { if (RT.accepted() && tab !== "settings") { tab = "settings"; } if (d.doc === "PRIVACY.txt") RT.privacySeen(); state.doc = d.doc; render(); view.scrollTop = 0; fetch("legal/" + d.doc).then(function (r) { return r.text(); }).then(function (tx) { var el = $("doc"); if (el) el.textContent = tx; }, function () { var el = $("doc"); if (el) el.textContent = "Couldn't open this file. It is also in the app's install folder, under legal."; }); return; }
     switch (d.act) {
       case "doc-back": state.doc = null; render(); break;
+      case "privacy-ok": RT.privacySeen(); render(); break;
       case "accept": if (state.agree) { RT.accept(); state.doc = null; tab = "list"; render(); } break;
       case "decline": RT.invoke("quit_app"); break;
       case "import": state.importOpen = !state.importOpen; state.importErr = ""; render(); if ($("imp")) $("imp").focus(); break;
       case "imp-add": case "imp-rep":
+        if (/app-route=/.test($("imp").value)) { try { var r0 = RT.importRoute($("imp").value); state.importOpen = false; state.importErr = ""; state.routeOk = "Route added: " + r0.stops.length + " stops. It's on the overlay's map; press Show route there."; } catch (er) { state.importErr = er.message; } render(); break; }
         RT.importShare($("imp").value, d.act === "imp-rep").then(function () { state.importOpen = false; state.importErr = ""; render(); }, function (er) { state.importErr = er.message; render(); });
         break;
       case "clear": RT.saveList({ v: 1, items: {}, order: [], from: "" }); render(); break;
@@ -293,16 +372,28 @@
       case "hk-cancel": state.capture = ""; render(); break;
       case "map-reload": view.innerHTML = mapView(); break;
       case "refresh": t.disabled = true; t.textContent = "Updating…"; RT.load(true).then(function () { render(); }, function () { t.textContent = "Couldn't reach raidkits.com"; }); break;
-      case "check": state.upd = "Checking…"; render();
-        RT.invoke("check_update").then(function (u) {
-          if (u) { localStorage.setItem("rtc-update", JSON.stringify({ version: u.version, notes: u.notes || "", at: Date.now() })); state.upd = "Version " + u.version + " is out."; }
-          else { localStorage.removeItem("rtc-update"); state.upd = "You have the latest version."; }
-          render();
-        }, function (er) { state.upd = "Couldn't check for updates (" + er + ")."; render(); });
-        break;
+      case "check": checkNow(); break;
       case "install": t.disabled = true; t.textContent = "Downloading…"; state.upd = "Downloading and checking the update. The app restarts by itself when it's done.";
         RT.invoke("install_update").catch(function (er) { state.upd = "The update couldn't be installed (" + er + "). Try again later, or download it from raidkits.com."; render(); });
         break;
+      case "sync-new": case "sync-join":
+        t.disabled = true; state.syncMsg = "";
+        (d.act === "sync-new" ? RTSync.create() : RTSync.connect($("scode").value)).then(function () {
+          var on = RTSync.state(); state.syncMsgOk = true; state.syncMsg = on && !on.err ? (d.act === "sync-new" ? "Sync is on. Now paste the code on raidkits.com: shopping list → Sync." : "Connected. Your list now comes from the synced copy.") : ""; state.syncShow = d.act === "sync-new"; render();
+        }, function (er) { state.syncMsgOk = false; state.syncMsg = er.message; render(); });
+        break;
+      case "sync-show": state.syncShow = !state.syncShow; render(); break;
+      case "sync-copy": var sc = RTSync.state(); if (sc) { var txt = RTSync.pretty(sc.code); (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(function () { state.syncMsgOk = true; state.syncMsg = "Code copied."; render(); }, function () { state.syncShow = true; state.syncMsgOk = true; state.syncMsg = "Select the code and copy it with Ctrl+C."; render(); }); } break;
+      case "sync-now": state.syncMsg = ""; RTSync.run(true).then(function () { render(); }); break;
+      case "sync-off": RTSync.off(); state.syncMsgOk = true; state.syncMsg = "Sync is off on this PC."; state.syncShow = false; render(); break;
+      case "sync-wipe": if (!state.syncWipe) { state.syncWipe = true; render(); break; } state.syncWipe = false;
+        RTSync.wipe().then(function () { state.syncMsgOk = true; state.syncMsg = "The synced copy is deleted and sync is off."; render(); }, function (er) { state.syncMsgOk = false; state.syncMsg = er.message; render(); });
+        break;
+      case "route-clear": RT.setRoute(null); if (RT.settings().mapView === "route") RT.setSetting("mapView", "map"); render(); break;
+      case "route-restart": RT.setRouteAt(0); render(); break;
+      case "route-imp":
+        try { var ro = RT.importRoute($("rimp").value); state.routeErr = ro ? "" : "That isn't a Send to app link from the route planner."; state.routeOk = ro ? "Route added: " + ro.stops.length + " stops." : ""; } catch (er) { state.routeErr = er.message; state.routeOk = ""; }
+        render(); break;
       case "reset": if (!state.resetAsk) { state.resetAsk = true; render(); break; } RT.reset(); state.resetAsk = false; state.listMap = false; render(); break;
     }
   });
@@ -322,7 +413,9 @@
     if (t.id === "agree") { state.agree = t.checked; render(); return; }
     if (t.id === "region") { RT.setSetting("region", t.value); render(); }
     if (t.dataset.set === "overlay") { RT.setSetting("overlay", t.checked); RT.invoke("show_overlay", { show: t.checked }); }
-    if (t.dataset.set === "onlyMap" || t.dataset.set === "autoUpdate") RT.setSetting(t.dataset.set, t.checked);
+    if (t.dataset.set === "onlyMap" || t.dataset.set === "autoUpdate" || t.dataset.set === "gameOnly") RT.setSetting(t.dataset.set, t.checked);
+    if (t.dataset.set && t.dataset.set.indexOf("layer:") === 0) { var sl = RT.settings(); sl.layers[t.dataset.set.slice(6)] = t.checked; RT.setSetting("layers", sl.layers); }
+    if (t.id === "smap") { RT.setSetting("map", t.value); render(); }
     if (t.dataset.part) { var s = RT.settings(); s.parts[t.dataset.part] = t.checked; RT.setSetting("parts", s.parts); }
     if (t.dataset.obj) { var f = RT.follow(), q = f.quests[t.dataset.obj]; if (q) { var i = +t.dataset.i, k = q.done.indexOf(i); if (t.checked && k < 0) q.done.push(i); if (!t.checked && k > -1) q.done.splice(k, 1); RT.saveFollow(f); render(); } }
   });
@@ -346,16 +439,22 @@
     if (/^F([1-9]|1[0-9]|2[0-4])$/.test(c)) return c;
     return { Space: "Space", Backquote: "`", Minus: "-", Equal: "=", BracketLeft: "[", BracketRight: "]", Backslash: "\\", Semicolon: ";", Quote: "'", Comma: ",", Period: ".", Slash: "/", Insert: "Insert", Delete: "Delete", Home: "Home", End: "End", PageUp: "PageUp", PageDown: "PageDown" }[c] || "";
   }
-  function setHotkey(key, accel) {
-    var s = RT.settings(), next = { hotkey: s.hotkey, hotkeyOverlay: s.hotkeyOverlay }; next[key] = accel;
-    if (accel && next.hotkey === next.hotkeyOverlay) { state.hkErr = accel + " (it is already your other keybind)"; state.capture = ""; render(); return; }
-    RT.invoke("set_hotkeys", { panel: next.hotkey || "", overlay: next.hotkeyOverlay || "" }).then(function (failed) {
+  function setHotkey(id, accel) {
+    var s = RT.settings(), before = RT.binds(s), next = JSON.parse(JSON.stringify(s));
+    if (id.indexOf("k:") === 0) next.keys[id.slice(2)] = accel; else next[id] = accel;
+    var all = RT.binds(next), mine = id.indexOf("k:") === 0 ? id.slice(2) : id === "hotkey" ? "panel" : "overlay";
+    var clash = accel && Object.keys(all).filter(function (k) { return k !== mine && all[k] && all[k].toLowerCase() === accel.toLowerCase(); })[0];
+    if (clash) { state.hkErr = accel + " (it is already another keybind)"; state.capture = ""; render(); return; }
+    RT.invoke("set_hotkeys", { binds: all }).then(function (failed) {
       failed = failed || [];
-      if (failed.indexOf(accel) > -1) { state.hkErr = accel; RT.invoke("set_hotkeys", { panel: s.hotkey || "", overlay: s.hotkeyOverlay || "" }); }
-      else { RT.setSetting(key, accel); state.hkErr = ""; localStorage.removeItem("rtc-hotkey-err"); }
+      if (accel && failed.indexOf(accel) > -1) { state.hkErr = accel; RT.invoke("set_hotkeys", { binds: before }); }
+      else { if (id.indexOf("k:") === 0) RT.setSetting("keys", next.keys); else RT.setSetting(id, accel); state.hkErr = ""; localStorage.removeItem("rtc-hotkey-err"); }
       state.capture = ""; render();
     });
   }
+  /* whether the game is in front right now, for the "Only while you play" row */
+  function focusNow() { RT.invoke("focus_state").then(function (f) { if (f) { state.focus = f; if (tab === "settings" && (state.sset || "overlay") === "overlay") render(); } }, function () {}); }
+  if (window.__TAURI__) window.__TAURI__.event.listen("focus", function (e) { state.focus = e.payload; if (tab === "settings" && (state.sset || "overlay") === "overlay") render(); });
   document.addEventListener("keydown", function (e) {
     if (!state.capture) { if (e.key === "Escape" && (state.sel || state.doc)) { state.sel = null; state.doc = null; render(); } return; }
     e.preventDefault();
@@ -369,8 +468,9 @@
   window.addEventListener("storage", function () {
     if (state.drag) return;
     if (tab === "map") { banner(); updPill(); return; }
-    if (!document.activeElement || !/^(q|qq|kq|addq|imp)$/.test(document.activeElement.id)) render(); else { banner(); updPill(); }
+    if (!document.activeElement || !/^(q|qq|kq|addq|imp|rimp|scode)$/.test(document.activeElement.id)) render(); else { banner(); updPill(); }
   });
+  if (window.__TAURI__) window.__TAURI__.event.listen("check-updates", function () { if (!RT.accepted() || localStorage.getItem("rtc-required")) return; tab = "settings"; state.sset = "updates"; state.doc = null; checkNow(); setTimeout(function () { var u = view.querySelector('[data-act="check"]'); if (u) u.scrollIntoView({ block: "center" }); }, 50); });
   if (window.__TAURI__) window.__TAURI__.app.getVersion().then(function (v) { state.version = v; if (tab === "settings") render(); });
   render();
   setInterval(function () { if (!RT.accepted()) return; if (tab === "conds") render(true); else banner(); }, 1000);

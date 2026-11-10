@@ -85,8 +85,37 @@
   .spots button { border: 1px solid var(--line); border-radius: 6px; background: transparent; display: grid; place-items: center; padding: 0; }
   .spots button i { width: 14px; height: 6px; border-radius: 2px; background: #5a5672; }
   .spots button[aria-pressed="true"] { border-color: var(--cyan); } .spots button[aria-pressed="true"] i { background: var(--cyan); }
+  /* settings: a small menu of groups, then rows with the label on the left and the control on the right */
+  .snav { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 4px; }
+  .snav button { height: 32px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--line); background: transparent; color: var(--dim); font-weight: 600; font-size: 13px; }
+  .snav button[aria-selected="true"] { border-color: rgba(180,220,200,.4); background: rgba(180,220,200,.14); color: var(--fg); }
+  .sbox { max-width: 700px; }
+  .srow { display: flex; align-items: center; gap: 18px; min-height: 58px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+  .srow .sl { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .srow .lb { font-weight: 600; font-size: 14px; }
+  .srow small { color: var(--faint); font-size: 12.5px; line-height: 1.4; }
+  .srow .sc { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-shrink: 0; max-width: 60%; flex-wrap: wrap; }
+  .srow .sc select { width: 220px; }
+  .srow .seg2 { margin: 0; width: 240px; }
+  .srow .spots { margin: 0; }
+  .sbox .h + .srow { border-top: 1px solid var(--line); }
+  .sbox .note { margin: 10px 0; }
+  .sld { display: flex; align-items: center; gap: 10px; width: 260px; }
+  .sld input { flex: 1; }
+  .sld b { width: 44px; text-align: right; font-family: var(--mono); font-size: 12.5px; font-weight: 400; color: var(--fg); }
+  label.sw { position: relative; width: 42px; height: 24px; flex-shrink: 0; cursor: pointer; }
+  label.sw input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+  label.sw span { position: absolute; inset: 0; border-radius: 99px; background: rgba(255,255,255,.14); transition: background .15s; }
+  label.sw span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #d6d3e6; transition: transform .15s; }
+  label.sw input:checked + span { background: var(--cyan); }
+  label.sw input:checked + span::after { transform: translateX(18px); background: #0c0916; }
+  label.sw input:focus-visible + span { outline: 2px solid var(--cyan); outline-offset: 2px; }
+  .paste { margin: 12px 0; display: flex; flex-direction: column; gap: 6px; }
+  .pr { display: flex; gap: 8px; }
+  .pr input { flex: 1; }
+  .code { font-family: var(--mono); font-size: 15px; letter-spacing: .06em; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: rgba(0,0,0,.25); user-select: all; }
   pre.doc { white-space: pre-wrap; font: 13px/1.55 "Barlow", sans-serif; color: var(--fg); margin: 6px 0 0; max-width: 760px; }
-  .arr { list-style: none; margin: 6px 0; padding: 0; display: flex; flex-direction: column; gap: 4px; max-width: 620px; }
+  .arr { list-style: none; margin: 6px 0; padding: 0; display: flex; flex-direction: column; gap: 4px; max-width: 700px; }
   .arr li { display: flex; align-items: center; gap: 6px; padding: 0 6px 0 4px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); }
   .arr li.dragging { border-color: var(--cyan); background: rgba(95,242,234,.08); }
   .arr .chk { flex: 1; min-width: 0; min-height: 42px; }
@@ -131,6 +160,7 @@
   </div>
 </div>
 <script src="data.js"></script>
+<script src="sync.js"></script>
 <script src="panel.js"></script>
 </body>
 </html>

@@ -46,7 +46,7 @@ else:
         open(OUT + '/site/mk/' + k + '.json', 'wb').write(raw)
         mkf[k] = 'mk/' + k + '.json?v=' + hashlib.sha1(raw).hexdigest()[:8]
     data += '\nvar MK={};var MKF=' + json.dumps(mkf) + ';'
-t = t.replace('/*CSS2*/', rd('template/base.css')).replace('/*DATA*/', data).replace('/*SCENE*/', rd('template/scene.js')).replace('/*DATAINFO*/', json.dumps(info)).replace('/*ADMINHASH*/', json.dumps(admin_hash)).replace('/*ARCPROXY*/""', json.dumps((cfg.get('arcProxy') or '').strip()))
+t = t.replace('/*CSS2*/', rd('template/base.css')).replace('/*DATA*/', data).replace('/*SCENE*/', rd('template/scene.js')).replace('/*DATAINFO*/', json.dumps(info)).replace('/*ADMINHASH*/', json.dumps(admin_hash)).replace('/*ARCPROXY*/""', json.dumps((cfg.get('arcProxy') or '').strip())).replace('/*SYNCAPI*/""', json.dumps((cfg.get('syncApi') or '').strip().rstrip('/')))
 assert '/*' + 'DATA*/' not in t
 os.makedirs(OUT + '/site', exist_ok=True)
 open(OUT + '/site/index.html', 'w', encoding='utf-8').write(t)

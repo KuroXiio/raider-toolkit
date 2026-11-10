@@ -123,14 +123,22 @@
     if (!P.spawn) return;
     var path = [P.spawn].concat((P.stops || []).map(function (st) { return st.p; })); if (P.end != null && data.m[P.end]) path.push([data.m[P.end][0], data.m[P.end][1]]);
     if (path.length > 1) {
-      cx.save(); cx.lineWidth = 3.2; cx.strokeStyle = "rgba(95,242,234,.95)"; cx.setLineDash([2, 7]); cx.lineCap = "round"; cx.shadowColor = "rgba(0,0,0,.8)"; cx.shadowBlur = 4;
-      cx.beginPath(); path.forEach(function (p, k) { var q = scr(p); if (k) cx.lineTo(q[0], q[1] - 3); else cx.moveTo(q[0], q[1] - 3); }); cx.stroke(); cx.restore();
+      cx.save(); cx.lineWidth = 3; cx.strokeStyle = "rgba(95,242,234,.95)"; cx.setLineDash([2, 7]); cx.lineCap = "round"; cx.shadowColor = "rgba(0,0,0,.8)"; cx.shadowBlur = 4;
+      cx.beginPath(); path.forEach(function (p, k) { var q = scr(p); if (k) cx.lineTo(q[0], q[1]); else cx.moveTo(q[0], q[1]); }); cx.stroke(); cx.restore();
     }
-    var pw = Math.round(24 + Math.min(8, (MV.z - 1) * 2)), ph = pw * 38 / 30;
-    var pin = function (p, lab, idx) { var q = scr(p); cx.drawImage(sprPin("plan", "", lab, pw, dpr), q[0] - pw / 2, q[1] - ph, pw, ph); if (idx != null) mkPts.push([q[0], q[1] - ph * 0.62, idx, ph * 0.45]); };
-    if (P.end != null && data.m[P.end]) pin([data.m[P.end][0], data.m[P.end][1]], "E", P.end);
-    (P.stops || []).slice().reverse().forEach(function (st, k, arr) { pin(st.p, String(arr.length - k), st.i); });
-    pin(P.spawn, "S", null);
+    // round badges, the same as in the desktop app: S white, numbered stops dark with a cyan ring, E yellow
+    var r = Math.round(10 + Math.min(5, (MV.z - 1) * 1.4));
+    var badge = function (p, lab, bg, fg, ring, idx, rr) {
+      var q = scr(p), R = rr || r;
+      cx.save(); cx.shadowColor = "rgba(0,0,0,.6)"; cx.shadowBlur = 5;
+      cx.beginPath(); cx.arc(q[0], q[1], R, 0, 6.2832); cx.fillStyle = bg; cx.fill(); cx.restore();
+      cx.lineWidth = ring ? 2 : 1.5; cx.strokeStyle = ring || "#0c0916"; cx.beginPath(); cx.arc(q[0], q[1], R, 0, 6.2832); cx.stroke();
+      cx.fillStyle = fg; cx.font = "700 " + Math.round(R * (lab.length > 1 ? 0.95 : 1.1)) + "px 'JetBrains Mono', ui-monospace, monospace"; cx.textAlign = "center"; cx.textBaseline = "middle"; cx.fillText(lab, q[0], q[1] + 0.5);
+      if (idx != null) mkPts.push([q[0], q[1], idx, R + 2]);
+    };
+    (P.stops || []).slice().reverse().forEach(function (st, k, arr) { badge(st.p, String(arr.length - k), "#2b2740", "#ece9f5", "#5ff2ea", st.i); });
+    if (P.end != null && data.m[P.end]) badge([data.m[P.end][0], data.m[P.end][1]], "E", "#ffc400", "#0c0916", null, P.end, r + 1);
+    badge(P.spawn, "S", "#ece9f5", "#0c0916", null, null);
   }
   function renderPlan() {
     var el = $("#mplanp"), P = MV.plan; if (!el) return;
@@ -171,7 +179,7 @@
       h += '<ol class="ppst">' + P.stops.map(function (st, k) { return "<li><i>" + (k + 1) + "</i><span><b>" + esc(planStopName(st, data)) + "</b><small>" + esc(st.cov.map(nm).join(", ")) + "</small></span></li>"; }).join("") +
         (P.end != null ? '<li class="ex"><i>E</i><span><b>' + esc(data.n[P.end] || t("Extraction")) + "</b><small>" + esc(t("Extract")) + "</small></span></li>" : "") + "</ol>";
       if (P.short && P.short.length) h += '<p class="mlnote2">' + esc(t("Not enough stops for")) + ": " + esc(P.short.map(nm).join(", ")) + ". " + esc(t("Raise the max stops.")) + "</p>";
-      h += '<div class="ppshare"><button type="button" class="btn orb sm" data-pshare>' + esc(t("Share route")) + "</button>" + (P.shareUrl ? '<input readonly value="' + esc(P.shareUrl) + '" aria-label="' + esc(t("Route link")) + '">' : "") + "</div>";
+      h += '<div class="ppshare"><button type="button" class="btn orb sm" data-pshare>' + esc(t("Share route")) + '</button><button type="button" class="btn orb sm" data-papp title="' + esc(t("Show this route in the Raider Toolkit Companion app")) + '">' + esc(t("Send to app")) + "</button>" + (P.shareUrl ? '<input readonly value="' + esc(P.shareUrl) + '" aria-label="' + esc(t("Route link")) + '">' : "") + "</div>";
       h += '<p class="mlsrc">' + esc(t("Straight lines between stops, not walking paths. Containers are random, so a stop can come up empty.")) + "</p>";
     } else if (!P.spawn && its.length) h += '<p class="mlsrc">' + esc(t("Pick your spawn and the route draws itself.")) + "</p>";
     el.innerHTML = h;
@@ -224,6 +232,19 @@
     try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, function () {}); } catch (er) {}
     var i = $("#mplanp .ppshare input"); if (i) { i.focus(); i.select(); }
   }
+  /* Send to app: the stops as they are drawn here, for the desktop app's map. Synced straight to the app when sync is on,
+     otherwise copied as a link to paste in the app (Settings → Map and route). */
+  function planSendApp() {
+    var P = MV.plan, key = mapImgKey(), data = MK[key]; if (!P || !P.spawn || !P.stops || !data) return;
+    var r1 = function (v) { return Math.round(v * 10) / 10; };
+    var o = { k: key, n: MAPS[curMap] + " · " + P.stops.length + " " + t("stops"), at: Date.now(), spawn: [r1(P.spawn[0]), r1(P.spawn[1])],
+      stops: P.stops.map(function (st) { return { p: [r1(st.p[0]), r1(st.p[1])], w: planStopName(st, data), ids: st.cov.slice(0, 12) }; }),
+      end: P.end != null && data.m[P.end] ? { p: [r1(data.m[P.end][0]), r1(data.m[P.end][1])], n: data.n[P.end] || t("Extraction") } : null };
+    if (syncSendRoute(o)) { toast(t("Sent to the app. It shows up on the app's map in a few seconds."), true); return; }
+    var url = location.origin + location.pathname + "#app-route=" + b64u(new TextEncoder().encode(JSON.stringify(o)));
+    copyText(url, function () {});
+    toast(t("Link copied. In the app, paste it under Settings → Map and route. Turn on Sync on your shopping list to skip this step."), true);
+  }
   function planLoadShared(code) {
     var o; try { o = JSON.parse(new TextDecoder().decode(unb64u(code.slice(1)))); } catch (er) { o = null; }
     var key = o && String(o.k || ""), m = key.indexOf("stella_") === 0 ? "stella" : key;
@@ -264,6 +285,7 @@
     if (e.target.closest("[data-pclose]")) { planClose(); return true; }
     var pm = e.target.closest("[data-pmap]"); if (pm) { var sc = planMapScores(), k = pm.dataset.pmap; if (k === "stella" && sc.stella) MV.layer = sc.stella.best.slice(7); selectMap(k); return true; }
     if (e.target.closest("[data-pshare]")) { planShare(); return true; }
+    if (e.target.closest("[data-papp]")) { planSendApp(); return true; }
     if (e.target.closest("[data-pown]")) { MV.plan.fixed = null; MV.plan.shareUrl = ""; planRefresh(); return true; }
     if (e.target.closest("[data-pmin]")) { MV.plan.min = !MV.plan.min; renderPlan(); return true; }
     var tb = e.target.closest("[data-ptab]"); if (tb) { MV.plan.tab = tb.dataset.ptab; renderPlan(); mkSoon(); return true; }

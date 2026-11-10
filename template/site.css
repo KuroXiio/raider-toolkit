@@ -1013,6 +1013,10 @@ nav .ndp a[aria-current="page"] { background: #1b2150; box-shadow: none; }
 .shin small, .shout small { display: block; color: var(--dim); font-size: .84rem; margin-top: 2px; }
 .shinb { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .shout input { flex: 2 1 260px; min-width: 0; padding: 8px 10px; border-radius: 9px; font-family: var(--f-mono); font-size: .76rem; }
+.sync .syncin { display: flex; gap: 8px; flex: 2 1 320px; }
+.sync .syncin input { flex: 1; min-width: 0; padding: 8px 10px; border-radius: 9px; font-family: var(--f-mono); font-size: .82rem; }
+.sync .synccode { font-family: var(--f-mono); font-size: .9rem; letter-spacing: .05em; padding: 6px 10px; border-radius: 8px; border: 1px solid #3a4272; user-select: all; }
+.sync .ok { color: #7ef0b0; } .sync .err { color: #ff8a7a; }
 .shin .x, .shout .x { background: none; border: 1px solid #3a4272; color: var(--dim); border-radius: 8px; padding: 6px 10px; font-size: .8rem; cursor: pointer; }
 @media (max-width: 560px) { .sgb { width: 64px; } .sgt { padding-left: 14px; gap: 10px; } .sgrp-h .x { margin-right: 10px; } }
 
@@ -1304,11 +1308,11 @@ button.infobtn { font: inherit; cursor: pointer; }
 .ppmax input { flex: 1; accent-color: #5ff2ea; }
 .ppst { list-style: none; margin: 10px 0 4px; padding: 0; display: grid; gap: 4px; }
 .ppst li { display: flex; gap: 8px; align-items: flex-start; }
-.ppst li i { font-style: normal; flex: none; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font: 800 .7rem system-ui, sans-serif; background: #0b0f26; border: 1.5px solid #5ff2ea; color: #5ff2ea; margin-top: 1px; }
+.ppst li i { font-style: normal; flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font: 700 .7rem var(--f-mono), ui-monospace, monospace; background: #2b2740; border: 1.5px solid #5ff2ea; color: #ece9f5; margin-top: 1px; }
 .ppst li span { display: flex; flex-direction: column; min-width: 0; }
 .ppst li b { font-size: .82rem; color: #fff; font-weight: 600; }
 .ppst li small { font-size: .74rem; color: var(--dim); }
-.ppst li.ex i { border-color: #ff6b6b; color: #ff6b6b; }
+.ppst li.ex i { background: #ffc400; border-color: #ffc400; color: #0c0916; }
 @media (max-width: 440px) { nav a, nav .ndb { padding: 6px 7px; font-size: .84rem; } nav .ndb { gap: 5px; } nav { gap: 0; } }
 .mlbtn[data-mplan][aria-expanded="true"] { border-color: #5ff2ea; background: #123536; }
 .mview:has(.mlbtn) .hd { top: 248px; }
@@ -1615,8 +1619,8 @@ html.drwon .cartbtn { display: none; }
 .botchip:hover i { transform: translateX(3px); }
 .botchip .bs { display: none; }
 @media (max-width: 640px) { .botchip .bl { display: none; } .botchip .bs { display: inline; } }
-.ppshare { display: flex; flex-direction: column; gap: 8px; margin: 12px 0 4px; }
-.ppshare .btn { align-self: flex-start; }
+.ppshare { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 4px; }
+.ppshare .btn { flex: none; }
 .ppshare input { width: 100%; box-sizing: border-box; font: inherit; font-size: .78rem; padding: 7px 9px; border-radius: 8px; border: 1px solid rgba(255,255,255,.14); background: rgba(0,0,0,.3); color: #d9d5ea; }
 .ppshared { color: var(--mint); }
 /* inside the companion app's map tab (?embed=1): just the page, no site header, footer or floating buttons */
