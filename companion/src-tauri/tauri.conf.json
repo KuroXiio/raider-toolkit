@@ -41,7 +41,10 @@
         "alwaysOnTop": false,
         "resizable": true,
         "visible": true,
-        "dragDropEnabled": false
+        "dragDropEnabled": false,
+        "theme": "Dark",
+        "maximizable": true,
+        "minimizable": true
       },
       {
         "label": "dim",
@@ -90,7 +93,7 @@
     "copyright": "Unofficial fan project, not affiliated with Embark Studios",
     "category": "Utility",
     "shortDescription": "Raider Toolkit Companion",
-    "longDescription": "An overlay with your Raider Toolkit shopping list and map conditions, and a panel you open with a keybind. It never reads, changes or connects to the game.",
+    "longDescription": "Your Raider Toolkit shopping list, map, route and quests in small cards over the game, with an in-game menu on a keybind. It never reads, changes or connects to the game.",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -99,7 +102,8 @@
     ],
     "windows": {
       "nsis": {
-        "installMode": "currentUser"
+        "installMode": "currentUser",
+        "installerIcon": "icons/icon.ico"
       }
     },
     "licenseFile": "../ui/legal/EULA.txt",

@@ -155,11 +155,11 @@
   .gate .res { margin: 8px 0; border: 1px solid var(--line); border-radius: 12px; padding: 4px; }
   .gate .kind { color: var(--mint); }
   label.chk.agree { align-items: flex-start; padding: 8px 0; } label.chk.agree input { margin-top: 2px; }
-  @media (max-width: 680px) {
-    .body { flex-direction: column; }
-    nav.side { width: auto; flex-direction: row; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--line); padding: 8px; }
-    nav.side button span { display: none; }
-    nav.side button { padding: 0 11px; }
+  /* a narrow window: the sidebar shrinks to its icons */
+  @media (max-width: 760px) {
+    nav.side { width: 60px; padding: 12px 8px; }
+    nav.side button { padding: 0; justify-content: center; }
+    nav.side button span, .sfoot, nav.side .upd { display: none; }
     #view { padding: 6px 12px 14px; }
   }
 </style>

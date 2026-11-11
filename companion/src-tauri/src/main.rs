@@ -390,10 +390,12 @@ fn main() {
             tauri_plugin_window_state::Builder::default()
                 // the panel's size and place are remembered; the overlay places itself relative to the screen edges instead
                 .with_denylist(&[
-                    "overlay", "w-map", "w-items", "w-cond", "w-prog", "w-maps", "w-quests",
-                    "w-keys",
+                    "overlay", "menu", "dim", "w-map", "w-items", "w-cond", "w-prog", "w-maps",
+                    "w-quests", "w-keys",
                 ])
-                .with_state_flags(StateFlags::all() & !StateFlags::VISIBLE)
+                // only where it was and how big: never whether it had a title bar or was showing (earlier versions had a
+                // frameless panel, and that must not come back)
+                .with_state_flags(StateFlags::POSITION | StateFlags::SIZE | StateFlags::MAXIMIZED)
                 .build(),
         )
         .manage(Shared(Mutex::new(View {
@@ -421,6 +423,19 @@ fn main() {
         ])
         .setup(|app| {
             watch_focus(app.handle().clone());
+            // The main window is a normal program window. Make sure of that whatever an earlier version remembered:
+            // title bar on, and big enough for the layout.
+            if let Some(w) = app.get_webview_window("panel") {
+                let _ = w.set_decorations(true);
+                let _ = w.set_always_on_top(false);
+                let f = w.scale_factor().unwrap_or(1.0);
+                if let Ok(sz) = w.inner_size() {
+                    if (sz.width as f64 / f) < 720.0 || (sz.height as f64 / f) < 520.0 {
+                        let _ = w.set_size(tauri::LogicalSize::new(1120.0, 760.0));
+                        let _ = w.center();
+                    }
+                }
+            }
             let panel = MenuItem::with_id(app, "panel", "Open Raider Toolkit", true, None::<&str>)?;
             let ingame = MenuItem::with_id(app, "menu", "In-game menu", true, None::<&str>)?;
             let overlay = MenuItem::with_id(
