@@ -158,14 +158,17 @@
         var counts = { list: new Set([].concat.apply([], pinData.list.map(function (x) { return x.ids; }))).size, keys: pinData.keys.length, quests: new Set(pinData.quests.map(function (x) { return x.id; })).size };
         if (JSON.stringify(counts) !== JSON.stringify(mapInfo.counts)) { mapInfo.counts = counts; setTimeout(render, 0); }
       }
-      var sc = scale(), sig = [key, view, at, pinSig, JSON.stringify(s.layers), cv.clientWidth, cv.clientHeight, sc, ready].join("|");
+      var d = view === "route" ? RTMap.dash() : 0;
+      var sc = scale(), sig = [key, view, at, pinSig, JSON.stringify(s.layers), cv.clientWidth, cv.clientHeight, sc, ready, Math.round(d * 2)].join("|");
       if (cv.__sig === sig) return; cv.__sig = sig;
       RTMap.draw(cv, { key: key, pins: pinData, layers: s.layers, r: 4 * sc, cluster: 18 * sc,
-        route: view === "route" ? rt : null, at: at, routeOnly: view === "route",
+        route: view === "route" ? rt : null, at: at, routeOnly: view === "route", dash: d,
         fit: view === "route" ? [rt.spawn].concat(rt.stops.map(function (x) { return x.p; })).concat(rt.end ? [rt.end.p] : []) : RTMap.extent(pinData) });
     });
   }
   paintMap.again = function () { paintMap(); };
+  // the route line marches, gently: about 12 times a second, only while the route card is on screen
+  if (!RTMap.calm) setInterval(function () { if (!document.hidden && hud.querySelector('.mapbox[data-mapbox="route"]')) paintMap(); }, 85);
 
   /* the map widget's actions: from its buttons (while the panel is open) or from keybinds (in game) */
   function act(a) {

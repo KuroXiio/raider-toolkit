@@ -22,6 +22,7 @@
       if (rm) { try { history.replaceState(null, "", location.pathname + location.search + "#maps"); } catch (e) {} planLoadShared(rm[1]); }
       // #maps?map=dam, &item=toaster, &key=…, &quest=… (used by the companion app's map tab and other links)
       var pm = full.match(/[?&]map=([a-z_]+)/), pi = full.match(/[?&]item=([a-z0-9_]+)/), pk = full.match(/[?&]key=([a-z0-9_]+)/), pq = full.match(/[?&]quest=([a-z0-9_]+)/);
+      mapsGrid(mapWantGrid && !rm && !(pm || pi || pk || pq)); mapWantGrid = false;
       if (!rm && (pm || pi || pk || pq)) {
         try { history.replaceState(null, "", location.pathname + location.search + "#maps"); } catch (e) {}
         var mk = pm && (MAPS[pm[1]] ? pm[1] : pm[1].indexOf("stella_") === 0 ? "stella" : "");
@@ -46,6 +47,8 @@
         try { history.replaceState(null, "", location.pathname + location.search + "#items"); } catch (e) {}
       }
       renderUseChips(); renderItems(!!qm);
+      // a link to one item (from the Discord bot, say) opens its details straight away
+      if (qm) { var one = filtered(), qn = $("#q").value.trim().toLowerCase(), ex = one.filter(function (x) { return x.n.toLowerCase() === qn; }); if (ex.length === 1 || one.length === 1) itemOpen((ex[0] || one[0]).id); }
     }
     if (h === "blueprints") renderBp();
     if (h === "quests") renderQuests();

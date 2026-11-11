@@ -18,7 +18,7 @@
     reveal("#v-home .shd");
     reveal("#v-home .zz li", { side: true, step: 0.04 });
     reveal("#v-home .cards .card", { step: 0.05 });
-    reveal("#v-home .appbox");
+    reveal("#v-home .apphd"); reveal("#v-home .appbox");
     reveal("#v-home .faql details", { step: 0.03 });
     // the numbers under the hero count up once
     ["statItems", "statStations", "statWeapons", "statMaps"].forEach(function (id) {

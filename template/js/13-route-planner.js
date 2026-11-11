@@ -121,9 +121,10 @@
     }
     // only the route: spawn, numbered stops and the exit
     if (!P.spawn) return;
-    var path = [P.spawn].concat((P.stops || []).map(function (st) { return st.p; })); if (P.end != null && data.m[P.end]) path.push([data.m[P.end][0], data.m[P.end][1]]);
+    var leg = P.play != null ? planLeg(P.play) : null;
+    var path = leg ? [leg.from.p, leg.to.p] : [P.spawn].concat((P.stops || []).map(function (st) { return st.p; })); if (!leg && P.end != null && data.m[P.end]) path.push([data.m[P.end][0], data.m[P.end][1]]);
     if (path.length > 1) {
-      cx.save(); cx.lineWidth = 3; cx.strokeStyle = "rgba(95,242,234,.95)"; cx.setLineDash([2, 7]); cx.lineCap = "round"; cx.shadowColor = "rgba(0,0,0,.8)"; cx.shadowBlur = 4;
+      cx.save(); cx.lineWidth = 3; cx.strokeStyle = "rgba(95,242,234,.95)"; cx.setLineDash([2, 7]); cx.lineDashOffset = -routeDash(); cx.lineCap = "round"; cx.shadowColor = "rgba(0,0,0,.8)"; cx.shadowBlur = 4;
       cx.beginPath(); path.forEach(function (p, k) { var q = scr(p); if (k) cx.lineTo(q[0], q[1]); else cx.moveTo(q[0], q[1]); }); cx.stroke(); cx.restore();
     }
     // round badges, the same as in the desktop app: S white, numbered stops dark with a cyan ring, E yellow
@@ -136,13 +137,37 @@
       cx.fillStyle = fg; cx.font = "700 " + Math.round(R * (lab.length > 1 ? 0.95 : 1.1)) + "px 'JetBrains Mono', ui-monospace, monospace"; cx.textAlign = "center"; cx.textBaseline = "middle"; cx.fillText(lab, q[0], q[1] + 0.5);
       if (idx != null) mkPts.push([q[0], q[1], idx, R + 2]);
     };
-    (P.stops || []).slice().reverse().forEach(function (st, k, arr) { badge(st.p, String(arr.length - k), "#2b2740", "#ece9f5", "#5ff2ea", st.i); });
+    var look = function (x, R) { return x.lab === "S" ? ["#ece9f5", "#0c0916", null] : x.lab === "E" ? ["#ffc400", "#0c0916", null] : ["#2b2740", "#ece9f5", "#5ff2ea"]; };
+    if (leg) {
+      // play mode: where you are (faded) and where you go next (big, pulsing ring)
+      var a = look(leg.from), b = look(leg.to), q1 = scr(leg.to.p), pr = r + 6 + (dashCalm ? 0 : Math.sin(performance.now() / 260) * 3);
+      cx.save(); cx.globalAlpha = .55; badge(leg.from.p, leg.from.lab, a[0], a[1], a[2], null); cx.restore();
+      cx.save(); cx.lineWidth = 2; cx.strokeStyle = "rgba(95,242,234,.55)"; cx.beginPath(); cx.arc(q1[0], q1[1], pr + 4, 0, 6.2832); cx.stroke(); cx.restore();
+      badge(leg.to.p, leg.to.lab, b[0], b[1], b[2], leg.to.i, r + 3);
+      return;
+    }
+    if (P.hl != null && P.stops && P.stops[P.hl]) { var qh = scr(P.stops[P.hl].p); cx.save(); cx.fillStyle = "rgba(95,242,234,.22)"; cx.beginPath(); cx.arc(qh[0], qh[1], r + 10, 0, 6.2832); cx.fill(); cx.restore(); }
+    (P.stops || []).slice().reverse().forEach(function (st, k, arr) { var n = arr.length - k; badge(st.p, String(n), "#2b2740", "#ece9f5", "#5ff2ea", st.i, P.hl === n - 1 ? r + 3 : null); });
     if (P.end != null && data.m[P.end]) badge([data.m[P.end][0], data.m[P.end][1]], "E", "#ffc400", "#0c0916", null, P.end, r + 1);
     badge(P.spawn, "S", "#ece9f5", "#0c0916", null, null);
   }
+  /* the route line marches from stop to stop. The map is drawn again about 30 times a second only while a route
+     is on screen, the tab is visible and the visitor hasn't asked for less motion. */
+  var dashRaf = 0, dashLast = 0, dashCalm = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function routeDash() {
+    if (!dashCalm && !dashRaf) dashRaf = requestAnimationFrame(dashTick);
+    return dashCalm ? 0 : (performance.now() / 55) % 9;
+  }
+  function dashTick(ts) {
+    dashRaf = 0;
+    var on = !document.hidden && $("#v-maps").classList.contains("on") && !$("#v-maps").classList.contains("pick") && MV.plan && MV.plan.spawn && MV.plan.stops && MV.plan.stops.length;
+    if (!on) return;
+    if (ts - dashLast > 32) { dashLast = ts; mkDraw(); } else dashRaf = requestAnimationFrame(dashTick);
+  }
   function renderPlan() {
     var el = $("#mplanp"), P = MV.plan; if (!el) return;
-    if (!P) { el.hidden = true; el.innerHTML = ""; return; }
+    if (!P) { el.hidden = true; el.innerHTML = ""; planPlayHud(); return; }
+    planPlayHud();
     el.hidden = false;
     var data = MK[mapImgKey()];
     if (!data) { el.innerHTML = '<p class="dim">' + esc(t("Loading markers…")) + "</p>"; return; }
@@ -151,6 +176,26 @@
     var h = '<div class="mlh2"><b>' + esc(t("Plan a route")) + '</b><span><button type="button" class="mlx" data-pmin aria-label="' + esc(t(P.min ? "Show" : "Hide")) + '">' + (P.min ? "▾" : "▴") + '</button><button type="button" class="mlx" data-pclose aria-label="' + esc(t("Close")) + '">×</button></span></div>';
     if (P.min) { el.innerHTML = h + (P.stops ? '<p class="mlnote2">' + P.stops.length + " " + esc(t("stops")) + "</p>" : ""); el.classList.add("min"); return; }
     el.classList.remove("min");
+    // two views so neither is crowded: Setup (what you need, spawn, exit) and Route (the stops). The route opens by itself the first time there is one.
+    var hasRoute = !!(P.stops && P.stops.length);
+    if (hasRoute && !P.had) P.view = "route";
+    P.had = hasRoute;
+    var view = hasRoute && P.view !== "setup" ? "route" : "setup";
+    el.classList.toggle("rt", view === "route");
+    if (hasRoute) h += '<div class="pptabs ppv" role="tablist"><button type="button" role="tab" data-pview="setup" aria-selected="' + (view === "setup") + '">' + esc(t("Setup")) + '</button><button type="button" role="tab" data-pview="route" aria-selected="' + (view === "route") + '">' + esc(t("Route")) + " <em>" + P.stops.length + "</em></button></div>";
+    if (view === "route") {
+      var got = {}; P.stops.forEach(function (st) { st.cov.forEach(function (id) { got[id] = 1; }); });
+      h += '<div class="pps"><span><b>' + P.stops.length + "</b>" + esc(t("stops")) + "</span><span><b>" + Object.keys(got).length + "</b>" + esc(t("items")) + "</span>" + (P.end != null ? '<span class="ppx"><b>E</b>' + esc(data.n[P.end] || t("Extraction")) + "</span>" : "") + "</div>";
+      h += P.play != null ? '<button type="button" class="btn orb ppplay" data-pplayx>' + esc(t("Stop playing")) + "</button>" : '<button type="button" class="btn go orb ppplay" data-pplay><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>' + esc(t("Play route")) + "</button>";
+      h += '<ol class="ppst">' + P.stops.map(function (st, k) { return '<li tabindex="0" data-pst="' + k + '"' + (P.play === k ? ' class="cur"' : P.play > k ? ' class="did"' : "") + ' style="--i:' + Math.min(k, 14) + '"><i>' + (k + 1) + "</i><span><b>" + esc(planStopName(st, data)) + "</b>" + planThumbs(st.cov, 5) + "</span></li>"; }).join("") +
+        (P.end != null ? '<li class="ex' + (P.play === P.stops.length ? " cur" : "") + '" style="--i:' + Math.min(P.stops.length, 15) + '"><i>E</i><span><b>' + esc(data.n[P.end] || t("Extraction")) + "</b><small>" + esc(t("Extract")) + "</small></span></li>" : "") + "</ol>";
+      if (P.short && P.short.length) h += '<p class="mlnote2">' + esc(t("Not enough stops for")) + ": " + esc(P.short.map(nm).join(", ")) + ". " + esc(t("Raise the max stops.")) + "</p>";
+      h += '<div class="ppshare"><button type="button" class="btn go orb sm" data-papp title="' + esc(t("Show this route in the Raider Toolkit Companion app")) + '">' + esc(t("Send to app")) + '</button><button type="button" class="btn orb sm" data-pshare>' + esc(t("Share route")) + "</button>" + (P.shareUrl ? '<input readonly value="' + esc(P.shareUrl) + '" aria-label="' + esc(t("Route link")) + '">' : "") + "</div>";
+      h += '<p class="mlsrc">' + esc(t("Straight lines between stops, not walking paths. Containers are random, so a stop can come up empty.")) + "</p>";
+      el.innerHTML = h;
+      var cur = el.querySelector(".ppst .cur"); if (cur) { var top = cur.offsetTop - el.clientHeight / 2 + cur.offsetHeight / 2; el.scrollTo({ top: Math.max(0, top), behavior: dashCalm ? "auto" : "smooth" }); }
+      return;
+    }
     if (arcIts.length) h += '<div class="pptabs" role="tablist"><button type="button" role="tab" data-ptab="loot" aria-selected="' + (P.tab !== "arc") + '">' + esc(t("Loot route")) + " <em>" + its.length + '</em></button><button type="button" role="tab" data-ptab="arc" aria-selected="' + (P.tab === "arc") + '">' + esc(t("ARC drops")) + " <em>" + arcIts.length + "</em></button></div>";
     if (P.tab === "arc") {
       h += '<p class="mlsrc pparc">' + esc(t("These come from fighting or looting ARC, so they are not on the route. The map shows where those ARC are usually found.")) + "</p>";
@@ -175,12 +220,8 @@
     h += '<select id="ppext"><option value="auto">' + esc(t("Best exit for your list")) + "</option>" + ex.map(function (i) { var nmx = data.n[i] || MKT[data.m[i][2]][2]; return '<option value="' + i + '"' + (String(P.ext) === String(i) ? " selected" : "") + ">" + esc(nmx) + "</option>"; }).join("") + "</select>";
     h += '<label class="ppmax"><span>' + esc(t("Max stops")) + ' <b id="ppmaxv">' + planSt.max + '</b></span><input type="range" id="ppmax" min="3" max="80" value="' + planSt.max + '"></label>';
     if (P.err) h += '<p class="mlnote2">' + esc(P.err) + "</p>";
-    if (P.stops && P.stops.length) {
-      h += '<ol class="ppst">' + P.stops.map(function (st, k) { return "<li><i>" + (k + 1) + "</i><span><b>" + esc(planStopName(st, data)) + "</b><small>" + esc(st.cov.map(nm).join(", ")) + "</small></span></li>"; }).join("") +
-        (P.end != null ? '<li class="ex"><i>E</i><span><b>' + esc(data.n[P.end] || t("Extraction")) + "</b><small>" + esc(t("Extract")) + "</small></span></li>" : "") + "</ol>";
-      if (P.short && P.short.length) h += '<p class="mlnote2">' + esc(t("Not enough stops for")) + ": " + esc(P.short.map(nm).join(", ")) + ". " + esc(t("Raise the max stops.")) + "</p>";
-      h += '<div class="ppshare"><button type="button" class="btn orb sm" data-pshare>' + esc(t("Share route")) + '</button><button type="button" class="btn orb sm" data-papp title="' + esc(t("Show this route in the Raider Toolkit Companion app")) + '">' + esc(t("Send to app")) + "</button>" + (P.shareUrl ? '<input readonly value="' + esc(P.shareUrl) + '" aria-label="' + esc(t("Route link")) + '">' : "") + "</div>";
-      h += '<p class="mlsrc">' + esc(t("Straight lines between stops, not walking paths. Containers are random, so a stop can come up empty.")) + "</p>";
+    if (hasRoute) {
+      h += '<button type="button" class="btn go orb sm ppgo" data-pview="route">' + esc(t("Show the route")) + " · " + P.stops.length + " " + esc(t("stops")) + "</button>";
     } else if (!P.spawn && its.length) h += '<p class="mlsrc">' + esc(t("Pick your spawn and the route draws itself.")) + "</p>";
     el.innerHTML = h;
     renderPlanRes();
@@ -190,6 +231,84 @@
     var c = {}, o = []; m.forEach(function (i) { var n = MKT[data.m[i][2]][2]; if (!c[n]) o.push(n); c[n] = (c[n] || 0) + 1; });
     return o.map(function (n) { return n + (c[n] > 1 ? " ×" + c[n] : ""); }).join(", ");
   }
+  function planThumbs(ids, max) {
+    var more = ids.length - max;
+    return '<span class="ppth">' + ids.slice(0, max).map(function (id) { return thumb(id); }).join("") + (more > 0 ? "<em>+" + more + "</em>" : "") + "<small>" + ids.length + " " + esc(t(ids.length === 1 ? "item" : "items")) + "</small></span>";
+  }
+  /* what a stop gives you: shown when you hover a stop in the list or on the map */
+  function planStopTip(k) {
+    var P = MV.plan, data = MK[mapImgKey()], st = P && P.stops && P.stops[k]; if (!st || !data) return "";
+    return "<b>" + esc(t("Stop") + " " + (k + 1) + " · " + planStopName(st, data)) + "</b><small>" + esc(st.cov.length + " " + t(st.cov.length === 1 ? "item on your route" : "items on your route")) + '</small><ul class="ttits">' + st.cov.map(function (id) { return "<li>" + thumb(id) + "<span>" + esc(nm(id)) + "</span></li>"; }).join("") + "</ul>";
+  }
+  function planStopAt(idx) { var P = MV.plan; if (!P || !P.stops || P.picking || P.tab === "arc") return -1; for (var k = 0; k < P.stops.length; k++) if (P.stops[k].i === idx) return k; return -1; }
+  function planTipAt(html, r) {
+    tt.innerHTML = html; tt.hidden = false;
+    var w = tt.offsetWidth, h = tt.offsetHeight, x = r.left - w - 12, y = Math.max(8, Math.min(innerHeight - h - 8, r.top + r.height / 2 - h / 2));
+    if (x < 8) { x = Math.max(8, Math.min(innerWidth - w - 8, r.left)); y = r.top - h - 8; if (y < 8) y = r.bottom + 8; }
+    tt.style.left = x + "px"; tt.style.top = y + "px";
+  }
+  function planHover(k) { var P = MV.plan; if (!P || P.hl === k) return; P.hl = k; mkSoon(); }
+  document.addEventListener("mouseover", function (e) { var li = e.target.closest && e.target.closest("#mplanp [data-pst]"); if (li) { planTipAt(planStopTip(+li.dataset.pst), li.getBoundingClientRect()); planHover(+li.dataset.pst); } });
+  document.addEventListener("mouseout", function (e) { var li = e.target.closest && e.target.closest("#mplanp [data-pst]"); if (li && !li.contains(e.relatedTarget)) { hideTT(); planHover(null); } });
+  document.addEventListener("focusin", function (e) { var li = e.target.closest && e.target.closest("#mplanp [data-pst]"); if (li) { planTipAt(planStopTip(+li.dataset.pst), li.getBoundingClientRect()); planHover(+li.dataset.pst); } });
+  document.addEventListener("focusout", function (e) { if (e.target.closest && e.target.closest("#mplanp [data-pst]")) { hideTT(); planHover(null); } });
+
+  /* ---------- play route: one leg at a time, zoomed to where you are and where you go next ---------- */
+  function planTargets() {
+    var P = MV.plan, data = MK[mapImgKey()], o = (P.stops || []).map(function (st, k) { return { p: st.p, lab: String(k + 1), i: st.i, k: k, name: planStopName(st, data), cov: st.cov }; });
+    if (P.end != null && data.m[P.end]) o.push({ p: [data.m[P.end][0], data.m[P.end][1]], lab: "E", i: P.end, name: data.n[P.end] || t("Extraction"), cov: [] });
+    return o;
+  }
+  function planLeg(k) {
+    var T = planTargets(); if (!T.length) return null; k = Math.max(0, Math.min(T.length - 1, k));
+    return { from: k ? T[k - 1] : { p: MV.plan.spawn, lab: "S" }, to: T[k], n: T.length, k: k };
+  }
+  var mvAnim = 0;
+  function planZoomTo(ps, pad) {
+    var box = $("#mview"), d = MAPIMG[mapImgKey()]; if (!box || !d) return;
+    var x0 = Math.min.apply(null, ps.map(function (q) { return q[0]; })), x1 = Math.max.apply(null, ps.map(function (q) { return q[0]; })), y0 = Math.min.apply(null, ps.map(function (q) { return q[1]; })), y1 = Math.max.apply(null, ps.map(function (q) { return q[1]; }));
+    var W = box.clientWidth, H = box.clientHeight, base = Math.min(W / d.w, H / d.h), padY = pad + (MV.plan && MV.plan.play != null ? 60 : 0);
+    var z = Math.max(1, Math.min(MV.plan && MV.plan.play != null ? 5 : 3.5, Math.min((W - pad * 2) / Math.max(60, x1 - x0), (H - padY * 2) / Math.max(60, y1 - y0)) / base));
+    var sc = base * z, tx = W / 2 - (x0 + x1) / 2 * sc, ty = H / 2 - (y0 + y1) / 2 * sc + (MV.plan && MV.plan.play != null ? 10 : 20);
+    cancelAnimationFrame(mvAnim);
+    if (dashCalm) { MV.z = z; MV.x = tx; MV.y = ty; mvApply(); return; }
+    // glide: interpolate in "where the map centre is" space so the zoom doesn't swing off to one side
+    var z0 = MV.z, cx0 = (W / 2 - MV.x) / (base * z0), cy0 = (H / 2 - MV.y) / (base * z0), cx1 = (W / 2 - tx) / sc, cy1 = (H / 2 - ty) / sc, t0 = performance.now(), dur = 650;
+    var step = function (now) {
+      var u = Math.min(1, (now - t0) / dur), e = u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+      var zz = z0 * Math.pow(z / z0, e), s2 = base * zz, ccx = cx0 + (cx1 - cx0) * e, ccy = cy0 + (cy1 - cy0) * e;
+      MV.z = zz; MV.x = W / 2 - ccx * s2; MV.y = H / 2 - ccy * s2; mvApply();
+      if (u < 1) mvAnim = requestAnimationFrame(step);
+    };
+    mvAnim = requestAnimationFrame(step);
+  }
+  function planPlayGo(k) {
+    var P = MV.plan; if (!P || !P.stops || !P.stops.length) return;
+    var leg = planLeg(k); P.play = leg.k; P.hl = null; hideTT();
+    renderPlan(); planZoomTo([leg.from.p, leg.to.p], 110);
+  }
+  function planPlayStop() { var P = MV.plan; if (!P || P.play == null) return; P.play = null; renderPlan(); planFit(); }
+  function planPlayHud() {
+    var box = $("#mview"), P = MV.plan, el = box && box.querySelector(".pplay");
+    if (!box) return;
+    if (!P || P.play == null || !P.stops || !P.stops.length) { if (el) el.remove(); box.classList.remove("playing"); return; }
+    var leg = planLeg(P.play), last = leg.k === leg.n - 1, to = leg.to;
+    if (!el) { el = document.createElement("div"); el.className = "pplay"; box.appendChild(el); }
+    box.classList.add("playing");
+    el.innerHTML = '<div class="pptop"><button type="button" class="mlx" data-pplayx aria-label="' + esc(t("Stop playing")) + '">×</button>' +
+      '<div class="ppcnt"><b>' + (leg.k + 1) + "</b><span>/" + leg.n + "</span></div>" +
+      '<div class="ppnow"><small>' + esc(to.lab === "E" ? t("Extract") : t("Next stop")) + "</small><b>" + esc(to.name) + "</b>" + (to.cov.length ? '<span class="ppchips">' + to.cov.slice(0, 6).map(function (id) { return "<span>" + thumb(id) + esc(nm(id)) + "</span>"; }).join("") + (to.cov.length > 6 ? "<span>+" + (to.cov.length - 6) + "</span>" : "") + "</span>" : "") + "</div></div>" +
+      '<div class="ppbar"><i style="width:' + Math.round((leg.k + 1) / leg.n * 100) + '%"></i></div>' +
+      '<div class="ppnav"><button type="button" class="btn orb sm" data-pplayb' + (leg.k ? "" : " disabled") + ' aria-label="' + esc(t("Previous stop")) + '">‹</button>' +
+      (last ? '<button type="button" class="btn go orb" data-pplayx>' + esc(t("Done")) + "</button>" : '<button type="button" class="btn go orb" data-pplayn>' + esc(t("Next stop")) + " ›</button>") + "</div>";
+  }
+  document.addEventListener("keydown", function (e) {
+    var P = MV.plan; if (!P || P.play == null || !$("#v-maps").classList.contains("on")) return;
+    if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+    if (e.key === "ArrowRight" || e.key === " " || e.key === "n") { e.preventDefault(); if (P.play < planLeg(P.play).n - 1) planPlayGo(P.play + 1); }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); if (P.play > 0) planPlayGo(P.play - 1); }
+    else if (e.key === "Escape") planPlayStop();
+  });
   function renderPlanRes() {
     var box = $("#ppres"), P = MV.plan; if (!box || !P) return;
     var q = (P.q || "").trim().toLowerCase(); if (!q) { box.innerHTML = ""; return; }
@@ -263,8 +382,8 @@
       });
     }, 80);
   }
-  function planClose() { MV.plan = null; renderPlan(); mkKeyPins(); mkTabsSync(); var b = $("#mview [data-mplan]"); if (b) b.setAttribute("aria-expanded", "false"); mkSoon(); }
-  function planRefresh() { if (MV.plan && MV.plan.spawn) planCompute(); renderPlan(); mkSoon(); }
+  function planClose() { cancelAnimationFrame(mvAnim); MV.plan = null; renderPlan(); mkKeyPins(); mkTabsSync(); var b = $("#mview [data-mplan]"); if (b) b.setAttribute("aria-expanded", "false"); mkSoon(); }
+  function planRefresh() { if (MV.plan) MV.plan.play = null; if (MV.plan && MV.plan.spawn) planCompute(); renderPlan(); mkSoon(); }
   function planPick(e, box) {
     var P = MV.plan, d = MAPIMG[mapImgKey()], data = MK[mapImgKey()]; if (!P || !d || !data) return;
     var r = box.getBoundingClientRect(), sx = e.clientX - r.left, sy = e.clientY - r.top, s = Math.min(box.clientWidth / d.w, box.clientHeight / d.h) * MV.z;
@@ -274,10 +393,7 @@
   function planFit() {
     var P = MV.plan, box = $("#mview"), d = MAPIMG[mapImgKey()], data = MK[mapImgKey()]; if (!P || !P.spawn || !box || !d) return;
     var ps = [P.spawn].concat((P.stops || []).map(function (x) { return x.p; })); if (P.end != null && data.m[P.end]) ps.push(data.m[P.end]);
-    var x0 = Math.min.apply(null, ps.map(function (q) { return q[0]; })), x1 = Math.max.apply(null, ps.map(function (q) { return q[0]; })), y0 = Math.min.apply(null, ps.map(function (q) { return q[1]; })), y1 = Math.max.apply(null, ps.map(function (q) { return q[1]; }));
-    var W = box.clientWidth, H = box.clientHeight, base = Math.min(W / d.w, H / d.h), pad = 90;
-    MV.z = Math.max(1, Math.min(3.5, Math.min((W - pad * 2) / Math.max(80, x1 - x0), (H - pad * 2) / Math.max(80, y1 - y0)) / base));
-    var sc = base * MV.z; MV.x = W / 2 - (x0 + x1) / 2 * sc; MV.y = H / 2 - (y0 + y1) / 2 * sc + 20; mvApply();
+    planZoomTo(ps, 90);
   }
   function planClick(e, box) {
     if (e.target.closest("[data-mplan]")) { if (MV.plan) planClose(); else planOpen(); return true; }
@@ -286,8 +402,14 @@
     var pm = e.target.closest("[data-pmap]"); if (pm) { var sc = planMapScores(), k = pm.dataset.pmap; if (k === "stella" && sc.stella) MV.layer = sc.stella.best.slice(7); selectMap(k); return true; }
     if (e.target.closest("[data-pshare]")) { planShare(); return true; }
     if (e.target.closest("[data-papp]")) { planSendApp(); return true; }
+    if (e.target.closest("[data-pplay]")) { planPlayGo(0); return true; }
+    var ps = e.target.closest("#mplanp [data-pst]"); if (ps && MV.plan.play != null) { planPlayGo(+ps.dataset.pst); return true; }
+    if (e.target.closest("[data-pplayn]")) { planPlayGo(MV.plan.play + 1); return true; }
+    if (e.target.closest("[data-pplayb]")) { planPlayGo(MV.plan.play - 1); return true; }
+    if (e.target.closest("[data-pplayx]")) { planPlayStop(); return true; }
     if (e.target.closest("[data-pown]")) { MV.plan.fixed = null; MV.plan.shareUrl = ""; planRefresh(); return true; }
     if (e.target.closest("[data-pmin]")) { MV.plan.min = !MV.plan.min; renderPlan(); return true; }
+    var pv = e.target.closest("[data-pview]"); if (pv) { MV.plan.view = pv.dataset.pview; renderPlan(); return true; }
     var tb = e.target.closest("[data-ptab]"); if (tb) { MV.plan.tab = tb.dataset.ptab; renderPlan(); mkSoon(); return true; }
     if (e.target.closest("[data-ppick]")) { MV.plan.picking = !MV.plan.picking; renderPlan(); mkSoon(); return true; }
     var a = e.target.closest("[data-padd]"); if (a) { if (planSt.add.indexOf(a.dataset.padd) < 0) planSt.add.push(a.dataset.padd); delete planSt.off[a.dataset.padd]; MV.plan.q = ""; planSave(); planRefresh(); return true; }
@@ -314,7 +436,40 @@
   function setSbw() { document.documentElement.style.setProperty("--sbw", Math.max(0, window.innerWidth - document.documentElement.clientWidth) + "px"); }
   setSbw();
   window.addEventListener("resize", function () { setSbw(); mvApply(); });
-  function selectMap(k) { if (MV.plan) { MV.plan.spawn = null; MV.plan.stops = null; MV.plan.picking = true; MV.plan.ext = "auto"; MV.plan.tab = ""; } mTagQ = ""; mTagKind = "all"; curMap = k; MV.z = 1; MV.x = 0; MV.y = 0; renderMapList(); renderMapDetail(); }
+  function selectMap(k) { if (MV.plan) { MV.plan.spawn = null; MV.plan.stops = null; MV.plan.picking = true; MV.plan.ext = "auto"; MV.plan.tab = ""; MV.plan.play = null; } mTagQ = ""; mTagKind = "all"; curMap = k; MV.z = 1; MV.x = 0; MV.y = 0; renderMapList(); renderMapDetail(); }
+  /* ---------- the Maps page opens on a grid of the maps; pick one and it grows into the map screen ---------- */
+  var mapWantGrid = /^#maps$/.test(location.hash) && !document.documentElement.classList.contains("embed");
+  function renderMapGrid() {
+    // big cards: the map picture, then a box with the name, what's going on there now and a line about it
+    $("#mapgrid").innerHTML = MAP_ORDER.map(function (k, n) {
+      var m = MAPS[k];
+      return '<button type="button" class="mpk orb" data-mapopen="' + k + '" style="--i:' + n + ';--img:url(bot/' + k + '.jpg)"><span class="mpi"><img src="bot/' + k + '.jpg" alt="" loading="lazy"><span class="mgo" aria-hidden="true">' + esc(t("Open map")) + ' →</span></span>' +
+        '<span class="mpb"><span class="mpt"><b>' + esc(m.name) + "</b>" + (mapWip(k).length ? '<span class="wip">WIP</span>' : "") + '<small>' + esc(t(m.unlock || "")) + "</small></span>" +
+        '<span class="mpe"><span class="now" data-evm="' + k + '" hidden></span><span class="nxt" data-evn="' + k + '"></span></span>' +
+        '<span class="mpd">' + esc(t(m.blurb || "")) + "</span>" +
+        '<span class="mpf"><span>' + (m.pois || []).length + " " + esc(t("named areas")) + "</span>" + ((m.events || []).length ? "<span>" + m.events.length + " " + esc(t("map conditions")) + "</span>" : "") + "</span></span></button>";
+    }).join("");
+    renderEvents();
+  }
+  function mapsGrid(on) {
+    $("#v-maps").classList.toggle("pick", !!on); $("#mapsBack").hidden = !!on;
+    if (on) renderMapGrid(); else $("#mapgrid").innerHTML = "";
+  }
+  function mapOpenFromGrid(k, card) {
+    var open = function () { mapsGrid(false); selectMap(k); window.scrollTo(0, 0); };
+    var im = card && card.querySelector("img"), calm = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!im || calm || !document.startViewTransition) { open(); return; }
+    im.style.viewTransitionName = "mapzoom";
+    var vt = document.startViewTransition(function () { open(); $("#mapstage").style.viewTransitionName = "mapzoom"; });
+    vt.finished.then(function () { $("#mapstage").style.viewTransitionName = ""; }, function () { $("#mapstage").style.viewTransitionName = ""; });
+  }
+  $("#mapgrid").addEventListener("click", function (e) { var b = e.target.closest("[data-mapopen]"); if (b) mapOpenFromGrid(b.dataset.mapopen, b); });
+  $("#mapsBack").addEventListener("click", function () { mapsGrid(true); window.scrollTo(0, 0); });
+  // the Maps link in the menu always goes to the grid; links to something on a map go straight to that map
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest('a[href="#maps"]'); if (!a || document.documentElement.classList.contains("embed")) return;
+    if (location.hash === "#maps") mapsGrid(true); else mapWantGrid = true;
+  }, true);
   $("#maplist").addEventListener("click", function (e) {
     var c = e.target.closest(".mpcur"); if (c) { var o = !$("#maplist").classList.contains("open"); $("#maplist").classList.toggle("open", o); c.setAttribute("aria-expanded", String(o)); return; }
     var b = e.target.closest("button[data-mapsel]"); if (b) { $("#maplist").classList.remove("open"); selectMap(b.dataset.mapsel); }

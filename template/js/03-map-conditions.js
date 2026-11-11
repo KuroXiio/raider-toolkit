@@ -24,8 +24,13 @@
       var s = evState(m, now); el.hidden = !s.cur;
       if (s.cur) el.innerHTML = esc(s.cur) + " <b>" + evClock(s.left) + "</b>";
     });
-    var t = $("#mcevt");
-    if (t) { if (!EV.m[curMap]) t.parentNode.hidden = true; else { var s = evState(curMap, now); t.innerHTML = s.next ? '<small>Next</small>' + esc(s.next) + " <b>in " + evClock(s.inS) + "</b>" : '<small>Next</small>No condition coming up'; } }
+    // the map cards' "next" line
+    Array.prototype.forEach.call(document.querySelectorAll("[data-evn]"), function (el) {
+      var m = el.dataset.evn; if (!EV.m[m]) { el.textContent = t("No timed conditions"); return; }
+      var s = evState(m, now); el.innerHTML = s.next ? "<small>" + esc(t("Next")) + "</small> " + esc(s.next) + " <b>" + evClock(s.inS) + "</b>" : esc(t("No condition coming up"));
+    });
+    var te = $("#mcevt");
+    if (te) { if (!EV.m[curMap]) te.parentNode.hidden = true; else { var s = evState(curMap, now); te.innerHTML = s.next ? '<small>Next</small>' + esc(s.next) + " <b>in " + evClock(s.inS) + "</b>" : '<small>Next</small>No condition coming up'; } }
   }
   setInterval(function () { var v = $("#v-maps"); if (v && v.classList.contains("on") && !document.hidden) renderEvents(); }, 1000);
   document.addEventListener("change", function (e) { if (e.target && e.target.id === "evReg") { evReg = e.target.value; store("rt-evreg", evReg); renderEvents(); } });

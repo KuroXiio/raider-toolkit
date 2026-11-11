@@ -85,13 +85,31 @@
     });
     $("#kCount").textContent = arr.length + " of " + KEYS.length + " keys";
     $("#kList").innerHTML = arr.length ? arr.map(function (k) {
-      var it = IDX[k.id] || { id: k.id, n: nm(k.id), t: "Key", r: null, v: null };
-      var hasImg = !!MAPIMG[k.pin ? k.pin[0] : (k.m === "stella" ? "stella_u" : k.m)];
-      return '<article class="panel kcard" style="--rc:' + rcol(it.r) + '">' + tile(it) + '<div><h3>' + esc(it.n) + '</h3><div class="row"><span class="pill">' + esc(KMAP[k.m]) + '</span><span class="pill r">' + esc(it.r || "Rarity not published") + "</span>" + (k.pin || k.m === "any" ? "" : '<span class="wip" title="No map pin for this key yet">Map pin WIP</span>') + "</div>" +
-        "<dl><dt>Opens</dt><dd>" + esc(k.door) + "</dd><dt>Get it</dt><dd>" + esc(k.get) + "</dd>" + (k.loot ? "<dt>Inside</dt><dd>" + esc(k.loot) + "</dd>" : "") + "</dl>" +
-        '<div class="acts">' + (k.pin ? '<button type="button" class="btn orb" data-kshow="' + k.id + '">Show on map</button>' : (hasImg && k.m !== "any" ? '<button type="button" class="btn orb" data-kshow="' + k.id + '">Open map</button>' : "")) + '<button type="button" class="btn orb" data-find="' + esc(it.n) + '">Item details</button><button type="button" class="addl" data-add="' + k.id + '">+ Shopping list</button></div></div></article>';
+      var it = keyItem(k);
+      return '<article class="panel imini kmini" style="--rc:' + rcol(it.r) + '">' + tile(it) +
+        '<div class="info"><h3>' + esc(it.n) + '</h3><div class="row"><span class="pill">' + esc(KMAP[k.m]) + '</span><span class="pill r">' + esc(it.r || "Rarity not published") + "</span></div>" +
+        '<p class="kdoor"><small>' + esc(t("Opens")) + "</small>" + esc(k.door) + "</p></div>" +
+        '<span class="ihint" aria-hidden="true">' + esc(t("Details")) + '<svg viewBox="0 0 16 16"><path d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/></svg></span>' +
+        '<button type="button" class="iopen" data-kopen="' + k.id + '" aria-label="' + esc(it.n) + ": " + esc(t("details")) + '"></button>' +
+        '<button type="button" class="addl iadd" data-add="' + k.id + '" title="' + esc(t("Add to shopping list")) + '" aria-label="' + esc(it.n) + ": " + esc(t("Add to shopping list")) + '">+</button></article>';
     }).join("") : '<div class="empty">No key matches that search.</div>';
   }
+  function keyItem(k) { return IDX[k.id] || { id: k.id, n: nm(k.id), t: "Key", r: null, v: null }; }
+  /* the details window for a key: the same window as items, with what it opens, how to get it and what is inside */
+  function keyCard(k) {
+    var it = keyItem(k), note = k.pf ? "The pin marks where the code is found. Use it in the Gate Control Room." : k.xp ? "This key opens several doors; each has its own pin on the map." : k.pin ? (k.pin[3] ? "The pin marks the door." : "The pin marks the building or area, not the exact door.") : k.m === "any" ? "" : "No map pin for this key yet.";
+    return '<article class="panel item" style="--rc:' + rcol(it.r) + '"><div class="ihead">' + tile(it) +
+      '<div class="info"><h3>' + esc(it.n) + '</h3><div class="row"><span class="pill">' + esc(KMAP[k.m]) + '</span><span class="pill r">' + esc(it.r || "Rarity not published") + "</span></div>" +
+      (it.v != null ? '<div class="statline"><span><small>Value</small>' + fmt(it.v) + "</span></div>" : "") + "</div></div>" +
+      '<div class="imore"><dl class="kv"><dt>' + esc(t("Opens")) + "</dt><dd>" + esc(k.door) + "</dd><dt>" + esc(t("Get it")) + "</dt><dd>" + esc(k.get) + "</dd>" + (k.loot ? "<dt>" + esc(t("Inside")) + "</dt><dd>" + esc(k.loot) + "</dd>" : "") + (note ? "<dt>" + esc(t("Map")) + "</dt><dd>" + esc(t(note)) + "</dd>" : "") + "</dl></div></article>";
+  }
+  function keyBar(k) {
+    var n = needTotal(k.id), hasImg = !!MAPIMG[k.pin ? k.pin[0] : (k.m === "stella" ? "stella_u" : k.m)];
+    return '<button type="button" class="btn go orb" data-add="' + k.id + '">' + esc(t("Add to shopping list")) + (n ? " <em>" + n + " " + esc(t("on list")) + "</em>" : "") + "</button>" +
+      (k.pin ? '<button type="button" class="btn orb" data-kshow="' + k.id + '">' + esc(t("Show on map")) + "</button>" : hasImg && k.m !== "any" ? '<button type="button" class="btn orb" data-kshow="' + k.id + '">' + esc(t("Open map")) + "</button>" : "") +
+      (IDX[k.id] ? '<button type="button" class="btn orb" data-kitem="' + k.id + '">' + esc(t("Item details")) + "</button>" : "");
+  }
+  $("#kList").addEventListener("click", function (e) { var b = e.target.closest("[data-kopen]"); if (b && KIDX[b.dataset.kopen]) dlgOpen(b.dataset.kopen, "key", keyCard(KIDX[b.dataset.kopen]), keyBar(KIDX[b.dataset.kopen]), b.closest(".imini")); });
   $("#kq").addEventListener("input", function () { kq = this.value; renderKeys(); });
   $("#kChips").addEventListener("click", function (e) { var b = e.target.closest("button[data-kmap]"); if (!b) return; kMap = b.dataset.kmap; renderKeyChips(); renderKeys(); });
 

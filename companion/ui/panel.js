@@ -55,11 +55,13 @@
       h += '<div class="seg2"><button type="button" data-lm="0" aria-pressed="' + !state.listMap + '">Everything</button><button type="button" data-lm="1" aria-pressed="' + state.listMap + '">Only on ' + esc(shortOf(s.map)) + "</button></div>";
     } else {
       if (!localStorage.getItem("rtc-intro-done")) h += introCard();
-      h += '<p class="note" style="margin:14px 0 4px">Your list is empty. Add items below, paste a <b>Share list</b> link from raidkits.com, or turn on sync to use the list you build on the site.</p>';
+      h += '<p class="note" style="margin:14px 0 4px">Your list is empty. Search for items to add below, paste a <b>Share list</b> link from raidkits.com, or turn on sync to use the list you build on the site.</p>';
     }
     h += '<div class="acts"><button type="button" class="btn' + (ids.length ? "" : " go") + '" data-act="import">Import from raidkits.com</button>' + (ids.length ? '<button type="button" class="btn" data-act="clear">Clear</button>' : "") + "</div>";
     if (state.importOpen) h += '<div class="box"><label for="imp" class="note">On raidkits.com press <b>Share list</b>, copy the link and paste it here.</label><input type="text" id="imp" placeholder="https://raidkits.com/#list?share=…" autocomplete="off">' +
       '<div class="acts" style="margin:0"><button type="button" class="btn go" data-act="imp-add">Add to my list</button><button type="button" class="btn" data-act="imp-rep">Replace my list</button></div>' + (state.importErr ? '<div class="err" role="alert">' + esc(state.importErr) + "</div>" : "") + "</div>";
+    // adding sits at the top, so its results are always in view however long the list is
+    h += '<div class="addbox"><label for="addq" class="h" style="margin-top:4px">Add an item</label><input type="search" id="addq" placeholder="Search items to add: Metal Parts, Toaster…" autocomplete="off" value="' + esc(state.addQ) + '"><div class="res" id="addres"></div></div>';
     var show = state.listMap ? ids.filter(function (id) { return RT.onMap(id, s.map); }) : ids, groups = {}, order = [], done = [];
     show.forEach(function (id) { var x = l.items[id]; if (x.have >= x.need) { done.push(id); return; } var c = catOf(RT.item(id)); if (!groups[c]) { groups[c] = []; order.push(c); } groups[c].push(id); });
     order.sort(function (a, b) { return groups[b].length - groups[a].length; });
@@ -73,12 +75,11 @@
     order.forEach(function (c) { h += '<div class="h">' + esc(c) + "</div>" + groups[c].map(row).join(""); });
     if (done.length) h += '<div class="h">Done</div>' + done.map(row).join("");
     if (state.listMap && ids.length > show.length) h += '<p class="note">' + (ids.length - show.length) + " more on your list aren't found on " + esc(shortOf(s.map)) + ".</p>";
-    h += '<div class="h">Add an item</div><input type="search" id="addq" placeholder="Search items: Metal Parts, Toaster…" autocomplete="off" value="' + esc(state.addQ) + '"><div class="res" id="addres"></div></div>';
-    return h;
+    return h + "</div>";
   }
   function addResults() {
     var box = $("addres"); if (!box) return;
-    var r = RT.search(state.addQ, 8).filter(function (x) { return x.kind === "item"; });
+    var r = RT.search(state.addQ, 200).filter(function (x) { return x.kind === "item"; }).slice(0, 8);
     box.innerHTML = r.map(function (x) { return '<button type="button" data-add="' + esc(x.x.id) + '">' + RT.icon(x.x.id) + "<span>" + esc(x.x.n) + '</span><span class="kind">+ add</span></button>'; }).join("") || (state.addQ ? '<p class="note">No item by that name.</p>' : "");
   }
 

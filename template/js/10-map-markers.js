@@ -163,6 +163,7 @@
     return best;
   }
   function mkTip(p, ev) {
+    var sk = planStopAt(p[2]); if (sk > -1) { planTipAt(planStopTip(sk), { left: ev.clientX - 14, top: ev.clientY - 14, width: 28, height: 28, right: ev.clientX + 14, bottom: ev.clientY + 14 }); return; }
     var data = MK[mapImgKey()], r = data.m[p[2]], ty = MKT[r[2]], g = MKTG[r[2]], f = mkFocus();
     var nmx = data.n[p[2]], sub = [g ? t(g.n) : "", ty[2]].filter(function (x, i, a) { return x && a.indexOf(x) === i; }).join(" · ");
     var body = [], st = f && f.route && data.s ? data.s[p[2]] : 0;

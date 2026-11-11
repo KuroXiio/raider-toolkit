@@ -181,7 +181,7 @@
       var st = [];
       if (on) st.push("On list ×" + on); if (hv) st.push("You have " + hv);
       if (i.cb) st.push("Crafted at " + i.cb.map(function (b) { return BENCH[b] || b; }).join(" / ") + (i.sl ? " " + i.sl : ""));
-      return '<div class="sr">' + thumb(i.id) + '<span class="nm">' + esc(i.n) + "<small>" + esc(st.join(" · ") || (i.t || "")) + (mats ? '<span class="mats">Needs: ' + esc(mats) + "</span>" : "") + '</small></span><span class="sact"><button type="button" class="addl" data-add="' + i.id + '">+ Item</button>' +
+      return '<div class="srr">' + thumb(i.id) + '<span class="nm">' + esc(i.n) + "<small>" + esc(st.join(" · ") || (i.t || "")) + (mats ? '<span class="mats">Needs: ' + esc(mats) + "</span>" : "") + '</small></span><span class="sact"><button type="button" class="addl" data-add="' + i.id + '">+ Item</button>' +
         (i.rp ? '<button type="button" class="addl mat" data-addm="' + i.id + '" title="Add the materials to craft one">+ Materials</button>' : "") + "</span></div>";
     }).join("") || '<span class="dim">No match.</span>';
   }

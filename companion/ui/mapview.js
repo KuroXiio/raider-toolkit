@@ -115,7 +115,7 @@
       if (L.quests) cluster(pn.quests, cr).forEach(function (c) { var q = P(c.p); tri(x, q, R + 2, COL.quest); hits.push({ q: q, r: R + 3, t: c.name }); });
       if (L.keys) pn.keys.forEach(function (k) { var q = P(k.p); sq(x, q, R + 2, COL.key); hits.push({ q: q, r: R + 3, t: k.n }); });
     }
-    if (o.route) drawRoute(x, o.route, P, o.at || 0, R + 4);
+    if (o.route) { o.route.dash = o.dash || 0; drawRoute(x, o.route, P, o.at || 0, R + 4); }
     o.out.hits = hits;
   }
   function dot(x, q, r, c) { x.beginPath(); x.arc(q[0], q[1], r, 0, 6.2832); x.fillStyle = c; x.fill(); x.stroke(); }
@@ -129,7 +129,7 @@
   /* the route: a dotted line, S at the start, numbered stops (done ones grey, the next one big and bright), E at the extract */
   function drawRoute(x, rt, P, at, r) {
     var pts = [rt.spawn].concat(rt.stops.map(function (s) { return s.p; })).concat(rt.end ? [rt.end.p] : []).map(P);
-    x.save(); x.setLineDash([2, 6]); x.lineCap = "round"; x.lineWidth = 2.5; x.strokeStyle = COL.list; x.beginPath();
+    x.save(); x.setLineDash([2, 6]); x.lineDashOffset = -(rt.dash || 0); x.lineCap = "round"; x.lineWidth = 2.5; x.strokeStyle = COL.list; x.beginPath();
     pts.forEach(function (q, i) { if (i) x.lineTo(q[0], q[1]); else x.moveTo(q[0], q[1]); }); x.stroke(); x.restore();
     x.lineWidth = 1.5; x.strokeStyle = COL.ink;
     badge(x, pts[0], r, COL.fg, "S", COL.ink);
@@ -142,5 +142,9 @@
     if (rt.end) badge(x, pts[pts.length - 1], r + 1, COL.ext, "E", COL.ink);
   }
 
-  window.RTMap = { extent: extent, keyOf: keyOf, mapOf: mapOf, files: files, markers: markers, image: image, pins: pins, draw: draw, route: route, COL: COL };
+  /* where the route line's dashes are now: they march from stop to stop (still for people who asked for less motion) */
+  var calm = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function dash() { return calm ? 0 : (performance.now() / 60) % 8; }
+
+  window.RTMap = { dash: dash, calm: calm, extent: extent, keyOf: keyOf, mapOf: mapOf, files: files, markers: markers, image: image, pins: pins, draw: draw, route: route, COL: COL };
 })();

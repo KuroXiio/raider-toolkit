@@ -20,7 +20,7 @@
       var sig = k + "|" + localStorage.getItem("rtc-list") + "|" + localStorage.getItem("rtc-follow");
       if (sig !== pinSig) { pinSig = sig; pins = RTMap.pins(k, data); side(); }
       $("wait").hidden = true;
-      var o = { key: k, pins: pins, layers: s.layers, r: 6, cluster: 16, view: view, dim: 0.9,
+      var o = { key: k, pins: pins, layers: s.layers, r: 6, cluster: 16, view: view, dim: 0.9, dash: RTMap.dash(),
         route: on ? rt : null, at: RT.routeAt(),
         fit: on ? [rt.spawn].concat(rt.stops.map(function (x) { return x.p; })).concat(rt.end ? [rt.end.p] : []) : RTMap.extent(pins) };
       RTMap.draw(cv, o); out = o.out; out.fit = o.fit;
@@ -163,6 +163,8 @@
   });
   window.addEventListener("storage", function () { if (HUB) hint(); all(); });
   window.addEventListener("resize", draw);
+  // the route line marches while the route is showing and this window is on screen
+  if (!RTMap.calm) setInterval(function () { if (routeOn() && !document.hidden) draw(); }, 40);
   setInterval(header, 1000);
   all();
   RT.load().then(all, all);

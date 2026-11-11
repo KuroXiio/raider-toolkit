@@ -26,7 +26,7 @@
     }).join(" + ");
   }
   function list(arr) { return arr.map(esc).join(", "); }
-  function card(i) {
+  function card(i, bare) {   // bare: without its own buttons (the details window has them in a bar at the bottom)
     var g = GUIDE[i.id], used = usedIn(i.id);
     var kv = "";
     if (i.f) kv += "<dt>Loot category</dt><dd>" + esc(i.f) + "</dd>";
@@ -39,17 +39,70 @@
     if (i.bp) kv += "<dt>Note</dt><dd>Requires a blueprint</dd>";
     if (i.q) kv += "<dt>Note</dt><dd>Quest item</dd>";
     var spc = mkSpots(i.id), spm = MAP_ORDER.filter(function (k) { return mkMapCount(i.id, k); });
-    if (spm.length) kv += '<dt>' + esc(t("On the map")) + '</dt><dd>' + esc(mkWhat(i.id)) + '<br>' + spm.map(function (k) { return esc(MAPS[k].name) + " " + fmt(mkMapCount(i.id, k)); }).join(" · ") + ' <button type="button" class="chip orb" style="margin-top:6px" data-mshow="' + i.id + '">' + esc(t("Show on map")) + "</button></dd>";
-    if (KIDX[i.id]) kv += '<dt>Key room</dt><dd>' + esc(KIDX[i.id].door) + ' <button type="button" class="chip orb" style="margin-top:6px" data-kshow="' + i.id + '">' + (KIDX[i.id].pin ? "Show on map" : "Open map") + "</button></dd>";
+    if (spm.length) kv += '<dt>' + esc(t("On the map")) + '</dt><dd>' + esc(mkWhat(i.id)) + '<div class="mcs">' + spm.map(function (k) { return "<span>" + esc(MAPS[k].name) + " <b>" + fmt(mkMapCount(i.id, k)) + "</b></span>"; }).join("") + "</div>" + (bare ? "" : '<button type="button" class="chip orb" style="margin-top:8px" data-mshow="' + i.id + '">' + esc(t("Show on map")) + "</button>") + "</dd>";
+    if (KIDX[i.id]) kv += '<dt>Key room</dt><dd>' + esc(KIDX[i.id].door) + (bare ? "" : ' <button type="button" class="chip orb" style="margin-top:6px" data-kshow="' + i.id + '">' + (KIDX[i.id].pin ? "Show on map" : "Open map") + "</button>") + "</dd>";
     if (i.nd && !i.mine) kv += "<dt>Data</dt><dd>Added in update 2.x. Value and rarity are not in the data set yet, so none is shown.</dd>";
     if (i.mine) kv += '<dt>Your fix</dt><dd>Value or rarity set by you on this device' + (i.myNote ? ": " + esc(i.myNote) : "") + '. <a href="#info" style="color:var(--mint)">Data check</a></dd>';
     var guide = g
       ? '<div class="guide"><b>Where to find it</b>' + esc(g.w) + '<div class="row" style="margin-top:8px">' + mapChips(g.m) + "</div></div>"
       : '<div class="guide"><b>Where to find it</b><span class="dim">No confirmed spawn spot in the guides used here.' + (i.f ? " The game data only lists the loot category above." : "") + "</span></div>";
-    return '<article class="panel item" style="--rc:' + rcol(i.r) + '">' + tile(i) +
+    // the picture, name and numbers on top; the details underneath use the card's full width
+    return '<article class="panel item" style="--rc:' + rcol(i.r) + '"><div class="ihead">' + tile(i) +
       '<div class="info"><h3>' + esc(i.n) + '</h3><div class="row"><span class="pill">' + esc(i.t) + '</span><span class="pill r">' + esc(i.r || "Rarity not published") + "</span></div>" +
       '<div class="statline"><span><small>Value</small>' + (i.v == null ? "Not published" : fmt(i.v)) + '</span>' + (i.w != null ? "<span><small>Weight</small>" + i.w + " kg</span>" : "") + (i.s ? "<span><small>Stack</small>" + i.s + "</span>" : "") + "</div>" +
-      (i.d ? '<p class="dim">' + esc(i.d) + "</p>" : "") + (kv ? '<dl class="kv">' + kv + "</dl>" : "") + guide + '<div class="row" style="margin-top:10px"><button type="button" class="addl" data-add="' + i.id + '">+ Shopping list</button>' + (i.rp ? '<button type="button" class="addl mat" data-addm="' + i.id + '" title="Add the materials to craft one">+ Materials to craft</button>' : "") + "</div></div></article>";
+      (i.d ? '<p class="dim">' + esc(i.d) + "</p>" : "") + '</div></div><div class="imore">' + (kv ? '<dl class="kv">' + kv + "</dl>" : "") + guide + (bare ? "" : '<div class="row" style="margin-top:10px"><button type="button" class="addl" data-add="' + i.id + '">+ Shopping list</button>' + (i.rp ? '<button type="button" class="addl mat" data-addm="' + i.id + '" title="Add the materials to craft one">+ Materials to craft</button>' : "") + "</div>") + "</div></article>";
+  }
+  /* in the list: a small card, all the same size. Click it for the details. */
+  function mini(i) {
+    return '<article class="panel imini" style="--rc:' + rcol(i.r) + '">' + tile(i) +
+      '<div class="info"><h3>' + esc(i.n) + '</h3><div class="row"><span class="pill">' + esc(i.t) + '</span><span class="pill r">' + esc(i.r || "Rarity not published") + "</span></div>" +
+      '<div class="statline"><span><small>Value</small>' + (i.v == null ? "–" : fmt(i.v)) + '</span>' + (i.w != null ? "<span><small>Weight</small>" + i.w + " kg</span>" : "") + (i.s ? "<span><small>Stack</small>" + i.s + "</span>" : "") + "</div></div>" +
+      '<span class="ihint" aria-hidden="true">' + esc(t("Details")) + '<svg viewBox="0 0 16 16"><path d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/></svg></span>' +
+      '<button type="button" class="iopen" data-item="' + i.id + '" aria-label="' + esc(i.n) + ": " + esc(t("details")) + '"></button>' +
+      '<button type="button" class="addl iadd" data-add="' + i.id + '" title="' + esc(t("Add to shopping list")) + '" aria-label="' + esc(i.n) + ": " + esc(t("Add to shopping list")) + '">+</button></article>';
+  }
+  var itemDlg = $("#itemDlg");
+  /* the bar at the bottom of the details window: every action in one row */
+  function itemBar(i) {
+    var n = needTotal(i.id), onMap = MAP_ORDER.some(function (k) { return mkMapCount(i.id, k); }), key = KIDX[i.id];
+    return '<button type="button" class="btn go orb" data-add="' + i.id + '">' + esc(t("Add to shopping list")) + (n ? ' <em>' + n + " " + esc(t("on list")) + "</em>" : "") + "</button>" +
+      (i.rp ? '<button type="button" class="btn orb" data-addm="' + i.id + '" title="' + esc(t("Add the materials to craft one")) + '">' + esc(t("Add crafting materials")) + "</button>" : "") +
+      (onMap ? '<button type="button" class="btn orb" data-mshow="' + i.id + '">' + esc(t("Show on map")) + "</button>" : key ? '<button type="button" class="btn orb" data-kshow="' + i.id + '">' + esc(t(key.pin ? "Show on map" : "Open map")) + "</button>" : "");
+  }
+  function itemOpen(id, from) {
+    var i = ITEMS.filter(function (x) { return x.id === id; })[0]; if (!i || !itemDlg) return;
+    dlgOpen(id, "item", card(i, true), itemBar(i), from);
+  }
+  function dlgOpen(id, kind, body, bar, from) {
+    if (!itemDlg) return;
+    var show = function () {
+      $("#itemDlgBody").innerHTML = body;
+      $("#itemDlgBar").innerHTML = bar; itemDlg.dataset.id = id; itemDlg.dataset.kind = kind;
+      if (itemDlg.showModal) { if (!itemDlg.open) itemDlg.showModal(); } else itemDlg.setAttribute("open", "");
+      itemDlg.scrollTop = 0;
+    };
+    // the picture you clicked grows into the one in the window, where the browser can do that
+    var tile = from && from.querySelector(".tile"), calm = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!tile || calm || !document.startViewTransition || itemDlg.open) { show(); return; }
+    tile.style.viewTransitionName = "itemtile";
+    var vt = document.startViewTransition(function () { tile.style.viewTransitionName = ""; show(); var big = itemDlg.querySelector(".tile"); if (big) big.style.viewTransitionName = "itemtile"; });
+    vt.finished.then(function () { var big = itemDlg.querySelector(".tile"); if (big) big.style.viewTransitionName = ""; }, function () {});
+  }
+  function itemClose() { if (itemDlg && itemDlg.open) itemDlg.close(); }
+  if (itemDlg) {
+    document.body.appendChild(itemDlg);   // so it also opens from pages other than Items
+    $("#results").addEventListener("click", function (e) { var b = e.target.closest("[data-item]"); if (b) itemOpen(b.dataset.item, b.closest(".imini")); });
+    // after adding, the bar shows the new count (the click itself is handled with every other "add" button)
+    itemDlg.addEventListener("click", function (e) {
+      var a = e.target.closest("[data-add], [data-addm]"); if (!a) return;
+      setTimeout(function () { var id = itemDlg.dataset.id, i = ITEMS.filter(function (x) { return x.id === id; })[0]; if (!itemDlg.open) return; if (itemDlg.dataset.kind === "key") { if (!KIDX[id]) return; $("#itemDlgBar").innerHTML = keyBar(KIDX[id]); } else { if (!i) return; $("#itemDlgBar").innerHTML = itemBar(i); } var nb = $("#itemDlgBar").querySelector(a.dataset.add ? "[data-add]" : "[data-addm]"); if (nb) { nb.classList.add("did"); nb.focus(); } }, 0);
+    });
+    itemDlg.addEventListener("click", function (e) {
+      if (e.target === itemDlg || e.target.closest("[data-dclose]")) { itemClose(); return; }     // the dark area around it, or the X
+      var ki = e.target.closest("[data-kitem]"); if (ki) { itemOpen(ki.dataset.kitem); return; }
+      if (e.target.closest("[data-mshow], [data-kshow], [data-map], a[href^='#']")) itemClose();   // going to the map or another page
+    });
+    window.addEventListener("hashchange", itemClose);
   }
   function filtered() {
     var q = $("#q").value.trim().toLowerCase(), t = $("#fType").value, sort = $("#fSort").value;
@@ -74,7 +127,7 @@
     if (reset) shown = 24;
     var list2 = filtered();
     $("#countLine").textContent = "Showing " + Math.min(shown, list2.length) + " of " + list2.length + " matching items (" + ITEMS.length + " total)";
-    $("#results").innerHTML = list2.length ? list2.slice(0, shown).map(card).join("") : '<div class="empty">No item matches that search. Try a shorter name.</div>';
+    $("#results").innerHTML = list2.length ? list2.slice(0, shown).map(mini).join("") : '<div class="empty">No item matches that search. Try a shorter name.</div>';
     $("#moreBtn").hidden = list2.length <= shown;
   }
   $("#q").addEventListener("input", function () { renderItems(true); });

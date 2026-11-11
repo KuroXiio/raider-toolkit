@@ -185,10 +185,10 @@
     var pts = {}, last = null;
     box.addEventListener("wheel", function (e) { e.preventDefault(); var r = box.getBoundingClientRect(); mvZoom(e.deltaY < 0 ? 1.2 : 1 / 1.2, e.clientX - r.left, e.clientY - r.top); }, { passive: false });
     var moved = 0, downAt = null;
-    box.addEventListener("pointerdown", function (e) { if (e.target.closest("button, a, .mcard, .mlayp, .mplanp, .mfoc, label, input, select")) return; box.setPointerCapture(e.pointerId); pts[e.pointerId] = [e.clientX, e.clientY]; downAt = [e.clientX, e.clientY]; moved = 0; box.classList.add("drag"); last = null; });
+    box.addEventListener("pointerdown", function (e) { if (e.target.closest("button, a, .mcard, .mlayp, .mplanp, .mfoc, .pplay, label, input, select")) return; box.setPointerCapture(e.pointerId); pts[e.pointerId] = [e.clientX, e.clientY]; downAt = [e.clientX, e.clientY]; moved = 0; box.classList.add("drag"); last = null; });
     box.addEventListener("pointermove", function (e) {
       if (Object.keys(pts).length) { if (downAt && Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 5) moved = 1; return; }
-      if (e.pointerType !== "mouse" || e.target.closest(".mcard, .mlayp, .mplanp, .mfoc, .mctl, .kpin")) { box.classList.remove("mkhov"); return; }
+      if (e.pointerType !== "mouse" || e.target.closest(".mcard, .mlayp, .mplanp, .mfoc, .mctl, .kpin, .pplay")) { box.classList.remove("mkhov"); return; }
       var r = box.getBoundingClientRect(), p = mkHit(e.clientX - r.left, e.clientY - r.top);
       box.classList.toggle("mkhov", !!p); if (p) mkTip(p, e); else if (box.dataset.mkt) hideTT();
       box.dataset.mkt = p ? "1" : "";

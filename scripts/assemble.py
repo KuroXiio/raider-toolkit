@@ -48,12 +48,17 @@ else:
     data += '\nvar MK={};var MKF=' + json.dumps(mkf) + ';'
 t = t.replace('/*CSS2*/', rd('template/base.css')).replace('/*DATA*/', data).replace('/*SCENE*/', rd('template/scene.js')).replace('/*DATAINFO*/', json.dumps(info)).replace('/*ADMINHASH*/', json.dumps(admin_hash)).replace('/*ARCPROXY*/""', json.dumps((cfg.get('arcProxy') or '').strip())).replace('/*SYNCAPI*/""', json.dumps((cfg.get('syncApi') or '').strip().rstrip('/')))
 assert '/*' + 'DATA*/' not in t
+# the app section plays template/media/gameplay.mp4 (and .webm) if it exists; without one it shows the scene art
+vid = ''.join('<source src="media/gameplay.%s" type="video/%s">' % (x, x) for x in ('webm', 'mp4') if os.path.exists(os.path.join(ROOT, 'template/media/gameplay.' + x)))
+t = t.replace('<!--APPVIDEO-->', '<video class="sbgv" autoplay muted loop playsinline preload="metadata" poster="media/' + ('gameplay.jpg' if os.path.exists(os.path.join(ROOT, 'template/media/gameplay.jpg')) else 'scene.jpg') + '" aria-hidden="true">' + vid + '</video>' if vid else '')
 os.makedirs(OUT + '/site', exist_ok=True)
 open(OUT + '/site/index.html', 'w', encoding='utf-8').write(t)
 for f in ('og.png', 'og.jpg'):
     if os.path.exists(os.path.join(ROOT, 'template', f)): shutil.copy(os.path.join(ROOT, 'template', f), OUT + '/site/' + f)
 icons = os.path.join(ROOT, 'template/icons')
 for f in os.listdir(icons): shutil.copy(os.path.join(icons, f), OUT + '/site/' + f)
+# pictures and the optional gameplay clip for the desktop app section (template/media → media/)
+shutil.copytree(os.path.join(ROOT, 'template/media'), OUT + '/site/media', dirs_exist_ok=True)
 # fonts are served from the site itself, so visitors' browsers never contact a font host
 shutil.copytree(os.path.join(ROOT, 'template/fonts'), OUT + '/site/fonts', dirs_exist_ok=True)
 json.dump({'name': 'Raider Toolkit', 'short_name': 'Raider Toolkit', 'description': 'ARC Raiders fan tools', 'start_url': './', 'scope': './',
