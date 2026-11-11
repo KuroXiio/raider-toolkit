@@ -87,7 +87,7 @@
       return '<section class="panel sgrp' + (open ? " open" : "") + '"><div class="sgrp-h"><button type="button" class="sgt" data-tog="' + gi + '" aria-expanded="' + open + '"><i class="sgc" aria-hidden="true"></i><span><small>' + grpKind(g) + "</small><b>" + esc(g.label) + "</b></span>" +
         '<span class="sgp"><em>' + (ks.length ? cov + " / " + ks.length + " " + esc(t("covered")) : (g.notes || []).length + " " + esc(t("notes"))) + '</em><span class="sgb"><i style="width:' + pct + '%"></i></span></span></button><button type="button" class="x" data-rmg="' + gi + '">' + esc(t("Remove")) + "</button></div>" +
         (!open ? "" : (g.notes && g.notes.length ? '<details class="snd"><summary>' + esc(t("Notes")) + " <small>" + g.notes.length + '</small></summary><ul class="snotes">' + g.notes.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul></details>" : "") +
-        (ks.length ? '<div class="sitems' + (g.key === "man" ? " stp" : "") + '">' + hd + hd.replace('class="shead"', 'class="shead s2"') +
+        (ks.length ? '<div class="sitems' + (g.key === "man" ? " stp" : "") + '">' + hd + (ks.length > 1 ? hd.replace('class="shead"', 'class="shead s2"') : "") +
         ks.map(function (k) {
           var it = IDX[k], need = g.items[k], left = rem[gi][k], done = left <= 0, tot = needTotal(k);
           return '<div class="srow2' + (done ? " got" : "") + '" style="--rc:' + rcol(it && it.r) + '"><input type="checkbox" data-got="' + k + '"' + (done ? " checked" : "") + ' title="I have all of these" aria-label="I have all ' + esc(nm(k)) + '">' + thumb(k) + '<div class="nm">' + esc(nm(k)) + (done ? '<small class="ok">Covered</small>' : left < need ? "<small>" + left + " still to find</small>" : "") + "</div>" +

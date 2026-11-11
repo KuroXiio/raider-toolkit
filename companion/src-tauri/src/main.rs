@@ -4,8 +4,9 @@
 //  - the overlay: a small panel on top of the game, with adjustable opacity. Parts of it can be unpinned into
 //    their own small windows ("w-…"), moved and resized; they show and hide together with the overlay. (map condition, timers, list progress). Clicks always go
 //    through it to whatever is behind, except while the panel is open, when it can be dragged to a new spot.
-//  - the panel ("opened mode"): your list, map conditions, search and settings, opened with a keybind or the tray icon.
-//  - the big map ("bigmap"): a larger map with your pins and route, opened with a keybind.
+//  - the main window ("panel"): the program itself, a normal window with your list, the map, quests, keys and settings.
+//  - the in-game menu ("menu"): a see-through layer opened with a keybind while you play, with the big map, your list
+//    and your quests. While it is open the overlay's cards can be moved.
 //
 // By default the overlay shows only while ARC Raiders (or one of these windows) is the window in front. To know that,
 // the app asks Windows for the title of the foreground window, the same thing the taskbar shows.
@@ -20,32 +21,30 @@ use std::sync::Mutex;
 use std::time::Duration;
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
-use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent};
+use tauri::{AppHandle, Emitter, Manager, WindowEvent};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 use tauri_plugin_window_state::StateFlags;
 
-/// Opens the panel, or hides it if it is open, and tells the overlay (which can be moved only while the panel is open).
-fn toggle_panel_window(app: &AppHandle) {
+/// Shows the main window (the program itself: list, map, settings) and brings it to the front.
+fn show_main_window(app: &AppHandle) {
     if let Some(w) = app.get_webview_window("panel") {
-        let open = !w.is_visible().unwrap_or(false);
-        if open {
-            let _ = w.show();
-            let _ = w.unminimize();
-            let _ = w.set_focus();
-        } else {
-            let _ = w.hide();
-        }
-        let _ = app.emit("panel-open", open);
+        let _ = w.show();
+        let _ = w.unminimize();
+        let _ = w.set_focus();
     }
 }
 
 /// What decides whether the overlay is on screen: the user's own show/hide, and (if "only with the game" is on)
-/// whether ARC Raiders or one of this app's own windows is the window in front.
+/// whether ARC Raiders is the window in front. While the in-game menu is open, or the layout is being arranged
+/// from the main window, the overlay shows too and its cards can be moved.
 struct View {
     user_show: bool,
     game_only: bool,
     game: bool,
     own: bool,
+    menu: bool,
+    edit: bool,
+    away: u8,
     binds: HashMap<String, String>,
     actions_on: bool,
 }
@@ -63,7 +62,7 @@ fn shared(app: &AppHandle) -> std::sync::MutexGuard<'_, View> {
 fn apply_visibility(app: &AppHandle) {
     let show = {
         let v = shared(app);
-        v.user_show && (!v.game_only || v.game || v.own)
+        v.user_show && (!v.game_only || v.game || v.menu || v.edit)
     };
     for (label, w) in app.webview_windows() {
         if label == "overlay" || label.starts_with("w-") {
@@ -85,33 +84,72 @@ fn overlay_visible(app: &AppHandle, show: Option<bool>) {
     let _ = app.emit("overlay-shown", now);
 }
 
-/// Opens the big map, or hides it if it is open.
-fn toggle_bigmap_window(app: &AppHandle) {
-    if let Some(w) = app.get_webview_window("bigmap") {
-        if w.is_visible().unwrap_or(false) {
-            let _ = w.hide();
-        } else {
-            let _ = w.show();
-            let _ = w.unminimize();
-            let _ = w.set_focus();
-        }
+/// Tells the overlay whether its cards can be moved and clicked right now (the in-game menu is open, or the layout
+/// is being arranged from the main window), and shows or hides it to match.
+fn sync_edit(app: &AppHandle) {
+    let on = {
+        let v = shared(app);
+        v.menu || v.edit
+    };
+    apply_visibility(app);
+    let _ = app.emit("panel-open", on);
+}
+
+/// Opens or closes the in-game menu: a window in the middle of the screen with the big map, the list and the quests,
+/// over a dimmed backdrop. `None` flips it.
+///
+/// Three kinds of window are involved, stacked in this order: the backdrop ("dim", which lets every click through),
+/// the overlay's cards (so they can be dragged while the menu is open), and the menu itself.
+fn set_menu(app: &AppHandle, open: Option<bool>) {
+    let Some(w) = app.get_webview_window("menu") else {
         return;
+    };
+    let open = open.unwrap_or(!w.is_visible().unwrap_or(false));
+    let dim = app.get_webview_window("dim");
+    if open {
+        if let Some(d) = &dim {
+            let _ = d.set_ignore_cursor_events(true);
+            let _ = d.maximize();
+            let _ = d.show();
+        }
+        // about two thirds of the screen, so the overlay's cards along the edges stay reachable
+        if let Ok(Some(m)) = w.current_monitor() {
+            let f = m.scale_factor();
+            let (sw, sh) = (m.size().width as f64 / f, m.size().height as f64 / f);
+            let _ = w.set_size(tauri::LogicalSize::new(
+                (sw * 0.64).clamp(720.0, 1400.0),
+                (sh * 0.76).clamp(480.0, 900.0),
+            ));
+            let _ = w.center();
+        }
+        {
+            let mut v = shared(app);
+            v.menu = true;
+            v.away = 0;
+        }
+        sync_edit(app);
+        // put the cards above the backdrop
+        for (label, c) in app.webview_windows() {
+            if label == "overlay" || label.starts_with("w-") {
+                let _ = c.set_always_on_top(false);
+                let _ = c.set_always_on_top(true);
+            }
+        }
+        let _ = w.show();
+        let _ = w.set_focus();
+    } else {
+        let _ = w.hide();
+        if let Some(d) = &dim {
+            let _ = d.hide();
+        }
+        {
+            let mut v = shared(app);
+            v.menu = false;
+            v.away = 0;
+        }
+        sync_edit(app);
     }
-    // made off the main thread: building a webview window from a keybind or command handler can stall Windows' message loop
-    let app = app.clone();
-    tauri::async_runtime::spawn(async move {
-        let _ = WebviewWindowBuilder::new(&app, "bigmap", WebviewUrl::App("bigmap.html".into()))
-            .title("Raider Toolkit · Map")
-            .inner_size(1160.0, 720.0)
-            .min_inner_size(520.0, 380.0)
-            .center()
-            .decorations(false)
-            .transparent(true)
-            .shadow(false)
-            .always_on_top(true)
-            .resizable(true)
-            .build();
-    });
+    let _ = app.emit("menu-open", open);
 }
 
 #[derive(serde::Serialize)]
@@ -156,19 +194,23 @@ async fn install_update(app: AppHandle) -> Result<(), String> {
     app.restart();
 }
 
-#[tauri::command]
-fn toggle_panel(app: AppHandle) {
-    toggle_panel_window(&app);
-}
-
-/// Opens the panel (used on first start, for the agreement screen).
+/// Opens the main window (also used on first start, for the agreement screen).
 #[tauri::command]
 fn open_panel(app: AppHandle) {
-    if let Some(w) = app.get_webview_window("panel") {
-        let _ = w.show();
-        let _ = w.unminimize();
-        let _ = w.set_focus();
-    }
+    show_main_window(&app);
+}
+
+/// Opens or closes the in-game menu.
+#[tauri::command]
+fn toggle_menu(app: AppHandle, open: Option<bool>) {
+    set_menu(&app, open);
+}
+
+/// "Arrange the overlay" in the main window: shows the overlay and lets its cards be moved until it is turned off.
+#[tauri::command]
+fn set_edit(app: AppHandle, on: bool) {
+    shared(&app).edit = on;
+    sync_edit(&app);
 }
 
 /// Quits the app (Decline on the agreement screen, or Quit).
@@ -189,11 +231,6 @@ fn set_game_only(app: AppHandle, on: bool) {
     apply_visibility(&app);
 }
 
-#[tauri::command]
-fn toggle_bigmap(app: AppHandle) {
-    toggle_bigmap_window(&app);
-}
-
 /// Whether the game or this app is in front right now (for the panel's settings page).
 #[tauri::command]
 fn focus_state(app: AppHandle) -> (bool, bool) {
@@ -211,9 +248,8 @@ fn register(app: &AppHandle, action: &str, accel: &str) -> bool {
                 return;
             }
             match a.as_str() {
-                "panel" => toggle_panel_window(app),
+                "panel" | "bigmap" => set_menu(app, None),
                 "overlay" => overlay_visible(app, None),
-                "bigmap" => toggle_bigmap_window(app),
                 other => {
                     let _ = app.emit("hotkey", other.to_string());
                 }
@@ -319,6 +355,23 @@ fn watch_focus(app: AppHandle) {
             v.own = own;
             c
         };
+        // The game or another program came to the front (a click outside the menu, or Alt-Tab): close the in-game menu
+        // and stop arranging.
+        // Two checks in a row, because Windows reports no window at all for a moment while focus moves.
+        let leave = {
+            let mut v = shared(&app);
+            if !own && (v.menu || v.edit) {
+                v.away = v.away.saturating_add(1);
+            } else {
+                v.away = 0;
+            }
+            v.away >= 2
+        };
+        if leave {
+            shared(&app).edit = false;
+            set_menu(&app, Some(false));
+            let _ = app.emit("edit-off", ());
+        }
         if changed {
             apply_visibility(&app);
             sync_action_keys(&app);
@@ -348,16 +401,19 @@ fn main() {
             game_only: true,
             game: false,
             own: false,
+            menu: false,
+            edit: false,
+            away: 0,
             binds: HashMap::new(),
             actions_on: false,
         })))
         .invoke_handler(tauri::generate_handler![
-            toggle_panel,
             open_panel,
+            toggle_menu,
+            set_edit,
             quit_app,
             show_overlay,
             set_game_only,
-            toggle_bigmap,
             focus_state,
             set_hotkeys,
             check_update,
@@ -365,7 +421,8 @@ fn main() {
         ])
         .setup(|app| {
             watch_focus(app.handle().clone());
-            let panel = MenuItem::with_id(app, "panel", "Open panel", true, None::<&str>)?;
+            let panel = MenuItem::with_id(app, "panel", "Open Raider Toolkit", true, None::<&str>)?;
+            let ingame = MenuItem::with_id(app, "menu", "In-game menu", true, None::<&str>)?;
             let overlay = MenuItem::with_id(
                 app,
                 "overlay",
@@ -376,23 +433,19 @@ fn main() {
             let updates =
                 MenuItem::with_id(app, "updates", "Check for updates", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&panel, &overlay, &updates, &quit])?;
+            let menu = Menu::with_items(app, &[&panel, &ingame, &overlay, &updates, &quit])?;
             TrayIconBuilder::with_id("main")
                 .icon(app.default_window_icon().cloned().expect("app icon"))
                 .tooltip("Raider Toolkit Companion")
                 .menu(&menu)
                 .show_menu_on_left_click(false)
                 .on_menu_event(|app, e| match e.id.as_ref() {
-                    "panel" => toggle_panel_window(app),
+                    "panel" => show_main_window(app),
+                    "menu" => set_menu(app, None),
                     "overlay" => overlay_visible(app, None),
                     "updates" => {
-                        // open the panel on Settings → Updates and check straight away
-                        if let Some(w) = app.get_webview_window("panel") {
-                            let _ = w.show();
-                            let _ = w.unminimize();
-                            let _ = w.set_focus();
-                            let _ = app.emit("panel-open", true);
-                        }
+                        // open the main window on Settings → Updates and check straight away
+                        show_main_window(app);
                         let _ = app.emit("check-updates", ());
                     }
                     "quit" => app.exit(0),
@@ -405,22 +458,27 @@ fn main() {
                         ..
                     } = e
                     {
-                        toggle_panel_window(tray.app_handle());
+                        show_main_window(tray.app_handle());
                     }
                 })
                 .build(app)?;
             Ok(())
         })
         .on_window_event(|w, e| {
-            // closing the panel or the big map only hides it; Quit is in the tray menu
+            // closing the main window only hides it to the tray, so the overlay keeps running; Quit is in the tray menu
             if let WindowEvent::CloseRequested { api, .. } = e {
                 if w.label() == "panel" {
                     api.prevent_close();
                     let _ = w.hide();
-                    let _ = w.app_handle().emit("panel-open", false);
-                } else if w.label() == "bigmap" {
+                    let app = w.app_handle();
+                    if shared(app).edit {
+                        shared(app).edit = false;
+                        sync_edit(app);
+                        let _ = app.emit("edit-off", ());
+                    }
+                } else if w.label() == "menu" {
                     api.prevent_close();
-                    let _ = w.hide();
+                    set_menu(w.app_handle(), Some(false));
                 }
             }
         })

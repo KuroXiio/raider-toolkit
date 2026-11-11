@@ -5,10 +5,31 @@
 <title>Raider Toolkit</title>
 <link rel="stylesheet" href="style.css">
 <style>
-  body { padding: 6px; }
-  .panel { height: 100%; display: flex; flex-direction: column; border-radius: 16px; background: rgba(var(--bg), var(--pbg, .95)); border: 1px solid rgba(255,255,255,.12); overflow: hidden; }
-  header { display: flex; align-items: center; gap: 10px; padding: 10px 8px 10px 14px; border-bottom: 1px solid var(--line); }
-  header b { font-family: var(--display); font-weight: 800; font-size: 15px; flex: 1; }
+  /* the main window is a normal program window: Windows draws its title bar, and the background is solid */
+  html, body { background: rgb(var(--bg)); }
+  body { padding: 0; }
+  .panel { height: 100%; display: flex; flex-direction: column; background: rgb(var(--bg)); overflow: hidden; }
+  nav.side .grow { flex: 1; }
+  nav.side .sep { height: 1px; background: var(--line); margin: 6px 4px; flex-shrink: 0; }
+  .sfoot { display: flex; flex-direction: column; gap: 8px; padding: 10px 6px 2px; border-top: 1px solid var(--line); font-size: 12px; color: var(--faint); }
+  .sfoot .st { display: flex; align-items: center; gap: 8px; color: var(--dim); font-weight: 600; font-size: 13px; }
+  .sfoot .st .dot { flex-shrink: 0; }
+  .sfoot kbd, .gs kbd { font: 600 11px var(--mono); padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line); background: rgba(255,255,255,.05); color: var(--fg); white-space: nowrap; }
+  .sfoot button { height: 32px; border-radius: 8px; border: 1px solid var(--line); background: transparent; color: var(--fg); font-weight: 600; font-size: 12.5px; }
+  .gs { margin: 14px 0 6px; padding: 16px 18px; border-radius: 14px; border: 1px solid rgba(95,242,234,.25); background: rgba(95,242,234,.05); max-width: 760px; }
+  .gs h2 { margin: 0 0 10px; font: 800 18px var(--display); }
+  .gs ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; counter-reset: gs; }
+  .gs li { display: grid; grid-template-columns: 26px 1fr; gap: 10px; font-size: 14px; line-height: 1.45; color: #d6d3e6; counter-increment: gs; }
+  .gs li::before { content: counter(gs); width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: rgba(95,242,234,.16); color: var(--cyan); font: 700 12px var(--mono); }
+  .gs .acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .subtabs { display: inline-flex; gap: 4px; padding: 3px; border-radius: 10px; background: rgba(255,255,255,.05); }
+  .subtabs button { height: 30px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: var(--dim); font-weight: 600; font-size: 13px; }
+  .subtabs button[aria-selected="true"] { background: rgba(95,242,234,.16); color: var(--fg); }
+  .mapbar input { flex: 1; min-width: 120px; height: 32px; }
+  .how { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin: 12px 0 4px; max-width: 760px; }
+  .how div { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); font-size: 13px; line-height: 1.45; color: #d6d3e6; }
+  .how b { display: block; color: var(--fg); margin-bottom: 3px; font-size: 14px; }
+  .how kbd { font: 600 11px var(--mono); padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line); background: rgba(255,255,255,.05); color: var(--fg); white-space: nowrap; }
   .upd { border: 1px solid rgba(255,196,0,.5); background: rgba(255,196,0,.12); color: #ffd666; border-radius: 99px; padding: 5px 12px; font-weight: 600; font-size: 13px; }
   .body { flex: 1; min-height: 0; display: flex; }
   nav.side { width: 176px; flex-shrink: 0; display: flex; flex-direction: column; gap: 3px; padding: 12px 10px; border-right: 1px solid var(--line); overflow-y: auto; }
@@ -128,7 +149,7 @@
   .mapbar { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--dim); }
   .mapbar span { flex: 1; }
   iframe.map { flex: 1; width: 100%; border: 0; background: #0c0916; }
-  body.gate nav.side, body.gate .cond, body.gate #hide, body.gate .upd { display: none; }
+  body.gate nav.side, body.gate .cond { display: none; }
   .gate h1 { font-family: var(--display); font-weight: 800; font-size: 26px; margin: 18px 0 6px; }
   .gate { max-width: 620px; }
   .gate .res { margin: 8px 0; border: 1px solid var(--line); border-radius: 12px; padding: 4px; }
@@ -145,14 +166,8 @@
 </head>
 <body>
 <div class="panel">
-  <header data-tauri-drag-region>
-    <span class="logo" data-tauri-drag-region></span>
-    <b data-tauri-drag-region>Raider Toolkit</b>
-    <button type="button" class="upd" id="upd" hidden></button>
-    <button class="ibtn" type="button" id="hide" aria-label="Hide the panel" title="Hide (or press your keybind)"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
-  </header>
   <div class="body">
-    <nav class="side" role="tablist" aria-label="Sections" id="nav"></nav>
+    <nav class="side" aria-label="Sections"><div id="nav" role="tablist" style="display:contents"></div><span class="grow"></span><button type="button" class="upd" id="upd" hidden></button><div class="sfoot" id="sfoot"></div></nav>
     <section class="main">
       <div class="cond" id="cond"></div>
       <div id="view"></div>

@@ -33,7 +33,7 @@
   function kb(s, k) { return esc((s.keys || {})[k] || ""); }
   function header(s, c, now, buttons) {
     var on = !!(c && c.cur);
-    return '<div class="mh"><span class="dot' + (on ? " on" : "") + '"></span><span class="nm">' + esc(RT.mapName(s.map)) + "</span>" +
+    return '<div class="mh"><span class="dot' + (on ? " on" : "") + '"></span><span class="nm" title="' + esc(RT.mapName(s.map)) + '">' + esc(shortOf(s.map)) + "</span>" +
       '<span class="chip' + (on ? "" : " off") + '">' + esc(c ? c.cur || "Quiet" : RT.data() ? "No data" : "Loading…") + "</span>" +
       '<span class="sp"></span>' + (buttons || (on ? '<span class="t">' + RT.clock(c.ends - now) + "</span>" : "")) + "</div>";
   }
@@ -46,7 +46,7 @@
   var mapInfo = { counts: null };
   function mapPart(s, c, now) {
     var rt = RTMap.route(), at = RT.routeAt(), view = s.mapView === "route" && !rt ? "map" : s.mapView;
-    var btns = '<button type="button" class="ib act" data-act="bigmap" title="Big map (' + kb(s, "bigmap") + ')" aria-label="Open the big map">' + IC.big + "</button>" +
+    var btns = '<button type="button" class="ib act" data-act="bigmap" title="Big map and menu (' + esc(s.hotkey || "") + ')" aria-label="Open the in-game menu">' + IC.big + "</button>" +
       '<button type="button" class="ib act" data-act="mapsize" title="' + (view === "min" ? "Expand" : "Minimize") + " (" + kb(s, "mapsize") + ')" aria-label="' + (view === "min" ? "Expand the map" : "Minimize the map") + '">' + (view === "min" ? IC.down : IC.up) + "</button>";
     var h = header(s, c, now, btns), stop = rt && rt.stops[at];
     if (view === "min") {
@@ -70,8 +70,8 @@
       var k = mapInfo.counts;
       h += '<div class="lg">' + (k ? (s.layers.list ? '<span><i class="l"></i>List · ' + k.list + "</span>" : "") + (s.layers.keys && k.keys ? '<span><i class="k"></i>Key · ' + k.keys + "</span>" : "") +
         (s.layers.quests && k.quests ? '<span><i class="qq"></i>Quest · ' + k.quests + "</span>" : "") + (s.layers.ext ? '<span><i class="e"></i>Extract</span>' : "") : "<span>Loading the map…</span>") + "</div>" + nextLine(c, now);
-      h += rt ? '<div class="btns"><button type="button" class="b go act" data-act="route">Show route</button></div><div class="kbh">' + kb(s, "route") + " show route · " + kb(s, "bigmap") + " big map</div>"
-        : '<div class="more">Plan a route on raidkits.com and press Send to app to see it here.</div><div class="kbh">' + kb(s, "bigmap") + " big map</div>";
+      h += rt ? '<div class="btns"><button type="button" class="b go act" data-act="route">Show route</button></div><div class="kbh">' + kb(s, "route") + " show route · " + esc(s.hotkey || "") + " menu</div>"
+        : '<div class="more">Plan a route on raidkits.com and press Send to app to see it here.</div><div class="kbh">' + esc(s.hotkey || "") + " opens the menu and big map</div>";
     }
     return { cls: "map" + (view === "route" ? " route" : ""), html: h + "</div>" };
   }
@@ -133,7 +133,7 @@
     }
     var hint = hud.querySelector(".hint");
     if (edit && !hint) { hint = document.createElement("div"); hint.className = "hint"; }
-    if (edit) { hint.textContent = WID ? "Drag to move, drag the corner to resize." : "Drag to move. ⇱ unpins a part so you can move and resize it on its own."; els.push(hint); }
+    if (edit) { hint.textContent = WID ? "Drag to move, drag the corner to resize." : "Drag to move. ⇱ unpins a card so you can move and resize it on its own."; els.push(hint); }
     Array.prototype.slice.call(hud.children).forEach(function (c) { if (els.indexOf(c) < 0) c.remove(); });
     els.forEach(function (e, i) { if (hud.children[i] !== e) hud.insertBefore(e, hud.children[i] || null); });
     if (WID) clip();
@@ -170,7 +170,7 @@
   /* the map widget's actions: from its buttons (while the panel is open) or from keybinds (in game) */
   function act(a) {
     var s = RT.settings(), rt = RT.route(), view = s.mapView;
-    if (a === "bigmap") { RT.invoke("toggle_bigmap"); return; }
+    if (a === "bigmap") { RT.invoke("toggle_menu", { open: true }); return; }
     if (a === "mapsize") { if (view === "min") RT.setSetting("mapView", s.lastView === "route" && rt ? "route" : "map"); else { RT.setSetting("lastView", view); RT.setSetting("mapView", "min"); } }
     if (a === "route") { if (!rt) return; RT.setSetting("mapView", view === "route" ? "map" : "route"); RT.setSetting("lastView", view === "route" ? "map" : "route"); }
     if (a === "next" || a === "prev") {

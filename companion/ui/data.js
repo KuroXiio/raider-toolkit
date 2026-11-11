@@ -18,7 +18,7 @@
     mapView: "map",                        // the map widget: "map", "route" (the route you sent from the site) or "min" (just the header)
     floor: "u",                            // Stella Montis: "u" upper or "l" lower floor
     layers: { list: true, keys: true, quests: true, ext: true },   // what the maps show
-    keys: { route: "Ctrl+Shift+R", next: "Ctrl+Shift+N", prev: "Ctrl+Shift+P", mapsize: "Ctrl+Shift+J", bigmap: "Ctrl+Shift+M" },   // only active while the game or this app is in front
+    keys: { route: "Ctrl+Shift+R", next: "Ctrl+Shift+N", prev: "Ctrl+Shift+P", mapsize: "Ctrl+Shift+J" },   // only active while the game or this app is in front
     gameOnly: true,                        // show the overlay only while ARC Raiders (or this app) is the window in front
     widgets: {},                           // parts unpinned into their own window: { items: { pinned: false, pos: {...}, size: { w, h } } } (size in em)
     listMax: 8,                            // items shown by the list part while it is pinned in the overlay
@@ -34,7 +34,7 @@
   /* TERMS_VERSION: the licence agreement the user must accept. Raise it only when a change affects what users agree to
      (see README); the app then blocks until they accept. PRIVACY_VERSION: raise it when the privacy policy changes;
      the app then shows a one-time notice, without blocking. */
-  var TERMS_VERSION = "2026-11-10.3", PRIVACY_VERSION = "2026-11-10.4";
+  var TERMS_VERSION = "2026-11-10.3", PRIVACY_VERSION = "2026-11-11.1";
 
   function read(k, d) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } }
   function write(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} if (window.RTSync) RTSync.touched(k); }
@@ -125,7 +125,7 @@
     } catch (e) { throw new Error("That route link is broken or incomplete. Use Send to app on the site's route planner again."); }
   }
   /* every keybind, as the app registers them: the panel, the overlay, and the route and map ones */
-  function binds(s) { s = s || settings(); var b = { panel: s.hotkey || "", overlay: s.hotkeyOverlay || "" }; Object.keys(s.keys || {}).forEach(function (k) { b[k] = s.keys[k] || ""; }); return b; }
+  function binds(s) { s = s || settings(); var b = { panel: s.hotkey || "", overlay: s.hotkeyOverlay || "" }; Object.keys(DEFAULTS.keys).forEach(function (k) { b[k] = (s.keys || {})[k] || ""; }); return b; }
   function widget(k) { var w = (settings().widgets || {})[k] || {}; return { pinned: w.pinned !== false, pos: w.pos || null, size: w.size || null }; }
   function setWidget(k, v) { var s = settings(); s.widgets = s.widgets || {}; s.widgets[k] = Object.assign(widget(k), v); write("rtc-settings", s); return s; }
 

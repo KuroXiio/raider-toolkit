@@ -1,5 +1,5 @@
   /* ---------- Maps ---------- */
-  var curMap = "buried";
+  var curMap = MAPS[store("rt-map")] ? store("rt-map") : "dam";   // the map you looked at last
   function renderMapList() {
     var one = function (k, cur) { return (cur ? '<button type="button" class="mpcur" aria-expanded="false" aria-controls="mpl">' : '<button type="button" data-mapsel="' + k + '" aria-pressed="' + (curMap === k) + '">') + '<span class="mpn">' + esc(MAPS[k].name) + (mapWip(k).length ? '<span class="wip">WIP</span>' : "") + '</span><small class="mlev" data-evm="' + k + '" hidden></small>' + (cur ? '<i class="ndc" aria-hidden="true"></i>' : "") + "</button>"; };
     $("#maplist").innerHTML = one(curMap, true) + '<div class="mpl" id="mpl">' + MAP_ORDER.map(function (k) { return one(k); }).join("") + "</div>";
@@ -50,6 +50,8 @@
     $("#mtclear").hidden = !q;
   }
   function renderMapDetail() {
+    if (!MAPS[curMap]) curMap = "dam";
+    store("rt-map", curMap);
     var m = MAPS[curMap];
     var mk = KEYS.filter(function (k) { return k.m === curMap; });
     $("#mapstage").innerHTML = mapViewHtml();

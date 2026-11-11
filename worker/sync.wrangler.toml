@@ -1,5 +1,6 @@
 # Deploy settings for the sync Worker (used by .github/workflows/sync.yml).
-# SYNC is the KV namespace "raidkits-sync" that holds synced lists (see worker/sync.js for what is stored).
+# DB is the D1 database "raidkits-sync" that holds synced lists (see worker/sync.js for what is stored).
+# SYNC is the KV namespace the first version used; lists still there are moved to DB when they are next read.
 name = "raidkits-sync"
 main = "sync.js"
 compatibility_date = "2026-11-01"
@@ -9,3 +10,8 @@ keep_vars = true
 [[kv_namespaces]]
 binding = "SYNC"
 id = "94ec9a393fa8493b8a7b9690d5edb1f7"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "raidkits-sync"
+database_id = "c324940e-eb00-4c77-9483-8a9ec8e2602f"

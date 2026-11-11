@@ -1,8 +1,10 @@
-/* The big map: the same map as the overlay's map widget, but large, with zoom, pan, layers and the route's stops.
-   Opens and closes with its keybind (Ctrl+Shift+M by default) or the overlay's map button. */
+/* The big map: the same map as the overlay's map card, but large, with zoom, pan, layers and the route's stops.
+   It is used in two places: as the in-game menu (bigmap.html?hub=1, a dimmed layer over the game that opens with the
+   menu keybind and also has your list, quests and keys), and inside the main window's Map page (bigmap.html?embed=1). */
 (function () {
   "use strict";
   var esc = RT.esc, $ = function (id) { return document.getElementById(id); };
+  var HUB = /hub=1/.test(location.search), EMBED = /embed=1/.test(location.search), stab = "map";
   var cv = $("cv"), stage = $("stage"), tip = $("tip"), view = { z: 1, dx: 0, dy: 0 }, lastKey = "", pins = null, pinSig = "", out = null;
 
   function key() { var s = RT.settings(), rt = RT.route(); return s.mapView === "route" && rt ? rt.k : RTMap.keyOf(s.map, s.floor); }
@@ -39,8 +41,38 @@
     sel.value = s.map; sel.disabled = routeOn();
   }
 
+  function tabsHtml() {
+    var f = RT.follow(), l = RT.list(), left = l.order.filter(function (id) { var x = l.items[id]; return x && x.have < x.need; }).length;
+    return '<div class="tabs" role="tablist">' + [["map", "Map"], ["list", "List" + (left ? " " + left : "")], ["quests", "Quests" + (Object.keys(f.quests).length ? " " + Object.keys(f.quests).length : "")], ["keys", "Keys" + (f.keys.length ? " " + f.keys.length : "")]]
+      .map(function (x) { return '<button type="button" role="tab" data-stab="' + x[0] + '" aria-selected="' + (stab === x[0]) + '">' + x[1] + "</button>"; }).join("") + "</div>";
+  }
+  function listTab() {
+    var s = RT.settings(), l = RT.list(), ids = l.order.filter(function (id) { return l.items[id] && RT.item(id); });
+    var here = s.onlyMap ? ids.filter(function (id) { return RT.onMap(id, s.map); }) : ids;
+    var h = '<div class="h">' + (s.onlyMap ? "Your list · on " + esc(RT.mapName(s.map)) : "Your list") + "</div>";
+    if (!ids.length) return h + '<div class="note">Your list is empty. Build it in Raider Toolkit or on raidkits.com.</div>';
+    if (!here.length) h += '<div class="note">Nothing on your list is found on this map.</div>';
+    h += here.map(function (id) { var x = l.items[id], dn = x.have >= x.need; return '<div class="li' + (dn ? " dn" : "") + '"><span>' + esc(RT.item(id).n) + '</span><span class="q"><button type="button" data-have="' + esc(id) + '" data-d="-1" aria-label="One less">−</button>' + x.have + "/" + x.need + '<button type="button" data-have="' + esc(id) + '" data-d="1" aria-label="One more">+</button></span></div>'; }).join("");
+    if (s.onlyMap && ids.length > here.length) h += '<div class="note">' + (ids.length - here.length) + " more on other maps.</div>";
+    return h;
+  }
+  function questsTab() {
+    var f = RT.follow(), qs = Object.keys(f.quests).map(RT.quest).filter(Boolean);
+    if (!qs.length) return '<div class="h">Quests</div><div class="note">Follow a quest in Raider Toolkit (Quests) to tick off its objectives here.</div>';
+    return '<div class="h">Quests you follow</div>' + qs.map(function (q) {
+      var done = f.quests[q.id].done || [];
+      return '<div class="grp"><div class="qn">' + esc(q.n) + "</div>" + (q.o || []).map(function (o, i) { var d = done.indexOf(i) > -1; return '<label class="ob' + (d ? " dn" : "") + '"><input type="checkbox" data-obj="' + esc(q.id) + '" data-i="' + i + '"' + (d ? " checked" : "") + "><span>" + esc(o) + "</span></label>"; }).join("") + "</div>";
+    }).join('<div class="line"></div>');
+  }
+  function keysTab() {
+    var ks = RT.follow().keys.map(RT.key).filter(Boolean);
+    if (!ks.length) return '<div class="h">Keys</div><div class="note">Star a key in Raider Toolkit (Keys) to see its door here and on the map.</div>';
+    return '<div class="h">Keys you follow</div>' + ks.map(function (k) { return '<div class="grp"><div class="qn">' + esc(k.n) + ' <span class="note">· ' + esc(RT.SHORT[k.mk] || k.mk || "") + '</span></div><div class="note" style="font-size:13px;color:#d6d3e6">' + esc(k.door || "") + "</div></div>"; }).join('<div class="line"></div>');
+  }
   function side() {
-    var s = RT.settings(), L = s.layers, rt = RT.route(), at = RT.routeAt(), h = "";
+    if (EMBED) stab = "map";
+    if (stab !== "map") { $("side").innerHTML = tabsHtml() + (stab === "list" ? listTab() : stab === "quests" ? questsTab() : keysTab()); return; }
+    var s = RT.settings(), L = s.layers, rt = RT.route(), at = RT.routeAt(), h = tabsHtml();
     var counts = pins ? { list: new Set([].concat.apply([], pins.list.map(function (x) { return x.ids; }))).size, keys: pins.keys.length, quests: new Set(pins.quests.map(function (x) { return x.id; })).size } : { list: 0, keys: 0, quests: 0 };
     if (rt) {
       var stop = rt.stops[at];
@@ -64,7 +96,7 @@
         : '<div class="note">Nothing on your list is found on this map.</div>') + "</div>";
     if (!rt) h += '<div class="line"></div><div class="note">Plan a route on raidkits.com and press <b>Send to app</b> to walk it here, stop by stop.</div>';
     var k = s.keys || {};
-    h += '<div class="sp"></div><div class="note">' + esc(k.bigmap || "") + " closes this map · " + esc(k.route || "") + " route · " + esc(k.next || "") + " next stop · scroll to zoom, drag to move</div>";
+    h += '<div class="sp"></div><div class="note">Scroll to zoom, drag to move. In game: ' + esc(k.route || "") + " shows the route, " + esc(k.next || "") + " ticks off a stop.</div>";
     $("side").innerHTML = h;
     function ck(k2, sw, label, n) { return '<label class="ck"><input type="checkbox" data-layer="' + k2 + '"' + (L[k2] ? " checked" : "") + '><span class="sw ' + sw + '"></span>' + label + (n != null ? " · " + n : "") + "</label>"; }
   }
@@ -104,17 +136,32 @@
   $("zout").addEventListener("click", function () { zoomAt(1 / 1.4, cv.clientWidth / 2, cv.clientHeight / 2); });
   $("zfit").addEventListener("click", function () { view = { z: 1, dx: 0, dy: 0 }; draw(); });
 
-  function hide() { var w = RT.win(); if (w) w.hide(); }
+  function hide() { if (HUB) RT.invoke("toggle_menu", { open: false }); }
+  function hint() {
+    var s = RT.settings();
+    $("hint").innerHTML = "<span><kbd>" + esc(s.hotkey || "Esc") + "</kbd> or <kbd>Esc</kbd> back to the game (or click the game)</span><span>Drag the overlay cards to move them · ⇱ unpins one</span><span><kbd>" + esc(s.hotkeyOverlay || "") + '</kbd> hides the overlay</span><button type="button" id="openapp">Open Raider Toolkit</button>';
+  }
+  if (HUB) {
+    hint();
+    $("hint").addEventListener("click", function (e) { if (e.target.id === "openapp") { hide(); RT.invoke("open_panel"); } });
+  }
   $("close").addEventListener("click", hide);
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") hide(); });
   $("mapsel").addEventListener("change", function (e) { RT.setSetting("map", e.target.value); all(); });
   $("floor").addEventListener("click", function (e) { var b = e.target.closest("[data-floor]"); if (b) { RT.setSetting("floor", b.dataset.floor); all(); } });
-  $("side").addEventListener("click", function (e) { var b = e.target.closest("[data-act]"); if (b) act(b.dataset.act); });
+  $("side").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.stab) { stab = b.dataset.stab; side(); return; }
+    if (b.dataset.have) { var x = RT.list().items[b.dataset.have]; if (x) RT.setHave(b.dataset.have, x.have + (+b.dataset.d)); pinSig = ""; all(); return; }
+    if (b.dataset.act) act(b.dataset.act);
+  });
   $("side").addEventListener("change", function (e) {
-    var c = e.target; if (!c.dataset.layer) return;
+    var c = e.target;
+    if (c.dataset.obj) { var f = RT.follow(), fq = f.quests[c.dataset.obj]; if (fq) { var i = +c.dataset.i, at = fq.done.indexOf(i); if (c.checked && at < 0) fq.done.push(i); if (!c.checked && at > -1) fq.done.splice(at, 1); RT.saveFollow(f); side(); } return; }
+    if (!c.dataset.layer) return;
     var s = RT.settings(); s.layers[c.dataset.layer] = c.checked; RT.setSetting("layers", s.layers); draw();
   });
-  window.addEventListener("storage", all);
+  window.addEventListener("storage", function () { if (HUB) hint(); all(); });
   window.addEventListener("resize", draw);
   setInterval(header, 1000);
   all();

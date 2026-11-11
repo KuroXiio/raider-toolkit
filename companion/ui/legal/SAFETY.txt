@@ -4,10 +4,10 @@ WHAT THE APP DOES, AND WHAT IT DOESN'T
 Last updated: 10 November 2026
 
 The app is a few ordinary Windows windows that sit on top of other windows, the way Discord, a browser or a music player can:
-- The overlay: small cards with adjustable opacity, showing a map with your pins and route, your map condition, timers and shopping list. Clicks always pass straight through it, except while the panel is open, when you can drag it to a new spot and use its buttons.
-- Widgets: parts of the overlay you unpin get their own small windows, which you can move and resize while the panel is open. They behave like the overlay: clicks pass through them during play.
-- The panel: your shopping list, the interactive map, followed quests, keys, map conditions, search and settings, opened with a keybind or the tray icon. The Map tab shows the raidkits.com website inside the window, the same as opening it in a browser.
-- The big map: a larger map with your pins and route, opened and closed with a keybind.
+- The overlay: small cards with adjustable opacity, showing a map with your pins and route, your map condition, timers and shopping list. Clicks always pass straight through it, except while the in-game menu is open or you are arranging the cards from the main window, when you can drag them and use their buttons.
+- Widgets: parts of the overlay you unpin get their own small windows, which you can move and resize while the in-game menu is open or while you arrange the cards from the main window. They behave like the overlay: clicks pass through them during play.
+- The main window: the program itself, an ordinary window with a title bar and a taskbar button. It has your shopping list, the map and your route, followed quests, keys, map conditions, search and settings. Its Map page can also show the raidkits.com website inside the window, the same as opening it in a browser.
+- The in-game menu: a window in the middle of the screen over a dimmed backdrop, opened and closed with a keybind. It has the big map, your list and your quests. While it is open the overlay's cards can be dragged to a new spot.
 
 IT NEVER:
 - reads, scans or changes ARC Raiders' memory
@@ -21,10 +21,10 @@ IT NEVER:
 WHAT IT DOES USE
 - Data: the public Raider Toolkit data from raidkits.com, and what you type in yourself.
 - Keybinds: the standard Windows hotkey registration (RegisterHotKey), the same feature Discord and Steam use for their shortcuts. It is not a keyboard hook and does not see any other keys. The map and route keybinds are only registered while the game or the app is in front, so other programs keep those keys. Every keybind can be changed or turned off in Settings > Keybinds.
-- Which window is in front: to show the overlay only while you play, the app asks Windows twice a second for the title and class name of the window in front (GetForegroundWindow, GetWindowText, GetClassName). That is the same name the taskbar and Alt-Tab show. If it is "ARC Raiders", or one of the app's own windows, the overlay shows; otherwise it hides. Nothing about the game's process is opened or read, and nothing is saved or sent. Turn it off in Settings > Overlay > Only while you play, and the overlay shows all the time.
+- Which window is in front: to show the overlay only while you play, the app asks Windows twice a second for the title and class name of the window in front (GetForegroundWindow, GetWindowText, GetClassName). That is the same name the taskbar and Alt-Tab show. If it is "ARC Raiders", the overlay shows; otherwise it hides. If another program comes to the front while the in-game menu is open, the menu closes. Nothing about the game's process is opened or read, and nothing is saved or sent. Turn it off in Settings > Overlay > Only while you play, and the overlay shows all the time.
 - Sync (optional, off until you turn it on): your shopping list, the route you sent from the site and the quests and keys you follow are kept the same as on raidkits.com through Raider Toolkit's sync service. See PRIVACY.txt.
 - Updates: it asks GitHub for a newer version at start and every 6 hours (you can turn this off), and installs one only when you press Install. Some updates are marked as required: then the app asks you to install it before it starts (or quit), and starts as usual when you're offline. Updates are signed; the app refuses any update not signed with Raider Toolkit's key.
-- Window permissions: the windows may only move, resize, show and hide themselves, let clicks pass through, see which screen they are on, open the overlay's widget windows and the big map, and open raidkits.com and Discord links in your browser. The full list is in the source code, in companion/src-tauri/capabilities/default.json.
+- Window permissions: the windows may only move, resize, show and hide themselves, let clicks pass through, see which screen they are on, open the overlay's widget windows and the in-game menu, and open raidkits.com and Discord links in your browser. The full list is in the source code, in companion/src-tauri/capabilities/default.json.
 
 DISPLAY MODE
 Use the game in Borderless or Windowed mode. In exclusive fullscreen Windows draws the game above everything else, so the overlay can't show; the app does nothing to get around that.

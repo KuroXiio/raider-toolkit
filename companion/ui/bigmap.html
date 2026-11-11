@@ -7,6 +7,28 @@
 <style>
   [hidden] { display: none !important; }
   body { padding: 8px; }
+  /* the in-game menu: a dimmed layer over the game with the window in the middle */
+  html.hub body { display: flex; flex-direction: column; gap: 6px; }
+  html.hub .win { flex: 1; min-height: 0; height: auto; }
+  .hint { display: none; }
+  html.hub .hint { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px 18px; padding: 8px 14px; border-radius: 12px; background: rgba(12,9,22,.92); border: 1px solid rgba(255,255,255,.12); font-size: 13px; color: #d6d2e4; }
+  .hint kbd { font: 600 12px var(--mono); padding: 3px 7px; border-radius: 6px; border: 1px solid rgba(255,255,255,.25); background: rgba(12,9,22,.8); color: #fff; }
+  .hint button { height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,.25); background: rgba(12,9,22,.8); font-weight: 600; }
+  /* inside the main window's Map page */
+  html.embed body { padding: 0; }
+  html.embed .win { border-radius: 0; border: 0; box-shadow: none; background: transparent; }
+  html.embed #close, html.embed .tabs { display: none; }
+  .tabs { display: flex; gap: 4px; padding: 3px; border-radius: 10px; background: rgba(255,255,255,.05); flex-shrink: 0; }
+  .tabs button { flex: 1; height: 32px; padding: 0 4px; border: 0; border-radius: 8px; background: transparent; color: var(--dim); font-weight: 600; font-size: 12.5px; white-space: nowrap; }
+  .tabs button[aria-selected="true"] { background: rgba(95,242,234,.16); color: var(--fg); }
+  .li { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; min-height: 40px; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .li .q { display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 13px; }
+  .li .q button { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--line); background: transparent; font-weight: 700; }
+  .li.dn span:first-child { color: var(--faint); text-decoration: line-through; }
+  .qn { font-weight: 700; font-size: 14px; margin-top: 4px; }
+  label.ob { display: flex; gap: 9px; align-items: flex-start; min-height: 30px; font-size: 13px; color: #d6d3e6; cursor: pointer; }
+  label.ob input { width: 16px; height: 16px; margin: 2px 0 0; accent-color: var(--cyan); flex-shrink: 0; }
+  label.ob.dn { color: var(--faint); text-decoration: line-through; }
   .win { height: 100%; display: grid; grid-template-columns: 1fr 270px; grid-template-rows: 54px 1fr; border-radius: 16px; overflow: hidden;
          background: rgba(var(--bg), var(--pa, .96)); border: 1px solid rgba(255,255,255,.12); box-shadow: 0 6px 20px rgba(0,0,0,.45); }
   header { grid-column: 1 / 3; display: flex; align-items: center; gap: 10px; padding: 0 10px 0 16px; border-bottom: 1px solid var(--line); min-width: 0; }
@@ -75,6 +97,8 @@
   </div>
   <aside id="side"></aside>
 </div>
+<div class="hint" id="hint"></div>
+<script>(function(){var q=location.search;if(/hub=1/.test(q))document.documentElement.classList.add('hub');if(/embed=1/.test(q))document.documentElement.classList.add('embed');})();</script>
 <script src="data.js"></script>
 <script src="sync.js"></script>
 <script src="mapview.js"></script>

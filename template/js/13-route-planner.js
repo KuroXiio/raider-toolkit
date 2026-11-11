@@ -243,7 +243,7 @@
     if (syncSendRoute(o)) { toast(t("Sent to the app. It shows up on the app's map in a few seconds."), true); return; }
     var url = location.origin + location.pathname + "#app-route=" + b64u(new TextEncoder().encode(JSON.stringify(o)));
     copyText(url, function () {});
-    toast(t("Link copied. In the app, paste it under Settings → Map and route. Turn on Sync on your shopping list to skip this step."), true);
+    toast(t("Link copied. In the app, open Map and paste it under Route. Turn on Sync on your shopping list to skip this step."), true);
   }
   function planLoadShared(code) {
     var o; try { o = JSON.parse(new TextDecoder().decode(unb64u(code.slice(1)))); } catch (er) { o = null; }

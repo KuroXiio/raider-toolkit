@@ -89,9 +89,9 @@
       .catch(function (e) { var s2 = st(); if (s2) { s2.err = "Couldn't reach the sync service. It tries again by itself."; save(s2); } })
       .then(function () { busy = false; });
   }
-  function start() {   // the overlay calls this once: a quick check every 3 seconds for changes here, a full pull every 30
+  function start() {   // the overlay calls this once: a quick check every 3 seconds for changes here, a full pull every 60
     var n = 0;
-    setInterval(function () { var s = st(); if (!s) return; n++; if (s.dirty || n % 10 === 0) run(); }, 3000);
+    setInterval(function () { var s = st(); if (!s) return; n++; if (s.dirty || n % 20 === 0) run(); }, 3000);
     run();
   }
 
@@ -126,7 +126,7 @@
       h += '<div class="srow"><div class="sl"><span class="lb">Your sync code</span><small>Paste it on raidkits.com (shopping list → Sync) or in the app on another PC. Anyone with it can see and change your synced list, so keep it to yourself.</small></div><div class="sc">' +
         (state.syncShow ? '<span class="code">' + esc(pretty(s.code)) + "</span>" : '<span class="code">RTS-••••-••••-••••-••••-' + esc(s.code.slice(16)) + "</span>") +
         '<button type="button" class="btn sm" data-act="sync-show">' + (state.syncShow ? "Hide" : "Show") + '</button><button type="button" class="btn sm" data-act="sync-copy">Copy</button></div></div>';
-      h += '<div class="srow"><div class="sl"><span class="lb">Status</span><small>' + (s.err ? '<span class="err">' + esc(s.err) + "</span>" : s.at ? "Synced " + esc(new Date(s.at).toLocaleTimeString()) + ". Changes go out within a few seconds; the app checks for changes from the site every 30 seconds." : "Syncing…") + '</small></div><div class="sc"><button type="button" class="btn sm" data-act="sync-now">Sync now</button></div></div>';
+      h += '<div class="srow"><div class="sl"><span class="lb">Status</span><small>' + (s.err ? '<span class="err">' + esc(s.err) + "</span>" : s.at ? "Synced " + esc(new Date(s.at).toLocaleTimeString()) + ". Changes go out within a few seconds; the app checks for changes from the site every minute." : "Syncing…") + '</small></div><div class="sc"><button type="button" class="btn sm" data-act="sync-now">Sync now</button></div></div>';
       h += '<div class="srow"><div class="sl"><span class="lb">Stop syncing on this PC</span><small>Your list stays here. The synced copy stays for your other devices.</small></div><div class="sc"><button type="button" class="btn sm" data-act="sync-off">Stop</button></div></div>';
       h += '<div class="srow"><div class="sl"><span class="lb">Delete synced data</span><small>Removes the synced copy from the sync service and stops syncing here. Lists on your devices stay.</small></div><div class="sc"><button type="button" class="btn sm" data-act="sync-wipe">' + (state.syncWipe ? "Sure? Press again" : "Delete") + "</button></div></div>";
     }

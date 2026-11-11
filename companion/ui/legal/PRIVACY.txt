@@ -14,7 +14,7 @@ WHO IS RESPONSIBLE
 Kuro, a private individual in Sweden, makes the app and is the data controller under the EU General Data Protection Regulation (GDPR). Contact: Discord user kuro_1, or the Raider Toolkit Discord (https://discord.gg/NE3ughZTxn).
 
 WHAT IS SAVED ON YOUR COMPUTER
-The app saves your settings (keybinds, overlay layout and sizes, region, chosen map), your shopping list, the quests and keys you follow and a copy of the downloaded data, so it works offline and remembers your choices. This is stored on your computer, in the app's data folders (%LOCALAPPDATA%\com.raidkits.companion, and the panel's size and place in %APPDATA%\com.raidkits.companion). It is never sent anywhere, except what sync sends if you turn it on. Uninstalling the app and deleting those folders removes it.
+The app saves your settings (keybinds, overlay layout and sizes, region, chosen map), your shopping list, the quests and keys you follow and a copy of the downloaded data, so it works offline and remembers your choices. This is stored on your computer, in the app's data folders (%LOCALAPPDATA%\com.raidkits.companion, and the main window's size and place in %APPDATA%\com.raidkits.companion). It is never sent anywhere, except what sync sends if you turn it on. Uninstalling the app and deleting those folders removes it.
 
 WHAT THE APP DOWNLOADS
 - https://raidkits.com/bot.json: the public Raider Toolkit data (items, keys, quests, map conditions). Checked when the app starts and about every 30 minutes, downloaded again when it is more than 6 hours old.
@@ -32,8 +32,8 @@ SYNC WITH RAIDKITS.COM (OPTIONAL)
 Sync is off until you turn it on (Settings > Sync in the app, or Sync on the site's shopping list). Then your shopping list and Have counts, the route you sent from the site's route planner, and the quests and keys you follow are saved on Raider Toolkit's sync service, so the app, the site and your other computers show the same list.
 - How it is labelled: sync uses a code made on your device, such as RTS-7K2Q-…. The code itself never leaves your devices. Only a SHA-256 hash of it is sent, and that hash is the only label your data has. No name, e-mail address, account, IP address or anything about your computer is stored with it. Without the code nobody, the developer included, can tell whose list it is.
 - Keep the code to yourself: anyone who has it can see and change your synced list.
-- Where: a Cloudflare Worker with Cloudflare's key-value storage (Cloudflare, Inc., a US company; see https://www.cloudflare.com/privacypolicy/). Like any web service, Cloudflare receives your IP address when the app or the site talks to it, and handles it under its own policy; the sync service itself does not store it.
-- When: the app sends changes a few seconds after you make them and checks for changes every 30 seconds while it runs.
+- Where: a Cloudflare Worker with a Cloudflare database (Cloudflare, Inc., a US company; see https://www.cloudflare.com/privacypolicy/). Like any web service, Cloudflare receives your IP address when the app or the site talks to it, and handles it under its own policy; the sync service itself does not store it.
+- When: the app sends changes a few seconds after you make them and checks for changes every minute while it runs.
 - How long: until you press "Delete synced data", which removes it straight away, or 180 days after the last change, when it is deleted by itself. "Stop syncing on this PC" only stops this computer; the synced copy stays for your other devices until you delete it.
 - Why: you asked for it by turning sync on (consent, GDPR Art. 6(1)(a)). Stopping or deleting withdraws it.
 
