@@ -49,8 +49,10 @@ else:
 t = t.replace('/*CSS2*/', rd('template/base.css')).replace('/*DATA*/', data).replace('/*SCENE*/', rd('template/scene.js')).replace('/*DATAINFO*/', json.dumps(info)).replace('/*ADMINHASH*/', json.dumps(admin_hash)).replace('/*ARCPROXY*/""', json.dumps((cfg.get('arcProxy') or '').strip())).replace('/*SYNCAPI*/""', json.dumps((cfg.get('syncApi') or '').strip().rstrip('/')))
 assert '/*' + 'DATA*/' not in t
 # the app section plays template/media/gameplay.mp4 (and .webm) if it exists; without one it shows the scene art
-vid = ''.join('<source src="media/gameplay.%s" type="video/%s">' % (x, x) for x in ('webm', 'mp4') if os.path.exists(os.path.join(ROOT, 'template/media/gameplay.' + x)))
-t = t.replace('<!--APPVIDEO-->', '<video class="sbgv" autoplay muted loop playsinline preload="metadata" poster="media/' + ('gameplay.jpg' if os.path.exists(os.path.join(ROOT, 'template/media/gameplay.jpg')) else 'scene.jpg') + '" aria-hidden="true">' + vid + '</video>' if vid else '')
+# gameplay behind the app preview: loaded only once that part of the page is on screen (28-showcase.js picks the size)
+med = lambda f: os.path.exists(os.path.join(ROOT, 'template/media/' + f))
+vid = '<video class="sbgv" muted loop playsinline preload="none" poster="media/%s" data-hd="media/gameplay.mp4"%s aria-hidden="true"></video>' % ('gameplay.jpg' if med('gameplay.jpg') else 'scene.jpg', ' data-sd="media/gameplay-sm.mp4"' if med('gameplay-sm.mp4') else '') if med('gameplay.mp4') else ''
+t = t.replace('<!--APPVIDEO-->', vid)
 os.makedirs(OUT + '/site', exist_ok=True)
 open(OUT + '/site/index.html', 'w', encoding='utf-8').write(t)
 for f in ('og.png', 'og.jpg'):

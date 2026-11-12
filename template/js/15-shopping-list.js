@@ -2,7 +2,7 @@
   var shop = store("rt-shop") || {};
   if (!shop.g) shop.g = []; if (!shop.have) shop.have = {}; if (!shop.fmt) shop.fmt = "plain";
   if (shop.got) { Object.keys(shop.got).forEach(function (k) { shop.have[k] = Math.max(shop.have[k] || 0, needTotal(k)); }); delete shop.got; }
-  function saveShop() { store("rt-shop", shop); updateNb(); syncTouch("shop"); }
+  function saveShop() { store("rt-shop", shop); updateNb(); syncTouch("shop"); planOnShop(); }
   function needTotal(id) { var n = 0; (shop.g || []).forEach(function (g) { n += g.items[id] || 0; }); return n; }
   function haveOf(id) { return Math.max(0, shop.have[id] || 0); }
   function shopCount() { var s = {}; shop.g.forEach(function (g) { Object.keys(g.items).forEach(function (k) { if (needTotal(k) > haveOf(k)) s[k] = 1; }); }); return Object.keys(s).length; }

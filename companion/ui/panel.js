@@ -284,6 +284,7 @@
       (up ? '<button type="button" class="btn sm go" data-act="install">Install ' + esc(up.version) + "</button>" : "") + '<button type="button" class="btn sm" data-act="check">Check now</button>');
     if (state.upd) h += '<p class="note" role="status">' + esc(state.upd) + "</p>";
     h += srow("Check automatically", "When the app starts and every 6 hours. Your list and settings are kept.", sw("autoUpdate", s.autoUpdate, "Check automatically"));
+    h += '<div class="h">Help</div>' + srow("Report a problem", "Something wrong with the app, the overlay or the data? It goes to a private channel on our Discord.", '<button type="button" class="btn sm" data-act="report">Report a problem</button>');
     h += '<div class="h">Data</div>' + srow("Game data", D ? "From raidkits.com · patch " + esc(D.patch) + " · updated " + esc(D.built) : "Not loaded yet.", '<button type="button" class="btn sm" data-act="refresh">Update now</button>');
     return h;
   }
@@ -318,6 +319,41 @@
       '<p class="note">You can read them again any time in Settings → Legal, and in the app\'s install folder (the legal folder).</p></div>';
   }
 
+  /* ---------- report a problem: goes to the same private Discord channel as the site's form ---------- */
+  var RP_URL = "https://raidkits-sync.hnhdyfy7tb.workers.dev/report", rpLast = 0, rpFrom = null;
+  var RP_TOPICS = ["The overlay", "The in-game menu", "Route", "Shopping list", "Map", "Quests or keys", "Updates or installing", "Something else"];
+  function rpOpen() {
+    var ov = $("rpov"), pick = { list: "Shopping list", map: "Map", quests: "Quests or keys", keys: "Quests or keys", overlay: "The overlay", settings: "Updates or installing" }[tab] || "Something else";
+    $("rpTopic").innerHTML = RP_TOPICS.map(function (x) { return "<option" + (x === pick ? " selected" : "") + ">" + esc(x) + "</option>"; }).join("");
+    $("rpStat").textContent = ""; $("rpStat").className = "rpstat"; $("rpSend").disabled = false;
+    rpFrom = document.activeElement; ov.hidden = false; setTimeout(function () { $("rpMsg").focus(); }, 30);
+  }
+  function rpClose() { $("rpov").hidden = true; if (rpFrom && rpFrom.focus) rpFrom.focus(); }
+  $("rpov").addEventListener("click", function (e) { if (e.target.id === "rpov" || e.target.closest("[data-rpclose]")) rpClose(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !$("rpov").hidden) { e.stopPropagation(); rpClose(); } }, true);
+  $("rpMsg").addEventListener("input", function () { $("rpCount").textContent = this.value.length + " / 1500"; });
+  $("rpform").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var msg = $("rpMsg").value.trim(), st = $("rpStat");
+    if (msg.length < 5) { st.textContent = "Please write a little more about what is wrong."; st.className = "rpstat bad"; $("rpMsg").focus(); return; }
+    if (Date.now() - rpLast < 20000) { st.textContent = "Give it a few seconds before sending another one."; st.className = "rpstat bad"; return; }
+    var body = { topic: "App: " + $("rpTopic").value, msg: msg, who: $("rpWho").value.trim(), website: "", view: "app " + tab, lang: "en", page: "Companion app " + (state.version || "") + (RT.settings().overlay ? " · overlay on" : " · overlay off") };
+    $("rpSend").disabled = true; st.textContent = "Sending…"; st.className = "rpstat";
+    fetch(RP_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=UTF-8" }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { ok: r.ok, j: j }; }); })
+      .then(function (x) {
+        if (!x.ok) throw new Error(x.j && x.j.error || "");
+        rpLast = Date.now(); $("rpMsg").value = ""; $("rpCount").textContent = "0 / 1500";
+        st.textContent = "Thanks! Your report is on its way."; st.className = "rpstat ok";
+        setTimeout(function () { if (!$("rpov").hidden) rpClose(); }, 1600);
+      })
+      .catch(function (er) {
+        var net = !er || er.name === "TypeError" || /fetch|network|load failed/i.test(er.message || "");
+        st.textContent = net ? "Couldn't reach the report service. Check your connection, or post it in our Discord." : (er.message || "The report could not be sent. Try again later.");
+        st.className = "rpstat bad"; $("rpSend").disabled = false;
+      });
+  });
+
   /* ---------- drawing ---------- */
   function navHtml() { return TABS.map(function (t) { return t[0] === "-" ? '<span class="sep"></span>' : '<button type="button" role="tab" data-tab="' + t[0] + '" aria-selected="' + (tab === t[0]) + '" title="' + t[1] + '"><svg viewBox="0 0 24 24" aria-hidden="true">' + IC[t[0]] + "</svg><span>" + t[1] + "</span></button>"; }).join(""); }
   /* the bottom of the sidebar: whether the overlay is on, and the two keybinds worth remembering */
@@ -325,7 +361,8 @@
     var s = RT.settings();
     var html = '<span class="st"><span class="dot' + (s.overlay ? " on" : "") + '"></span>Overlay ' + (s.overlay ? "on" : "off") + (s.overlay && s.gameOnly ? " · in game only" : "") + "</span>" +
       '<button type="button" data-act="ov-toggle">' + (s.overlay ? "Turn overlay off" : "Turn overlay on") + "</button>" +
-      "<span>In-game menu <kbd>" + esc(s.hotkey || "not set") + "</kbd></span>";
+      "<span>In-game menu <kbd>" + esc(s.hotkey || "not set") + "</kbd></span>" +
+      '<button type="button" class="rpb" data-act="report"><i aria-hidden="true"></i>Report a problem</button>';
     if ($("sfoot").__h !== html) { $("sfoot").__h = html; $("sfoot").innerHTML = html; }
   }
   function updPill() { var up = JSON.parse(localStorage.getItem("rtc-update") || "null"), b = $("upd"); b.hidden = !up; if (up) b.textContent = "Update " + up.version + " ›"; }
@@ -370,7 +407,7 @@
     tab = b.dataset.tab; state.capture = ""; state.doc = null; state.resetAsk = false; if (tab === "map") state.mapSrc = state.mapSrc || ""; if (tab === "overlay") focusNow(); view.scrollTop = 0; render();
     var fi = { search: "q", quests: "qq", keys: "kq" }[tab]; if (fi && $(fi) && !state.sel) $(fi).focus();
   });
-  $("sfoot").addEventListener("click", function (e) { var b = e.target.closest("[data-act]"); if (b && b.dataset.act === "ov-toggle") { RT.setSetting("overlay", !RT.settings().overlay); render(); } });
+  $("sfoot").addEventListener("click", function (e) { var b = e.target.closest("[data-act]"); if (b && b.dataset.act === "report") { rpOpen(); return; } if (b && b.dataset.act === "ov-toggle") { RT.setSetting("overlay", !RT.settings().overlay); render(); } });
   $("upd").addEventListener("click", function () { tab = "settings"; state.sset = "updates"; render(); var u = view.querySelector('[data-act="install"]'); if (u) { u.scrollIntoView({ block: "center" }); u.focus(); } });
 
   view.addEventListener("click", function (e) {
@@ -416,6 +453,7 @@
       case "map-reload": view.innerHTML = mapView(); break;
       case "refresh": t.disabled = true; t.textContent = "Updating…"; RT.load(true).then(function () { render(); }, function () { t.textContent = "Couldn't reach raidkits.com"; }); break;
       case "check": checkNow(); break;
+      case "report": rpOpen(); break;
       case "install": t.disabled = true; t.textContent = "Downloading…"; state.upd = "Downloading and checking the update. The app restarts by itself when it's done.";
         RT.invoke("install_update").catch(function (er) { state.upd = "The update couldn't be installed (" + er + "). Try again later, or download it from raidkits.com."; render(); });
         break;

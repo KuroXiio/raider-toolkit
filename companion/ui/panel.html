@@ -15,6 +15,27 @@
   .sfoot .st { display: flex; align-items: center; gap: 8px; color: var(--dim); font-weight: 600; font-size: 13px; }
   .sfoot .st .dot { flex-shrink: 0; }
   .sfoot kbd, .gs kbd { font: 600 11px var(--mono); padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line); background: rgba(255,255,255,.05); color: var(--fg); white-space: nowrap; }
+  .sfoot .rpb { display: flex; align-items: center; justify-content: center; gap: 7px; border-color: rgba(255,159,67,.35); color: #e9dccf; }
+  .sfoot .rpb:hover { border-color: #ff9f43; background: rgba(255,159,67,.08); color: #fff; }
+  .rpb i { width: 15px; height: 15px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid #ff9f43; position: relative; flex: none; }
+  .rpb i::before, .rpb i::after { content: ""; position: absolute; left: 50%; width: 1.5px; margin-left: -.75px; background: #ff9f43; border-radius: 1px; }
+  .rpb i::before { top: 2.4px; height: 5px; } .rpb i::after { top: 8.6px; height: 1.5px; }
+  .rpov { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 20px; background: rgba(4,4,12,.7); backdrop-filter: blur(3px); }
+  .rpov[hidden] { display: none; }
+  .rpdlg { width: min(460px, 100%); display: flex; flex-direction: column; gap: 12px; padding: 18px 20px; border-radius: 14px; background: #12122a; border: 1px solid rgba(255,255,255,.12); box-shadow: 0 30px 70px rgba(0,0,0,.6); }
+  .rph { display: flex; align-items: center; justify-content: space-between; }
+  .rph h3 { margin: 0; font-size: 17px; }
+  .rph .x { width: 30px; height: 30px; border-radius: 8px; border: 1px solid rgba(255,255,255,.14); background: transparent; color: var(--fg); font-size: 18px; line-height: 1; }
+  .rpf { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: var(--dim); position: relative; }
+  .rpf em { font-style: normal; font-weight: 400; color: var(--faint); }
+  .rpf select, .rpf textarea, .rpf input { font: inherit; font-weight: 400; color: var(--fg); background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.14); border-radius: 9px; padding: 9px 11px; }
+  .rpf textarea { resize: vertical; min-height: 110px; }
+  .rpf select option { background: #12122a; }
+  .rpcount { position: absolute; right: 10px; bottom: 8px; font-size: 11px; color: var(--faint); font-weight: 400; }
+  .rpfoot { display: flex; align-items: center; gap: 14px; justify-content: space-between; }
+  .rpfoot small { font-size: 11.5px; color: var(--faint); font-weight: 400; }
+  .rpstat { margin: 0; min-height: 1em; font-size: 13px; color: var(--dim); }
+  .rpstat.ok { color: var(--cyan); } .rpstat.bad { color: #ff8f8f; }
   .sfoot button { height: 32px; border-radius: 8px; border: 1px solid var(--line); background: transparent; color: var(--fg); font-weight: 600; font-size: 12.5px; }
   .gs { margin: 14px 0 6px; padding: 16px 18px; border-radius: 14px; border: 1px solid rgba(95,242,234,.25); background: rgba(95,242,234,.05); max-width: 760px; }
   .gs h2 { margin: 0 0 10px; font: 800 18px var(--display); }
@@ -166,6 +187,17 @@
 </style>
 </head>
 <body>
+<div class="rpov" id="rpov" hidden>
+  <form class="rpdlg" id="rpform" role="dialog" aria-modal="true" aria-labelledby="rpTitle" novalidate>
+    <div class="rph"><h3 id="rpTitle">Report a problem</h3><button type="button" class="x" data-rpclose aria-label="Close">×</button></div>
+    <p class="note">Something wrong with the app, the overlay or the data? Tell us what happened and where.</p>
+    <label class="rpf"><span>What is it about?</span><select id="rpTopic"></select></label>
+    <label class="rpf"><span>What is wrong?</span><textarea id="rpMsg" rows="5" maxlength="1500" placeholder="Example: the overlay shows up on my desktop after I close the game."></textarea><small class="rpcount" id="rpCount">0 / 1500</small></label>
+    <label class="rpf"><span>Your Discord name <em>(optional, so we can ask you about it)</em></span><input id="rpWho" type="text" maxlength="40" autocomplete="off"></label>
+    <div class="rpfoot"><small>Goes to a private channel on our Discord with the app version. Nothing else about you is sent.</small><button type="submit" class="btn go" id="rpSend">Send report</button></div>
+    <p class="rpstat" id="rpStat" role="status"></p>
+  </form>
+</div>
 <div class="panel">
   <div class="body">
     <nav class="side" aria-label="Sections"><div id="nav" role="tablist" style="display:contents"></div><span class="grow"></span><button type="button" class="upd" id="upd" hidden></button><div class="sfoot" id="sfoot"></div></nav>

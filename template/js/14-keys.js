@@ -15,10 +15,10 @@
     return gs;
   }
   function pinHtml(g, d) {
-    var k = g.ks[0], n = g.ks.length, it = IDX[k.id], c = n > 1 ? "#f2c94c" : rcol(it && it.r);
+    var k = g.ks[0], n = g.ks.length, it = IDX[k.id], c = "#ffc24b";
     var foc = g.ks.some(function (x) { return x.id === MV.focus; });
     return '<button type="button" class="kpin' + (foc ? " focus" : "") + '" data-kpin="' + g.ks.map(function (x) { return x.id; }).join(",") + '" style="left:' + (g.x / d.w * 100) + "%;top:" + (g.y / d.h * 100) + '%" aria-label="' + esc(n > 1 ? n + " keys: " + g.ks.map(function (x) { return nm(x.id); }).join(", ") : nm(k.id)) + '">' + (n > 1 ? '<span class="kcnt">' + n + "</span>" : "") +
-      '<svg viewBox="0 0 30 38"><path d="M15 37C15 37 2 22 2 14a13 13 0 0 1 26 0c0 8-13 23-13 23z" fill="#0b0f26" stroke="' + c + '" stroke-width="2.5"/><circle cx="11.5" cy="13" r="4" fill="none" stroke="#f2c94c" stroke-width="2.4"/><path d="M15 14.5h8m-3 0v3.5m3-3.5v2.5" stroke="#f2c94c" stroke-width="2.4" fill="none"/></svg></button>';
+      '<svg viewBox="0 0 30 38"><path d="M15 37C15 37 2 22 2 14a13 13 0 0 1 26 0c0 8-13 23-13 23z" fill="#12131c" stroke="' + c + '" stroke-width="2.2"/><circle cx="11.5" cy="13" r="4" fill="none" stroke="#ffc24b" stroke-width="2.4"/><path d="M15 14.5h8m-3 0v3.5m3-3.5v2.5" stroke="#ffc24b" stroke-width="2.4" fill="none"/></svg></button>';
   }
   var ktip = document.createElement("div"); ktip.id = "ktip"; ktip.hidden = true; document.body.appendChild(ktip);
   var ktipBtn = null;

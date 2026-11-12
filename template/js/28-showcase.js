@@ -18,6 +18,11 @@
       a.style.setProperty("--es", (b.offsetWidth / a.offsetWidth).toFixed(3));
     }
   }
+  // the smaller clip when it is sharp enough for this screen (or the visitor asked to save data)
+  function pick() {
+    var W = box.clientWidth, H = box.clientHeight || 1, a = W / H, need = W * Math.min(2, window.devicePixelRatio || 1) / Math.min(1, a / 1.6);
+    return v.dataset.sd && (need <= 900 || (navigator.connection && navigator.connection.saveData)) ? v.dataset.sd : v.dataset.hd;
+  }
   function show(i) {
     cur = (i + slides.length) % slides.length; aim(slides[cur]);
     Array.prototype.forEach.call(slides, function (s, k) { s.classList.toggle("on", k === cur); s.setAttribute("aria-hidden", String(k !== cur)); });
@@ -25,7 +30,6 @@
   aim(slides[0]);
   window.addEventListener("resize", function () { aim(slides[cur]); }, { passive: true });
   box.addEventListener("mouseenter", function () { hold = true; }); box.addEventListener("mouseleave", function () { hold = false; });
-  if (window.IntersectionObserver) new IntersectionObserver(function (es) { seen = es[0].isIntersecting; box.classList.toggle("off", !seen); if (v) { if (seen && !calm) v.play().catch(function () {}); else v.pause(); } }).observe(box); else seen = true;
-  if (v && calm) v.removeAttribute("autoplay");
+  if (window.IntersectionObserver) new IntersectionObserver(function (es) { seen = es[0].isIntersecting; box.classList.toggle("off", !seen); if (v) { if (seen && !calm) { if (!v.getAttribute("src")) v.src = pick(); v.play().catch(function () {}); } else v.pause(); } }).observe(box); else seen = true;
   if (!calm) setInterval(function () { if (seen && !hold && !document.hidden) show(cur + 1); }, 7000);
 })();

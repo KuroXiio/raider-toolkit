@@ -15,3 +15,8 @@ id = "94ec9a393fa8493b8a7b9690d5edb1f7"
 binding = "DB"
 database_name = "raidkits-sync"
 database_id = "c324940e-eb00-4c77-9483-8a9ec8e2602f"
+
+# the "Report a problem" form in the desktop app goes through the relay worker, which holds the Discord webhook
+[[services]]
+binding = "RELAY"
+service = "raidkits-arc"

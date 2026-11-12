@@ -1,20 +1,63 @@
   /* ---------- map markers (MetaForge community map) ---------- */
   var MFD = DB.mf || null, MKT = MFD ? MFD.types : [], MKLOOT = MFD ? MFD.loot : [];
-  // glyphs on a 24x24 grid, drawn as strokes
+  /* Marker look: few colours, and the shape says what kind of thing it is.
+       cream  = places (return points are filled so they stand out first)
+       amber  = locked: rooms and doors that need a key, a breach or a fuel cell
+       grey   = containers (rounded squares)
+       red    = ARC (diamonds)
+       green  = nature
+     Glyphs are strokes on a 24x24 grid; a type can have its own glyph in MKSUB. */
+  var MKC = { ink: "#f1ece1", amb: "#ffc24b", dim: "#a9b1c6", red: "#ff5a52", grn: "#8fd17a", bg: "rgba(13,14,22,.92)", dark: "#12131c" };
   var MKG = [
-    { k: "ext", n: "Extraction", c: "#ff6b6b", m: ["locations:extraction", "locations:metro_entrance"], on: 1, g: "M12 17V6M7.5 10.5 12 6l4.5 4.5M7 19h10" },
-    { k: "hat", n: "Raider hatches", c: "#f2c94c", m: ["locations:hatch"], on: 1, g: "M6 9h12v9H6zM9 9V6h6v3M9 12.5h6M9 15.5h6" },
-    { k: "spn", n: "Player spawns", c: "#e8ecff", m: ["locations:player_spawn"], on: 0, g: "M12 5.5a2.3 2.3 0 1 1 0 4.6a2.3 2.3 0 1 1 0-4.6zM7.5 19c0-4 2-6 4.5-6s4.5 2 4.5 6" },
-    { k: "sup", n: "Supply stations", c: "#7fa8ff", m: ["locations:supply_station"], on: 0, g: "M5 10.5 12 6l7 4.5v7.5H5zM9.5 18v-4h5v4" },
-    { k: "lock", n: "Locked rooms and doors", c: "#4fe3ff", m: ["locations:locked_room", "locations:breach_room", "locations:fuel-cell", "locations:button"], on: 1, g: "M7 11h10v8H7zM9 11V8.5a3 3 0 0 1 6 0V11M12 14v2" },
-    { k: "trav", n: "Ziplines and lifts", c: "#5cff9a", m: ["locations:zipline", "locations:gondola_landing", "locations:mast_lift"], on: 0, g: "M4 7l16 5M12 9.5V15M9 15h6v3H9z" },
-    { k: "loc", n: "Other places", c: "#ff9f4a", cat: "locations", on: 0, g: "M12 4.5c3 0 5 2.2 5 5 0 3.8-5 9.5-5 9.5s-5-5.7-5-9.5c0-2.8 2-5 5-5zM12 8a1.5 1.5 0 1 1 0 3a1.5 1.5 0 1 1 0-3z" },
-    { k: "con", n: "Containers", c: "#c9b6ff", cat: "containers", sub: 1, on: 0, g: "M5 9h14v9H5zM5 9l2-3h10l2 3M10 12.5h4" },
-    { k: "arc", n: "ARC", c: "#ff5c93", cat: "arc", sub: 1, on: 0, g: "M3.5 12S7 6.5 12 6.5 20.5 12 20.5 12 17 17.5 12 17.5 3.5 12 3.5 12zM12 10a2 2 0 1 1 0 4a2 2 0 1 1 0-4z" },
-    { k: "nat", n: "Nature", c: "#86e06f", cat: "nature", sub: 1, on: 0, g: "M6 18c0-7 5-12 12-12 0 7-5 12-12 12zM6 18l6.5-6.5" },
-    { k: "evt", n: "Events", c: "#ffd36b", cat: "events", sub: 1, on: 0, g: "M13 4 6.5 13.5h5L10.5 20 17.5 10.5h-5z" },
-    { k: "qst", n: "Quests", c: "#c49bff", cat: "quests", sub: 1, on: 0, g: "M8 20V5M8 5.5h9l-2 3.5 2 3.5H8" }
+    { k: "ext", n: "Extraction", c: MKC.ink, sh: "fill", m: ["locations:extraction", "locations:metro_entrance"], on: 1, g: "M12 16.5V6M7.5 10.5 12 6l4.5 4.5M7 19.5h10" },
+    { k: "hat", n: "Raider hatches", c: MKC.ink, sh: "fill", m: ["locations:hatch"], on: 1, g: "M6 9h12v9H6zM9 9V6h6v3M9 12.5h6M9 15.5h6" },
+    { k: "spn", n: "Player spawns", c: MKC.ink, sh: "ring", m: ["locations:player_spawn"], on: 0, g: "M12 5.5a2.3 2.3 0 1 1 0 4.6a2.3 2.3 0 1 1 0-4.6zM7.5 19c0-4 2-6 4.5-6s4.5 2 4.5 6" },
+    { k: "sup", n: "Supply stations", c: MKC.ink, sh: "ring", m: ["locations:supply_station"], on: 0, g: "M12 19.5v-8M8.6 8.6a4.8 4.8 0 0 1 6.8 0M6 6a8.5 8.5 0 0 1 12 0M9.5 19.5h5" },
+    { k: "lock", n: "Locked rooms and doors", c: MKC.amb, sh: "ring", m: ["locations:locked_room", "locations:breach_room", "locations:fuel-cell", "locations:button"], on: 1, g: "M7 11h10v8H7zM9 11V8.5a3 3 0 0 1 6 0V11M12 14v2" },
+    { k: "trav", n: "Ziplines and lifts", c: MKC.ink, sh: "ring", m: ["locations:zipline", "locations:gondola_landing", "locations:mast_lift"], on: 0, g: "M4 7l16 5M12 9.5V15M9 15h6v3H9z" },
+    { k: "loc", n: "Other places", c: MKC.ink, sh: "ring", cat: "locations", on: 0, g: "M12 4.5c3 0 5 2.2 5 5 0 3.8-5 9.5-5 9.5s-5-5.7-5-9.5c0-2.8 2-5 5-5zM12 8a1.5 1.5 0 1 1 0 3a1.5 1.5 0 1 1 0-3z" },
+    { k: "con", n: "Containers", c: MKC.dim, sh: "sq", cat: "containers", sub: 1, on: 0, g: "M5 9h14v9H5zM5 9l2-3h10l2 3M10 12.5h4" },
+    { k: "arc", n: "ARC", c: MKC.red, sh: "dia", cat: "arc", sub: 1, on: 0, g: "M5 12s2.8-4.2 7-4.2S19 12 19 12s-2.8 4.2-7 4.2S5 12 5 12zM12 10.4a1.6 1.6 0 1 1 0 3.2a1.6 1.6 0 1 1 0-3.2z" },
+    { k: "nat", n: "Nature", c: MKC.grn, sh: "ring", cat: "nature", sub: 1, on: 0, g: "M6 18c0-7 5-12 12-12 0 7-5 12-12 12zM6 18l6.5-6.5" },
+    { k: "evt", n: "Events", c: MKC.ink, sh: "hex", cat: "events", sub: 1, on: 0, g: "M13 4.5 7 13.5h4.5L10.5 19.5 17 10.5h-4.5z" },
+    { k: "qst", n: "Quests", c: MKC.amb, sh: "hex", cat: "quests", sub: 1, on: 0, g: "M8.5 19.5V5M8.5 5.5h8l-2 3.2 2 3.3h-8" }
   ];
+  var MKSUB = {
+    "locations:metro_entrance": "M6.5 17.5V7l5.5 6 5.5-6v10.5",
+    "locations:breach_room": "M7.5 19.5v-15h9v15M5.5 19.5h13M13.5 12.5h.6",
+    "locations:fuel-cell": "M8 7.5h8v12H8zM10.5 7.5V5h3v2.5M12.6 10l-2 3.5h2.8l-2 3.5",
+    "locations:button": "M12 7a5 5 0 1 1 0 10a5 5 0 1 1 0-10zM12 10.5a1.5 1.5 0 1 1 0 3a1.5 1.5 0 1 1 0-3z",
+    "locations:gondola_landing": "M4 6l16 3M12 7.5V11M7.5 11h9v7.5h-9zM7.5 14.5h9",
+    "locations:mast_lift": "M12 4.5v15M8 8.5l4-4 4 4M8 15.5l4 4 4-4",
+    "locations:field_crate": "M5 8.5h14v10H5zM5 13.5h14M12 8.5v10",
+    "locations:field_depot": "M5 19.5v-9l7-5 7 5v9zM10 19.5v-5h4v5",
+    "locations:raider_camp": "M3.5 18.5 12 6l8.5 12.5zM12 6v12.5",
+    "locations:emergency_shelter": "M5 18.5v-6a7 7 0 0 1 14 0v6zM10 18.5v-4h4v4",
+    "containers:locker": "M8 4.5h8v15H8zM8 12h8M13.5 8v1.5M13.5 14.5V16",
+    "containers:raider_cache": "M5 18.5v-7a3.5 3.5 0 0 1 3.5-3.5h7A3.5 3.5 0 0 1 19 11.5v7zM5 12.5h14M12 11v3.5",
+    "containers:frozen_raider_cache": "M5 18.5v-7a3.5 3.5 0 0 1 3.5-3.5h7A3.5 3.5 0 0 1 19 11.5v7zM5 12.5h14M12 11v3.5",
+    "containers:hurricane_cache": "M5 18.5v-7a3.5 3.5 0 0 1 3.5-3.5h7A3.5 3.5 0 0 1 19 11.5v7zM5 12.5h14M12 11v3.5",
+    "containers:weapon_case": "M4 9h16v9H4zM9 9V6.5h6V9M8 13.5h8",
+    "containers:ammo_crate": "M7.5 18.5v-8l2-3.5 2 3.5v8zM12.5 18.5v-8l2-3.5 2 3.5v8z",
+    "containers:med_crate": "M5.5 7h13v11.5h-13zM12 9.5v6.5M8.8 12.8h6.4",
+    "containers:car": "M4.5 16v-3.5l2.2-4.5h10.6l2.2 4.5V16zM4.5 12.5h15M8 16v2M16 16v2",
+    "containers:suitcase": "M5.5 9h13v9.5h-13zM9.5 9V6.5h5V9M5.5 13h13",
+    "containers:bag": "M7 9.5h10l1 9H6zM9.5 9.5V8a2.5 2.5 0 0 1 5 0v1.5",
+    "containers:security_breach": "M12 4.5l6 2.5v4.5c0 4-2.6 6.6-6 8-3.4-1.4-6-4-6-8V7z",
+    "containers:breachable_container": "M12 4.5l6 2.5v4.5c0 4-2.6 6.6-6 8-3.4-1.4-6-4-6-8V7z",
+    "nature:mushroom": "M5 12a7 7 0 0 1 14 0zM10 12v6.5h4V12",
+    "events:mine": "M12 8a4.5 4.5 0 1 1 0 9a4.5 4.5 0 1 1 0-9zM12 5v3M5 12.5h2.5M16.5 12.5H19M7.3 7.8l1.4 1.4M16.7 7.8l-1.4 1.4",
+    "events:security_camera": "M5 8h10v6H5zM15 10l4-2v6l-4-2M8 14v4.5",
+    "events:dig_spot": "M14.5 4.5l5 5M17 7l-8 8M6.5 13.5l4 4-2 2h-4v-4z",
+    "events:snow_pile": "M12 5v14M6 8.5l12 7M18 8.5l-12 7"
+  };
+  // loot left behind by ARC (husks, probes, couriers) is a container like any other, marked with the ARC eye
+  var MKARCBOX = { baron_husk: 1, wasp_husk: 1, rocketeer_husk: 1, arc_husk: 1, deforester_husk: 1, arc_courier: 1, arc_probe: 1 };
+  function mkLook(ti) {
+    var ty = MKT[ti], g = MKTG[ti] || MKGI.loc, key = ty ? ty[0] + ":" + ty[1] : "";
+    var red = ty && ty[0] === "containers" && MKARCBOX[ty[1]];
+    return { id: red ? "arcbox" : MKSUB[key] ? key : g.k, c: g.c, sh: g.sh, g: red ? MKGI.arc.g : MKSUB[key] || g.g };
+  }
   var MKGI = {}; MKG.forEach(function (g) { MKGI[g.k] = g; });
   var MKTG = MKT.map(function (t) {
     var key = t[0] + ":" + t[1];
@@ -72,16 +115,30 @@
 
   /* sprites: drawn once per look and size, then stamped */
   var SPR = {}, ICIMG = {};
-  function sprBadge(g, d, dpr, glyph) {
-    var key = "b" + g.k + d + "_" + dpr + (glyph ? "g" : ""); if (SPR[key]) return SPR[key];
+  function mkShape(x, sh, m, r) {
+    x.beginPath();
+    if (sh === "sq") { var q = r * 0.9, rr = r * 0.3; x.roundRect ? x.roundRect(m - q, m - q, q * 2, q * 2, rr) : x.rect(m - q, m - q, q * 2, q * 2); }
+    else if (sh === "dia") { var d2 = r * 1.12; x.moveTo(m, m - d2); x.lineTo(m + d2, m); x.lineTo(m, m + d2); x.lineTo(m - d2, m); x.closePath(); }
+    else if (sh === "hex") { for (var k = 0; k < 6; k++) { var a = Math.PI / 6 + k * Math.PI / 3, px = m + Math.cos(a) * r * 1.06, py = m + Math.sin(a) * r * 1.06; if (k) x.lineTo(px, py); else x.moveTo(px, py); } x.closePath(); }
+    else x.arc(m, m, r, 0, 6.2832);
+  }
+  /* one marker: L is a look from mkLook (or a group), d its size. Small ones (glyph off) are plain shapes for crowded views. */
+  function sprBadge(L, d, dpr, glyph) {
+    if (L.k && !L.id) L = { id: L.k, c: L.c, sh: L.sh, g: L.g };
+    var key = "b" + L.id + d + "_" + dpr + (glyph ? "g" : ""); if (SPR[key]) return SPR[key];
     var c = document.createElement("canvas"), px = Math.ceil((d + 4) * dpr); c.width = c.height = px;
-    var x = c.getContext("2d"); x.scale(dpr, dpr); var m = (d + 4) / 2, r = d / 2;
-    x.beginPath(); x.arc(m, m, r, 0, 6.2832); x.fillStyle = "rgba(11,15,38,.92)"; x.fill();
-    x.lineWidth = Math.max(1.3, d / 9); x.strokeStyle = g.c; x.stroke();
-    if (glyph) {
-      x.save(); var sc = d / 24 * 0.8; x.translate(m - 12 * sc, m - 12 * sc); x.scale(sc, sc);
-      x.lineWidth = 2.3; x.lineJoin = "round"; x.lineCap = "round"; x.strokeStyle = g.c; x.stroke(new Path2D(g.g)); x.restore();
-    } else { x.beginPath(); x.arc(m, m, r * 0.38, 0, 6.2832); x.fillStyle = g.c; x.fill(); }
+    var x = c.getContext("2d"); x.scale(dpr, dpr); var m = (d + 4) / 2, r = d / 2, fill = L.sh === "fill";
+    x.lineJoin = "round";
+    if (!glyph) {
+      // crowded: a small solid shape with a dark edge
+      mkShape(x, L.sh === "fill" || L.sh === "ring" ? "c" : L.sh, m, r * 0.62); x.fillStyle = L.c; x.fill(); x.lineWidth = 1.4; x.strokeStyle = "rgba(8,9,16,.9)"; x.stroke();
+      return (SPR[key] = c);
+    }
+    mkShape(x, L.sh, m, r); x.lineWidth = 2.6; x.strokeStyle = "rgba(6,7,12,.75)"; x.stroke();   // dark halo so it reads on any ground
+    mkShape(x, L.sh, m, r - 0.4); x.fillStyle = fill ? L.c : MKC.bg; x.fill();
+    if (!fill) { x.lineWidth = Math.max(1.2, d / 13); x.strokeStyle = L.c; x.stroke(); }
+    x.save(); var sc = d / 24 * (L.sh === "dia" ? 0.66 : L.sh === "sq" ? 0.74 : 0.72); x.translate(m - 12 * sc, m - 12 * sc); x.scale(sc, sc);
+    x.lineWidth = fill ? 2.6 : 2.2; x.lineCap = "round"; x.strokeStyle = fill ? MKC.dark : L.c; x.stroke(new Path2D(L.g)); x.restore();
     return (SPR[key] = c);
   }
   function sprPin(kind, id, label, w, dpr) {
@@ -106,6 +163,44 @@
     }
     return (SPR[key] = c);
   }
+  /* Area names, written the way the in-game map does: small capitals, widely spaced, straight on the ground.
+     [name, x, y, tier] in pixels of the 1800px map image. Tier 2 names show once you zoom in a little.
+     Each one is placed from a marker that names the spot (a return point, a key door, a quest's "reach ..." pin), so a name
+     can sit a little off the middle of its area; areas with nothing to place them by are left out rather than guessed. */
+  var MAREAS = {"dam":[["Water Treatment Control",735,888,1],["Research & Administration",1000,992,1],["Control Tower",1052,926,2],["Testing Annex",1249,1127,1],["Power Generation Complex",1188,560,1],["Controlled Access Zone",1088,622,2],["Hydroponic Dome Complex",868,652,1],["South Swamp Outpost",480,930,2],["Victory Ridge",772,452,1],["Swamp",650,775,1],["Floodgates",1022,823,2],["Water Towers",590,1160,2],["Red Lakes Balcony",1178,1092,2],["Ben Welder's Sunroof",616,562,2]],
+    "buried":[["Piazza Roma",718,808,1],["Hospital",930,566,1],["Town Hall",966,986,1],["Library",790,628,1],["Grandioso Apartments",584,1132,1],["Santa Maria Houses",934,1177,1],["Red Tower",1130,1250,2],["Space Travel",1029,781,1],["Galleria",1129,682,2],["Pharmacy",1282,1048,2],["Graveyard",1334,914,2],["Parking Garage",968,640,2]],
+    "space":[["Arrival Building",700,624,1],["Departure Building",690,820,1],["Launch Towers",857,745,1],["Rocket Assembly",1101,789,1],["Control Tower",983,885,1],["Container Storage",1124,951,1],["Jiangsu Warehouse",516,535,2],["Water Towers",359,723,2],["Vehicle Maintenance",920,1065,1],["Hidden Bunker",615,912,2],["Electrical Substation",984,1354,2],["Communications Tower",1310,1052,2],["South Trench Tower",953,562,2],["Fuel Lines",521,1085,2]],
+    "gate":[["Pilgrim's Peak",1289,541,1],["Reinforced Reception",885,634,1],["Raider's Refuge",564,664,1],["Ancient Fort",908,1238,1],["Checkpoint",622,1008,1],["Olive Grove",762,1105,2],["Barren Clearing",367,622,2],["Collapsed Highway",390,962,2],["Traffic Tunnel",881,748,2],["Abandoned Housing Project",1276,839,2]],
+    "stella_u":[["Loading Bay",350,1193,1],["Lobby Metro",1127,311,1],["Robotic Sandbox A",954,682,1],["Robotic Sandbox B",900,1380,1],["Seed Vault",1485,1415,1],["Eastern Tunnel",1535,940,2]],
+    "stella_l":[["Medical Research",300,950,1],["Security Bridge",1090,484,2],["Atrium",1048,954,1],["Cafeteria",908,876,2],["Communications",1138,818,1],["Lobby",1100,440,1],["Cultural Archives",1600,520,1],["Assembly",680,345,1]],
+    "riven":[["Hotel Panorama Azzurro",480,1062,1],["Port Authority Building",795,690,1],["Crane House",1240,954,1],["Customs House",890,1230,1],["Mulatierra Hill",874,1021,2],["Quay",1402,825,2],["Raider Camp",550,858,2]],
+    "pendola":[["Almatera Station",788,787,1],["Dispatch Tower",889,618,1],["Weather Station",1300,915,1],["Loading Platforms",1270,1288,1],["Commissary Supermarket",940,955,1],["Cielo Sereno Observatory",1283,708,1],["Railyard",1150,1140,1],["The Emperor",600,935,1],["Old Town",646,1173,1],["Northern Tracks",1171,439,2]]};
+  function mkAreas(cx, s, W, H) {
+    var list = MAREAS[mapImgKey()]; if (!list || mkLay.names === false) return;
+    var fs = Math.max(10, Math.min(14, 9.5 + MV.z * 1.1)), boxes = [], fam = getComputedStyle(document.documentElement).getPropertyValue("--f-display") || "sans-serif";
+    cx.save(); cx.textAlign = "center"; cx.textBaseline = "middle"; cx.lineJoin = "round";
+    try { cx.letterSpacing = (fs * 0.16).toFixed(1) + "px"; } catch (e) {}
+    [1, 2].forEach(function (tier) {
+      if (tier === 2 && MV.z < 1.45) return;
+      var f = tier === 1 ? fs : fs - 1.5; cx.font = "700 " + f + "px " + fam;
+      list.forEach(function (a) {
+        if (a[3] !== tier) return;
+        var x = MV.x + a[1] * s, y = MV.y + a[2] * s + 18; if (x < -80 || y < -20 || x > W + 80 || y > H + 20) return;
+        var words = a[0].toUpperCase().split(" "), lines = [words[0]];
+        for (var k = 1; k < words.length; k++) { if ((lines[lines.length - 1] + " " + words[k]).length <= 13) lines[lines.length - 1] += " " + words[k]; else lines.push(words[k]); }
+        var w = 0; lines.forEach(function (l) { w = Math.max(w, cx.measureText(l).width); });
+        var h = lines.length * f * 1.22, b = [x - w / 2 - 6, y - h / 2 - 3, x + w / 2 + 6, y + h / 2 + 3];
+        for (var q = 0; q < boxes.length; q++) if (b[0] < boxes[q][2] && b[2] > boxes[q][0] && b[1] < boxes[q][3] && b[3] > boxes[q][1]) return;
+        boxes.push(b);
+        lines.forEach(function (l, n) {
+          var ly = y - h / 2 + f * 0.61 + n * f * 1.22;
+          cx.lineWidth = 3.2; cx.strokeStyle = "rgba(6,7,12,.82)"; cx.strokeText(l, x, ly);
+          cx.fillStyle = tier === 1 ? "rgba(241,236,225,.96)" : "rgba(241,236,225,.78)"; cx.fillText(l, x, ly);
+        });
+      });
+    });
+    cx.restore();
+  }
   var mkRaf = 0, mkPts = [];
   function mkSoon() { if (!mkRaf) mkRaf = requestAnimationFrame(function () { mkRaf = 0; mkDraw(); }); }
   function mkDraw() {
@@ -116,7 +211,7 @@
     mkPts = [];
     var key = mapImgKey(), d = MAPIMG[key], data = MK[key];
     if (!d || !data) return;
-    if (MV.plan) { planDraw(cx, data, Math.min(W / d.w, H / d.h) * MV.z, W, H, dpr); return; }
+    if (MV.plan) { mkAreas(cx, Math.min(W / d.w, H / d.h) * MV.z, W, H); planDraw(cx, data, Math.min(W / d.w, H / d.h) * MV.z, W, H, dpr); return; }
     var s = Math.min(W / d.w, H / d.h) * MV.z, f = mkFocus(), list = data.m, on = [];
     for (var i = 0; i < list.length; i++) {
       var r = list[i];
@@ -138,6 +233,7 @@
           cx.beginPath(); path.forEach(function (p, k) { if (k) cx.lineTo(p[0], p[1] - 2); else cx.moveTo(p[0], p[1] - 2); }); cx.stroke(); cx.restore();
         }
       }
+      mkAreas(cx, s, W, H);
       on.sort(function (a, b) { return a[1] - b[1]; });
       on.forEach(function (p) {
         var st = f.route && data.s ? data.s[p[2]] : 0;
@@ -146,16 +242,17 @@
       });
       return;
     }
-    // a lot on screen: small rings; zoom in for the icons
-    var dense = on.length > 500 && MV.z < 2.2, dd = dense ? 9 : Math.round(15 + Math.min(7, (MV.z - 1) * 1.8));
+    // a lot on screen: containers, plants and ARC shrink to small shapes; places always keep their icon
+    var dense = on.length > 320 && MV.z < 4.5, zb = Math.min(6, (MV.z - 1) * 1.8);
     var rank = function (p) { var g = MKTG[list[p[2]][2]]; return g ? MKG.indexOf(g) : 0; };
     on.sort(function (a, b) { return rank(b) - rank(a); });
     on.forEach(function (p) {
-      var g = MKTG[list[p[2]][2]] || MKGI.loc, big = !g.cat || g.k === "loc";
-      var size = dense && !big ? dd : Math.max(dd, 15), sp = sprBadge(g, size, dpr, !(dense && !big));
+      var ti = list[p[2]][2], g = MKTG[ti] || MKGI.loc, place = !g.cat || g.k === "loc", ret = g.sh === "fill";
+      var mini = dense && !place, size = mini ? Math.round(8 + Math.min(4, MV.z - 1)) : Math.round((ret ? 21 : place ? 18 : 16) + zb), sp = sprBadge(mkLook(ti), size, dpr, !mini);
       cx.drawImage(sp, p[0] - (size + 4) / 2, p[1] - (size + 4) / 2, size + 4, size + 4);
       mkPts.push([p[0], p[1], p[2], size / 2 + 3]);
     });
+    mkAreas(cx, s, W, H);
   }
   function mkHit(px, py) {
     var best = null, bd = 1e9;
@@ -182,7 +279,11 @@
     data.m.forEach(function (r) { var g = MKTG[r[2]]; if (!g) return; c[g.k] = (c[g.k] || 0) + 1; var tk = MKT[r[2]][0] + ":" + MKT[r[2]][1]; c[tk] = (c[tk] || 0) + 1; });
     return c;
   }
-  function mkIcon(g) { return '<svg class="mlsw" viewBox="0 0 24 24" style="--c:' + g.c + '"><circle cx="12" cy="12" r="10.5"/><path d="' + g.g + '"/></svg>'; }
+  function mkIcon(g, path) {
+    var sh = g.sh === "sq" ? '<rect x="2.5" y="2.5" width="19" height="19" rx="4"/>' : g.sh === "dia" ? '<path class="s" d="M12 1.2 22.8 12 12 22.8 1.2 12z"/>' : g.sh === "hex" ? '<path class="s" d="M12 1.5l9.1 5.25v10.5L12 22.5l-9.1-5.25V6.75z"/>' : '<circle cx="12" cy="12" r="10.3"/>';
+    return '<svg class="mlsw' + (g.sh === "fill" ? " fill" : "") + '" viewBox="0 0 24 24" style="--c:' + g.c + '">' + sh + '<path transform="translate(2.6 2.6) scale(.78)" d="' + (path || g.g) + '"/></svg>';
+  }
+  function mkSubIcon(tk, g) { var red = tk.indexOf("containers:") === 0 && MKARCBOX[tk.slice(11)]; return mkIcon(g, red ? MKGI.arc.g : MKSUB[tk]); }
   var mkOpen = {};
   function renderLayers() {
     var el = $("#mlayp"); if (!el) return;
@@ -193,6 +294,7 @@
       '<p class="mlnote2">' + esc(t("Everything else is hidden. Untick this, or tick anything below, to go back to your filter.")) + "</p>";
     var pins = keysOnImg(key);
     if (pins.length) html += '<label class="mlr"><input type="checkbox" data-mlkeys' + (MV.keys && !f ? " checked" : "") + '><svg class="mlsw key" viewBox="0 0 30 38"><path d="M15 37C15 37 2 22 2 14a13 13 0 0 1 26 0c0 8-13 23-13 23z"/><circle cx="11.5" cy="13" r="4"/><path d="M15 14.5h8m-3 0v3.5m3-3.5v2.5"/></svg><span>' + esc(t("Key rooms")) + "</span><small>" + pins.length + "</small></label>";
+    if ((MAREAS[key] || []).length) html += '<label class="mlr"><input type="checkbox" data-mlnames' + (mkLay.names !== false ? " checked" : "") + '><span class="mlaa" aria-hidden="true">Aa</span><span>' + esc(t("Area names")) + "</span><small>" + MAREAS[key].length + "</small></label>";
     MKG.forEach(function (g) {
       if (!c[g.k]) return;
       var subs = [];
@@ -201,7 +303,7 @@
       var gon = mkLay.g[g.k] && !f;
       html += '<div class="mlg"><label class="mlr"><input type="checkbox" data-mlg="' + g.k + '"' + (gon ? " checked" : "") + ">" + mkIcon(g) + "<span>" + esc(t(g.n)) + "</span><small>" + fmt(c[g.k]) + "</small>" +
         (subs.length > 1 ? '<button type="button" class="mlexp" data-mlexp="' + g.k + '" aria-expanded="' + !!mkOpen[g.k] + '" aria-label="' + esc(t("Show types")) + '"></button>' : "") + "</label>";
-      if (subs.length > 1 && mkOpen[g.k]) html += '<div class="mlsub">' + subs.map(function (s) { return '<label class="mlr"><input type="checkbox" data-mlt="' + esc(s[0]) + '"' + (!mkLay.off[s[0]] && gon ? " checked" : "") + (gon ? "" : " disabled") + "><span>" + esc(s[1]) + "</span><small>" + fmt(s[2]) + "</small></label>"; }).join("") + "</div>";
+      if (subs.length > 1 && mkOpen[g.k]) html += '<div class="mlsub">' + subs.map(function (s) { return '<label class="mlr"><input type="checkbox" data-mlt="' + esc(s[0]) + '"' + (!mkLay.off[s[0]] && gon ? " checked" : "") + (gon ? "" : " disabled") + ">" + mkSubIcon(s[0], g) + "<span>" + esc(s[1]) + "</span><small>" + fmt(s[2]) + "</small></label>"; }).join("") + "</div>";
       html += "</div>";
     });
     html += '<div class="mlfoot"><button type="button" class="chip orb" data-mlall="1">' + esc(t("All on")) + '</button><button type="button" class="chip orb" data-mlall="0">' + esc(t("All off")) + '</button></div><p class="mlsrc">' + t("Markers from the <a href=\"https://metaforge.app/arc-raiders\" target=\"_blank\" rel=\"noopener\">MetaForge</a> community map.") + "</p>";
@@ -274,6 +376,7 @@
       if (c.dataset.mlg) { mkLay.g[c.dataset.mlg] = c.checked; }
       else if (c.dataset.mlt) { if (c.checked) delete mkLay.off[c.dataset.mlt]; else mkLay.off[c.dataset.mlt] = 1; }
       else if (c.hasAttribute("data-mlkeys")) MV.keys = c.checked;
+      else if (c.hasAttribute("data-mlnames")) { mkLay.names = c.checked; mkSave(); }
     }
     mkSave(); renderFocus(); mkKeyPins(); renderLayers(); mkSoon();
     if (hadFocus) renderMapLoot();

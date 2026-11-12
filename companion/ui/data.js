@@ -111,7 +111,16 @@
   }
   /* the route sent from the site's route planner: { k: map picture, n: name, spawn: [x, y], stops: [{ p: [x, y], w: "what is there", ids: [items] }], end: { p, n } }
      and how far along it you are (the number of stops done) */
-  function route() { var r = read("rtc-route", null); return r && r.k && Array.isArray(r.stops) && Array.isArray(r.spawn) ? r : null; }
+  function route() {
+    var r = read("rtc-route", null); if (!(r && r.k && Array.isArray(r.stops) && Array.isArray(r.spawn))) return null;
+    // stops ahead of you drop out once you have everything they were for (ticked off on your list here or on the site)
+    var at = read("rtc-route-at", 0) | 0, it = list().items;
+    r.stops = r.stops.filter(function (s, i) {
+      if (i < at || !s.ids || !s.ids.length) return true;
+      return !s.ids.every(function (id) { var x = it[id]; return x && x.have >= x.need; });
+    });
+    return r;
+  }
   function setRoute(r) { if (r) write("rtc-route", r); else { localStorage.removeItem("rtc-route"); if (window.RTSync) RTSync.touched("rtc-route"); } write("rtc-route-at", 0); }
   function routeAt() { var r = route(), n = read("rtc-route-at", 0) | 0; return r ? Math.max(0, Math.min(r.stops.length, n)) : 0; }
   function setRouteAt(n) { var r = route(); if (r) write("rtc-route-at", Math.max(0, Math.min(r.stops.length, n | 0))); }

@@ -135,10 +135,13 @@ def jsvar(name):
     return json.loads(m.group(1)) if m else {}
 mapfiles = {k: {'img': v['u'], 'w': v['w'], 'h': v['h'], 'mk': jsvar('MKF').get(k, '')} for k, v in jsvar('MAPIMG').items() if isinstance(v, dict) and v.get('u')}
 mf = {'types': (DB.get('mf') or {}).get('types', [])}
+# area names drawn on the maps: [name, x, y, tier] per map picture (the same list the site draws)
+_m = re.search(r'var MAREAS = (\{.*?\});', page, re.S)
+areas = json.loads(_m.group(1)) if _m else {}
 
 ev = DB.get('ev') or {}
 bot = {'v': 1, 'app': {'min': cfg.get('companionMinVersion', '')}, 'built': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d'), 'patch': cfg.get('patch', ''), 'site': (cfg.get('siteUrl') or '').rstrip('/') + '/',
-       'maps': MAPS, 'items': out_items, 'keys': keys, 'builds': builds, 'weapons': weapons, 'mods': mods, 'quests': quests, 'skills': sk_tree, 'mapimg': maps_img, 'mapfiles': mapfiles, 'mf': mf,
+       'maps': MAPS, 'items': out_items, 'keys': keys, 'builds': builds, 'weapons': weapons, 'mods': mods, 'quests': quests, 'skills': sk_tree, 'mapimg': maps_img, 'mapfiles': mapfiles, 'areas': areas, 'mf': mf,
        'ev': {'t0': ev.get('t0'), 'per': ev.get('per'), 'm': ev.get('m', {})} if ev else None}
 os.makedirs(OUT + '/site', exist_ok=True)
 raw = json.dumps(bot, separators=(',', ':'), ensure_ascii=False)

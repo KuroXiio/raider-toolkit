@@ -1,4 +1,5 @@
   I18N.pt = {
+      "Route updated": "Rota atualizada", "stop fewer": "parada a menos", "stops fewer": "paradas a menos", "Found one? Tap to tick it off": "Achou um? Toque para marcar", "still needed": "ainda necessários", "you have all you need": "você tem tudo o que precisa", "ticked off for this route": "marcado para esta rota", "A rough guess from each item's rarity and how many containers the route passes. Containers are random.": "Uma estimativa aproximada pela raridade e quantos contêineres a rota passa. Contêineres são aleatórios.", "Chance to find at least one": "Chance de achar pelo menos um",
       "Details": "Detalhes", "Get it": "Como obter", "Inside": "Dentro",
       "Play route": "Reproduzir rota", "Stop playing": "Parar", "Next stop": "Próxima parada", "Previous stop": "Parada anterior", "Stop": "Parada", "item": "item", "item on your route": "item na sua rota", "items on your route": "itens na sua rota",
       "Most liked": "Mais gostada", "Like this build": "Gostar desta build", "Remove your like": "Retirar o gosto", "Likes work on raidkits.com.": "Os gostos funcionam em raidkits.com.", "Build likes": "Gostos nas builds",

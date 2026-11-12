@@ -32,12 +32,20 @@ export default {
     const cors = {
       "Access-Control-Allow-Origin": allowed.includes(origin) ? origin : allowed[0],
       "Access-Control-Allow-Headers": "Content-Type",
-      "Access-Control-Allow-Methods": "GET, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Methods": "GET, PUT, POST, DELETE, OPTIONS",
       "Access-Control-Max-Age": "86400",
       "Vary": "Origin",
     };
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     if (!allowed.includes(origin)) return json({ error: "Sync only answers Raider Toolkit." }, 403, cors);
+    // reports from the desktop app: handed to the relay worker (service binding), which keeps the Discord webhook
+    if (req.method === "POST" && new URL(req.url).pathname === "/report") {
+      if (!env.RELAY) return json({ error: "Reports are not set up yet." }, 503, cors);
+      const raw = await req.text();
+      if (raw.length > 6000) return json({ error: "That report is too long." }, 413, cors);
+      const r = await env.RELAY.fetch("https://relay/report", { method: "POST", body: raw, headers: { "Content-Type": "text/plain;charset=UTF-8", "Origin": "https://raidkits.com", "CF-Connecting-IP": req.headers.get("CF-Connecting-IP") || "unknown" } });
+      return new Response(await r.text(), { status: r.status, headers: { ...cors, "Content-Type": "application/json" } });
+    }
     if (!env.DB) return json({ error: "Sync isn't set up." }, 503, cors);
 
     const m = new URL(req.url).pathname.match(/^\/s\/([0-9a-f]{64})\/?$/);

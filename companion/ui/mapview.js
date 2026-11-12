@@ -6,7 +6,44 @@
   var MK = {}, WAIT = {}, IMG = {};
   // ARC wrecks and drones you loot (the site's route planner leaves these out of routes, so the pins do too)
   var ARC_SUB = { baron_husk: 1, wasp_husk: 1, rocketeer_husk: 1, arc_husk: 1, deforester_husk: 1, arc_courier: 1, arc_probe: 1 };
-  var COL = { list: "#5ff2ea", key: "#ffc400", quest: "#ff7ab6", ext: "#ffc400", ink: "#0c0916", done: "#5a5672", fg: "#ece9f5" };
+  // the same look as the site's map: cream places (return points filled), amber for keys and quests, your list in mint
+  var COL = { list: "#5ff2ea", key: "#ffc24b", quest: "#ffc24b", ext: "#f1ece1", ink: "#12131c", done: "#5a5672", fg: "#f1ece1", bg: "rgba(13,14,22,.92)" };
+  var GL = { ext: "M12 16.5V6M7.5 10.5 12 6l4.5 4.5M7 19.5h10", key: "M7 11h10v8H7zM9 11V8.5a3 3 0 0 1 6 0V11M12 14v2", quest: "M8.5 19.5V5M8.5 5.5h8l-2 3.2 2 3.3h-8" };
+  /* a marker like the site's: sh "fill" (filled circle), "ring" or "hex"; the glyph is left out when it would be too small to read */
+  function mark(x, q, r, sh, c, g) {
+    x.save(); x.lineJoin = "round"; x.beginPath();
+    if (sh === "hex") { for (var k = 0; k < 6; k++) { var a = Math.PI / 6 + k * Math.PI / 3; x[k ? "lineTo" : "moveTo"](q[0] + Math.cos(a) * r * 1.06, q[1] + Math.sin(a) * r * 1.06); } x.closePath(); }
+    else x.arc(q[0], q[1], r, 0, 6.2832);
+    x.lineWidth = 2.6; x.strokeStyle = "rgba(6,7,12,.75)"; x.stroke();
+    x.fillStyle = sh === "fill" ? c : COL.bg; x.fill();
+    if (sh !== "fill") { x.lineWidth = Math.max(1.2, r / 6.5); x.strokeStyle = c; x.stroke(); }
+    if (r >= 7.5 && window.Path2D) { var sc = r * 2 / 24 * 0.72; x.translate(q[0] - 12 * sc, q[1] - 12 * sc); x.scale(sc, sc); x.lineWidth = sh === "fill" ? 2.6 : 2.2; x.lineCap = "round"; x.strokeStyle = sh === "fill" ? COL.ink : c; x.stroke(new Path2D(g)); }
+    else if (sh !== "fill") { x.beginPath(); x.arc(q[0], q[1], r * 0.36, 0, 6.2832); x.fillStyle = c; x.fill(); }
+    x.restore();
+  }
+  /* area names, like the in-game map: small spaced capitals; the smaller ones show once you are zoomed in */
+  function areas(x, key, P, zoom, W, H) {
+    var list = (D().areas || {})[key]; if (!list) return;
+    var fs = Math.max(9, Math.min(13, 8.5 + zoom * 1.1)), boxes = [];
+    x.save(); x.textAlign = "center"; x.textBaseline = "middle"; x.lineJoin = "round";
+    try { x.letterSpacing = (fs * 0.16).toFixed(1) + "px"; } catch (e) {}
+    [1, 2].forEach(function (tier) {
+      if (tier === 2 && (zoom < 1.45 || W < 520)) return;
+      var f = tier === 1 ? fs : fs - 1.5; x.font = "700 " + f + "px Urbanist, 'Segoe UI', system-ui, sans-serif";
+      list.forEach(function (a) {
+        if (a[3] !== tier) return;
+        var q = P([a[1], a[2]]), px = q[0], py = q[1] + 14; if (px < -60 || py < -20 || px > W + 60 || py > H + 20) return;
+        var words = a[0].toUpperCase().split(" "), lines = [words[0]];
+        for (var k = 1; k < words.length; k++) { if ((lines[lines.length - 1] + " " + words[k]).length <= 13) lines[lines.length - 1] += " " + words[k]; else lines.push(words[k]); }
+        var w = 0; lines.forEach(function (l) { w = Math.max(w, x.measureText(l).width); });
+        var h = lines.length * f * 1.22, b = [px - w / 2 - 5, py - h / 2 - 2, px + w / 2 + 5, py + h / 2 + 2];
+        for (var n = 0; n < boxes.length; n++) if (b[0] < boxes[n][2] && b[2] > boxes[n][0] && b[1] < boxes[n][3] && b[3] > boxes[n][1]) return;
+        boxes.push(b);
+        lines.forEach(function (l, i) { var ly = py - h / 2 + f * 0.61 + i * f * 1.22; x.lineWidth = 3; x.strokeStyle = "rgba(6,7,12,.82)"; x.strokeText(l, px, ly); x.fillStyle = tier === 1 ? "rgba(241,236,225,.96)" : "rgba(241,236,225,.78)"; x.fillText(l, px, ly); });
+      });
+    });
+    x.restore();
+  }
 
   function D() { return RT.data() || {}; }
   function files(k) { return (D().mapfiles || {})[k] || null; }
@@ -110,11 +147,12 @@
     var hits = [];
     if (pn && !o.routeOnly) {
       var cr = (o.cluster || 14) / s;
-      if (L.ext) pn.ext.forEach(function (e) { var q = P(e.p); badge(x, q, R + 3, COL.ext, "E", COL.ink); hits.push({ q: q, r: R + 4, t: e.n }); });
+      if (L.ext) pn.ext.forEach(function (e) { var q = P(e.p); mark(x, q, R + 4, "fill", COL.ext, GL.ext); hits.push({ q: q, r: R + 5, t: e.n }); });
       if (L.list) cluster(pn.list, cr).forEach(function (c) { var q = P(c.p); dot(x, q, c.n > 1 ? R + 1 : R, COL.list); hits.push({ q: q, r: R + 2, t: c.ids.map(function (id) { return (RT.item(id) || {}).n; }).join(", ") + (c.n > 1 ? " (" + c.n + " spots)" : "") }); });
-      if (L.quests) cluster(pn.quests, cr).forEach(function (c) { var q = P(c.p); tri(x, q, R + 2, COL.quest); hits.push({ q: q, r: R + 3, t: c.name }); });
-      if (L.keys) pn.keys.forEach(function (k) { var q = P(k.p); sq(x, q, R + 2, COL.key); hits.push({ q: q, r: R + 3, t: k.n }); });
+      if (L.quests) cluster(pn.quests, cr).forEach(function (c) { var q = P(c.p); mark(x, q, R + 3, "hex", COL.quest, GL.quest); hits.push({ q: q, r: R + 3, t: c.name }); });
+      if (L.keys) pn.keys.forEach(function (k) { var q = P(k.p); mark(x, q, R + 3, "ring", COL.key, GL.key); hits.push({ q: q, r: R + 3, t: k.n }); });
     }
+    if (o.names !== false && W >= 260) areas(x, key, P, s / base, W, H);
     if (o.route) { o.route.dash = o.dash || 0; drawRoute(x, o.route, P, o.at || 0, R + 4); }
     o.out.hits = hits;
   }
@@ -139,7 +177,7 @@
       else if (i === at) badge(x, q, r + 3, COL.list, n, COL.ink);
       else badge(x, q, r, "#2b2740", n, COL.fg, COL.list);
     });
-    if (rt.end) badge(x, pts[pts.length - 1], r + 1, COL.ext, "E", COL.ink);
+    if (rt.end) mark(x, pts[pts.length - 1], r + 1, "fill", COL.ext, GL.ext);
   }
 
   /* where the route line's dashes are now: they march from stop to stop (still for people who asked for less motion) */

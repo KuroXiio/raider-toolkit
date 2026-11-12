@@ -32,75 +32,106 @@
   }
   function planSpawns(data) { var sp = {}; planTypeIdx("locations:player_spawn").forEach(function (i) { sp[i] = 1; }); var o = []; data.m.forEach(function (r, i) { if (sp[r[2]]) o.push(i); }); return o; }
   function dist(a, b) { return Math.hypot(a[0] - b[0], a[1] - b[1]); }
-  function planCompute() {
+  /* ---------- the route itself ----------
+     Every container next to your path is a roll of the dice, so the route is built on how likely each stop is to give you
+     what you still need, not just on how many spots there are:
+     - a guess of the chance one container gives the item, from its rarity (fixed spawns like plants are near-certain);
+     - how many you still need (a few finds are worth planning for, thirty in one raid is not);
+     - stops are added one at a time where they add the most chance for the least extra walking, and it stops adding once
+       every item is likely enough, instead of always filling the maximum. */
+  var PLAN_Q = { Common: .1, Uncommon: .06, Rare: .035, Epic: .018, Legendary: .008 };
+  function planQ(id, r) {
+    var ty = MKT[r[2]], sp = (IDX[id] || {}).sp || {};
+    if ((sp.t || []).indexOf(r[2]) > -1) return ty && ty[0] === "containers" ? .3 : .85;   // a spot made for this item
+    return PLAN_Q[(IDX[id] || {}).r] || .05;
+  }
+  function planU(E, T) { return 1 - Math.exp(-1.6 * E / T); }   // how happy you are with E expected finds when you want T
+  function planCompute(opt) {
     var P = MV.plan, key = mapImgKey(), data = MK[key], d = MAPIMG[key]; if (!P || !data || !P.spawn || !d) return;
-    var its = planItems().filter(function (x) { return x.on && x.kind === "loot"; }); P.err = "";
-    if (!its.length) { P.stops = null; P.err = t("Pick at least one item that has spots on this map."); return; }
+    opt = opt || {}; var keep = opt.keep || [];
+    var its = planItems().filter(function (x) { return x.on && x.kind === "loot" && !(P.got && P.got[x.id]); }); P.err = "";
+    if (!its.length) {
+      if (keep.length) { P.stops = keep; P.short = []; P.odds = {}; return; }
+      P.stops = null; P.err = t("Pick at least one item that has spots on this map."); return;
+    }
     var match = {}; its.forEach(function (x) { match[x.id] = mkItemMatch(x.id); });
+    var T = {}; its.forEach(function (x) { T[x.id] = Math.min(3, Math.max(1, x.n || 1)); });
     var raw = [];
-    data.m.forEach(function (r, i) { if (planIsArc(r)) return; var cov = its.filter(function (x) { return match[x.id](r); }).map(function (x) { return x.id; }); if (cov.length) raw.push({ i: i, p: [r[0], r[1]], cov: cov }); });
-    var S = P.spawn, size = Math.max(d.w, d.h), exits = planExits(data), want = Math.max(1, Math.min(80, P.max));
-    // spots right next to each other (one building, one room) are one stop, so pins never pile up
+    data.m.forEach(function (r, i) {
+      if (planIsArc(r)) return; var e = null;
+      its.forEach(function (x) { if (match[x.id](r)) { (e = e || {})[x.id] = planQ(x.id, r); } });
+      if (e) raw.push({ i: i, p: [r[0], r[1]], e: e });
+    });
+    var S = opt.from || P.spawn, size = Math.max(d.w, d.h), exits = planExits(data), want = Math.max(1, Math.min(80, P.max)) - keep.length;
+    // spots right next to each other (one building, one room) are one stop: more rolls for the same walk
     var R = size * 0.022, cand = [];
-    raw.sort(function (a, b) { return b.cov.length - a.cov.length; }).forEach(function (c) {
+    raw.sort(function (a, b) { return Object.keys(b.e).length - Object.keys(a.e).length; }).forEach(function (c) {
       var hit = null; for (var k = 0; k < cand.length && !hit; k++) if (dist(cand[k].p, c.p) <= R) hit = cand[k];
-      if (hit) { hit.m.push(c.i); c.cov.forEach(function (id) { if (hit.cov.indexOf(id) < 0) hit.cov.push(id); }); }
-      else cand.push({ i: c.i, p: c.p, cov: c.cov.slice(), m: [c.i] });
+      if (hit) { hit.m.push(c.i); for (var id in c.e) hit.e[id] = (hit.e[id] || 0) + c.e[id]; }
+      else { var e2 = {}; for (var id2 in c.e) e2[id2] = c.e[id2]; cand.push({ i: c.i, p: c.p, e: e2, m: [c.i] }); }
     });
-    function proj(p, A, B) {
-      var vx = B[0] - A[0], vy = B[1] - A[1], L2 = vx * vx + vy * vy || 1, tt = ((p[0] - A[0]) * vx + (p[1] - A[1]) * vy) / L2, tc = Math.max(0, Math.min(1, tt));
-      return { t: tt, d: Math.hypot(p[0] - (A[0] + vx * tc), p[1] - (A[1] + vy * tc)) };
+    var stopCost = 0.02 * size;   // looting a stop takes time too, worth this much walking
+    function build(E) {
+      var pts = [S, E], route = [], got = {}, U = 0, used = {};
+      its.forEach(function (x) { got[x.id] = 0; });
+      for (var n = 0; n < want; n++) {
+        var best = null, bs = 0, bpos = 0, bg = 0;
+        for (var c = 0; c < cand.length; c++) {
+          if (used[c]) continue;
+          var cd = cand[c], gain = 0;
+          for (var id in cd.e) gain += planU(got[id] + cd.e[id], T[id]) - planU(got[id], T[id]);
+          if (gain < 0.025) continue;
+          var ins = 1e18, pos = 0;
+          for (var k = 0; k < pts.length - 1; k++) { var dd = dist(pts[k], cd.p) + dist(cd.p, pts[k + 1]) - dist(pts[k], pts[k + 1]); if (dd < ins) { ins = dd; pos = k; } }
+          var sc = gain / (ins + stopCost);
+          if (sc > bs) { bs = sc; best = c; bpos = pos; bg = gain; }
+        }
+        if (best == null) break;   // every item is about as likely as it is going to get
+        used[best] = 1; pts.splice(bpos + 1, 0, cand[best].p); route.splice(bpos, 0, cand[best]);
+        for (var id3 in cand[best].e) got[id3] += cand[best].e[id3];
+        U += bg;
+      }
+      // tidy the order: undo any crossing lines
+      var better = true, guard = 0;
+      while (better && guard++ < 60) {
+        better = false;
+        for (var a = 1; a < pts.length - 2; a++) for (var c2 = a + 1; c2 < pts.length - 1; c2++) {
+          var d0 = dist(pts[a - 1], pts[a]) + dist(pts[c2], pts[c2 + 1]), d1 = dist(pts[a - 1], pts[c2]) + dist(pts[a], pts[c2 + 1]);
+          if (d1 + 0.01 < d0) { var sg = pts.slice(a, c2 + 1).reverse(), sp = route.slice(a - 1, c2).reverse(); pts.splice.apply(pts, [a, sg.length].concat(sg)); route.splice.apply(route, [a - 1, sp.length].concat(sp)); better = true; }
+        }
+      }
+      var len = 0; for (var q = 1; q < pts.length; q++) len += dist(pts[q - 1], pts[q]);
+      var tot = 0; its.forEach(function (x) { tot += planU(got[x.id], T[x.id]); });
+      return { route: route, got: got, len: len, score: tot - len / size * 0.6 };
     }
-    function corridor(E, w) { return cand.filter(function (c) { var q = proj(c.p, S, E); return q.d <= w && q.t > -0.08 && q.t < 1.08; }); }
-    // the exit: the one you picked, or the one with the most of your list on the way (a shorter walk wins a tie)
-    var end = null;
-    if (P.ext !== "auto" && data.m[P.ext]) end = +P.ext;
+    // the exit: the one you picked, or of the closest few, the one where the route comes out best
+    var res = null, end = null;
+    if (P.ext !== "auto" && data.m[P.ext]) { end = +P.ext; res = build([data.m[end][0], data.m[end][1]]); }
     else if (exits.length) {
-      var best = -1e18;
-      exits.forEach(function (ei) {
-        var E = [data.m[ei][0], data.m[ei][1]], inC = corridor(E, size * 0.08), got = {};
-        inC.forEach(function (c) { c.cov.forEach(function (id) { got[id] = 1; }); });
-        var sc = Object.keys(got).length * 1000 + Math.min(inC.length, want) * 10 - dist(S, E) / size * 300;
-        if (sc > best) { best = sc; end = ei; }
-      });
-    }
-    var E = end != null ? [data.m[end][0], data.m[end][1]] : S;
-    // a narrow band along the line first, wider until it holds enough stops
-    var w = size * 0.035, pool = corridor(E, w);
-    while (pool.length < want && w < size * 0.6) { w *= 1.4; pool = corridor(E, w); }
-    // every item gets at least its closest spot to the line, even if that is a detour
-    its.forEach(function (x) {
-      if (pool.some(function (c) { return c.cov.indexOf(x.id) > -1; })) return;
-      var bc = null, bd = 1e18; cand.forEach(function (c) { if (c.cov.indexOf(x.id) < 0) return; var q = proj(c.p, S, E); if (q.d < bd) { bd = q.d; bc = c; } });
-      if (bc) pool.push(bc);
-    });
-    pool.forEach(function (c) { var q = proj(c.p, S, E); c.t = q.t; c.dd = q.d; });
-    if (pool.length > want) {
-      // keep the only spots of rare items, then spread the rest evenly from spawn to exit, best spot in each stretch
-      var must = [];
-      its.forEach(function (x) { var own = pool.filter(function (c) { return c.cov.indexOf(x.id) > -1; }); if (own.length <= 2) own.forEach(function (c) { if (must.indexOf(c) < 0) must.push(c); }); });
-      must = must.slice(0, want);
-      var rest = pool.filter(function (c) { return must.indexOf(c) < 0; }).sort(function (a, b) { return a.t - b.t; }), k = want - must.length, pick = [];
-      for (var b = 0; b < k && rest.length; b++) {
-        var lo = Math.floor(b * rest.length / k), hi = Math.max(lo + 1, Math.floor((b + 1) * rest.length / k));
-        var seg = rest.slice(lo, hi).sort(function (a, c) { return (c.cov.length - a.cov.length) || (a.dd - c.dd); }); pick.push(seg[0]);
-      }
-      pool = must.concat(pick);
-    }
-    // walk them in order of progress towards the exit, so the line zig-zags between both sides of the way
-    pool.sort(function (a, b) { return a.t - b.t; });
-    var pts = [S].concat(pool.map(function (c) { return c.p; })).concat([E]), better = true, guard = 0;
-    while (better && guard++ < 60) {
-      better = false;
-      for (var a = 1; a < pts.length - 2; a++) for (var c2 = a + 1; c2 < pts.length - 1; c2++) {
-        var d0 = dist(pts[a - 1], pts[a]) + dist(pts[c2], pts[c2 + 1]), d1 = dist(pts[a - 1], pts[c2]) + dist(pts[a], pts[c2 + 1]);
-        if (d1 + 0.01 < d0) { var sg = pts.slice(a, c2 + 1).reverse(), sp = pool.slice(a - 1, c2).reverse(); pts.splice.apply(pts, [a, sg.length].concat(sg)); pool.splice.apply(pool, [a - 1, sp.length].concat(sp)); better = true; }
-      }
-    }
-    var len = 0; for (var q2 = 1; q2 < pts.length; q2++) len += dist(pts[q2 - 1], pts[q2]);
-    var stops = pool.map(function (c) { return { i: c.i, p: c.p, cov: c.cov, m: c.m }; });
-    P.stops = stops; P.end = end; P.len = len;
-    P.short = its.map(function (x) { return x.id; }).filter(function (id) { return !stops.some(function (s) { return s.cov.indexOf(id) > -1; }); });
+      exits.slice().sort(function (a, b) { return dist(S, data.m[a]) - dist(S, data.m[b]); }).slice(0, 4).concat(
+        exits.slice().sort(function (a, b) { return dist(S, data.m[b]) - dist(S, data.m[a]); }).slice(0, 1))
+        .filter(function (v, k, arr) { return arr.indexOf(v) === k; })
+        .forEach(function (ei) { var r2 = build([data.m[ei][0], data.m[ei][1]]); if (!res || r2.score > res.score) { res = r2; end = ei; } });
+    } else res = build(S);
+    var stops = res.route.map(function (c) { return { i: c.i, p: c.p, cov: Object.keys(c.e), m: c.m, e: c.e }; });
+    P.stops = keep.concat(stops); P.end = end; P.len = res.len;
+    P.odds = {}; its.forEach(function (x) { P.odds[x.id] = 1 - Math.exp(-res.got[x.id]); });
+    P.short = its.map(function (x) { return x.id; }).filter(function (id) { return !stops.some(function (st) { return st.cov.indexOf(id) > -1; }); });
+  }
+  /* something on your list was found (here, on the shopping list or in the app): plan the rest again.
+     While playing, the stops you've already reached stay and the rest is planned from where you are. */
+  var planReT = 0;
+  function planOnShop() { clearTimeout(planReT); planReT = setTimeout(planReroute, 60); }
+  function planReroute() {
+    var P = MV.plan; if (!P || !P.spawn || P.picking || !P.stops) return;
+    var before = (P.stops || []).length;
+    if (P.play != null) {
+      var k = Math.min(P.play, P.stops.length - 1), keep = P.stops.slice(0, k + 1);
+      planCompute({ keep: keep, from: keep.length ? keep[keep.length - 1].p : P.spawn });
+      P.play = Math.min(P.play, Math.max(0, planTargets().length - 1));
+      renderPlan(); mkSoon(); var leg = planLeg(P.play); if (leg) planZoomTo([leg.from.p, leg.to.p], 110);
+    } else { planCompute(); renderPlan(); mkSoon(); }
+    var gone = before - (P.stops || []).length; if (gone > 0) toast(t("Route updated") + ": " + gone + " " + t(gone === 1 ? "stop fewer" : "stops fewer"));
   }
   function planDraw(cx, data, s, W, H, dpr) {
     var P = MV.plan, scr = function (p) { return [MV.x + p[0] * s, MV.y + p[1] * s]; };
@@ -186,6 +217,8 @@
     if (view === "route") {
       var got = {}; P.stops.forEach(function (st) { st.cov.forEach(function (id) { got[id] = 1; }); });
       h += '<div class="pps"><span><b>' + P.stops.length + "</b>" + esc(t("stops")) + "</span><span><b>" + Object.keys(got).length + "</b>" + esc(t("items")) + "</span>" + (P.end != null ? '<span class="ppx"><b>E</b>' + esc(data.n[P.end] || t("Extraction")) + "</span>" : "") + "</div>";
+      var oi = Object.keys(P.odds || {});
+      if (oi.length) h += '<div class="ppodds" title="' + esc(t("A rough guess from each item's rarity and how many containers the route passes. Containers are random.")) + '"><small>' + esc(t("Chance to find at least one")) + "</small>" + oi.sort(function (a, b) { return P.odds[a] - P.odds[b]; }).map(function (id) { var o = Math.round(P.odds[id] * 100), lv = o >= 80 ? "hi" : o >= 50 ? "mid" : "lo"; return '<span class="' + lv + '">' + thumb(id) + "<b>" + esc(nm(id)) + "</b><em>" + (o >= 99 ? "99" : o) + "%</em></span>"; }).join("") + "</div>";
       h += P.play != null ? '<button type="button" class="btn orb ppplay" data-pplayx>' + esc(t("Stop playing")) + "</button>" : '<button type="button" class="btn go orb ppplay" data-pplay><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>' + esc(t("Play route")) + "</button>";
       h += '<ol class="ppst">' + P.stops.map(function (st, k) { return '<li tabindex="0" data-pst="' + k + '"' + (P.play === k ? ' class="cur"' : P.play > k ? ' class="did"' : "") + ' style="--i:' + Math.min(k, 14) + '"><i>' + (k + 1) + "</i><span><b>" + esc(planStopName(st, data)) + "</b>" + planThumbs(st.cov, 5) + "</span></li>"; }).join("") +
         (P.end != null ? '<li class="ex' + (P.play === P.stops.length ? " cur" : "") + '" style="--i:' + Math.min(P.stops.length, 15) + '"><i>E</i><span><b>' + esc(data.n[P.end] || t("Extraction")) + "</b><small>" + esc(t("Extract")) + "</small></span></li>" : "") + "</ol>";
@@ -297,10 +330,21 @@
     box.classList.add("playing");
     el.innerHTML = '<div class="pptop"><button type="button" class="mlx" data-pplayx aria-label="' + esc(t("Stop playing")) + '">×</button>' +
       '<div class="ppcnt"><b>' + (leg.k + 1) + "</b><span>/" + leg.n + "</span></div>" +
-      '<div class="ppnow"><small>' + esc(to.lab === "E" ? t("Extract") : t("Next stop")) + "</small><b>" + esc(to.name) + "</b>" + (to.cov.length ? '<span class="ppchips">' + to.cov.slice(0, 6).map(function (id) { return "<span>" + thumb(id) + esc(nm(id)) + "</span>"; }).join("") + (to.cov.length > 6 ? "<span>+" + (to.cov.length - 6) + "</span>" : "") + "</span>" : "") + "</div></div>" +
+      '<div class="ppnow"><small>' + esc(to.lab === "E" ? t("Extract") : t("Next stop")) + "</small><b>" + esc(to.name) + "</b>" + (to.cov.length ? '<span class="ppchips">' + to.cov.filter(function (id) { return !(P.got && P.got[id]) && planLeft(id) > 0; }).slice(0, 6).map(function (id) { var left = planLeft(id); return '<button type="button" data-pgot="' + id + '" title="' + esc(t("Found one? Tap to tick it off")) + '">' + thumb(id) + esc(nm(id)) + (left > 1 ? " <em>×" + left + "</em>" : "") + '<i aria-hidden="true">✓</i></button>'; }).join("") + (to.cov.length > 6 ? "<span>+" + (to.cov.length - 6) + "</span>" : "") + "</span>" : "") + "</div></div>" +
       '<div class="ppbar"><i style="width:' + Math.round((leg.k + 1) / leg.n * 100) + '%"></i></div>' +
       '<div class="ppnav"><button type="button" class="btn orb sm" data-pplayb' + (leg.k ? "" : " disabled") + ' aria-label="' + esc(t("Previous stop")) + '">‹</button>' +
       (last ? '<button type="button" class="btn go orb" data-pplayx>' + esc(t("Done")) + "</button>" : '<button type="button" class="btn go orb" data-pplayn>' + esc(t("Next stop")) + " ›</button>") + "</div>";
+  }
+  // how many you still need of something on the route (1 for items added only for this route)
+  function planLeft(id) { var x = planItems().filter(function (y) { return y.id === id; })[0]; return x && x.src === "list" ? planMissing(id) : 1; }
+  // you found one: count it on your shopping list (or tick it off for this route), then the rest of the route is planned again
+  function planGot(id) {
+    var P = MV.plan; if (!P) return;
+    var x = planItems().filter(function (y) { return y.id === id; })[0];
+    if (x && x.src === "list" && !P.fixed) {
+      shop.have[id] = haveOf(id) + 1; saveShop(); if (typeof renderShop === "function") renderShop();
+      var left = planMissing(id); toast(nm(id) + ": " + (left ? left + " " + t("still needed") : t("you have all you need")));
+    } else { (P.got = P.got || {})[id] = 1; toast(nm(id) + ": " + t("ticked off for this route")); planReroute(); }
   }
   document.addEventListener("keydown", function (e) {
     var P = MV.plan; if (!P || P.play == null || !$("#v-maps").classList.contains("on")) return;
@@ -383,7 +427,7 @@
     }, 80);
   }
   function planClose() { cancelAnimationFrame(mvAnim); MV.plan = null; renderPlan(); mkKeyPins(); mkTabsSync(); var b = $("#mview [data-mplan]"); if (b) b.setAttribute("aria-expanded", "false"); mkSoon(); }
-  function planRefresh() { if (MV.plan) MV.plan.play = null; if (MV.plan && MV.plan.spawn) planCompute(); renderPlan(); mkSoon(); }
+  function planRefresh() { if (MV.plan) { MV.plan.play = null; MV.plan.got = null; } if (MV.plan && MV.plan.spawn) planCompute(); renderPlan(); mkSoon(); }
   function planPick(e, box) {
     var P = MV.plan, d = MAPIMG[mapImgKey()], data = MK[mapImgKey()]; if (!P || !d || !data) return;
     var r = box.getBoundingClientRect(), sx = e.clientX - r.left, sy = e.clientY - r.top, s = Math.min(box.clientWidth / d.w, box.clientHeight / d.h) * MV.z;
@@ -404,6 +448,7 @@
     if (e.target.closest("[data-papp]")) { planSendApp(); return true; }
     if (e.target.closest("[data-pplay]")) { planPlayGo(0); return true; }
     var ps = e.target.closest("#mplanp [data-pst]"); if (ps && MV.plan.play != null) { planPlayGo(+ps.dataset.pst); return true; }
+    var pg = e.target.closest("[data-pgot]"); if (pg) { planGot(pg.dataset.pgot); return true; }
     if (e.target.closest("[data-pplayn]")) { planPlayGo(MV.plan.play + 1); return true; }
     if (e.target.closest("[data-pplayb]")) { planPlayGo(MV.plan.play - 1); return true; }
     if (e.target.closest("[data-pplayx]")) { planPlayStop(); return true; }
