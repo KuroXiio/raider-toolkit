@@ -2,8 +2,9 @@ name: Build companion app
 
 # Builds the Windows installer for Raider Toolkit Companion and puts it in a DRAFT release.
 # Nothing is public until you open the draft under Releases, check it and press Publish.
-# Runs by itself when the app's code changes on main, from the Actions tab ("Run workflow"),
-# or when a tag like companion-v0.1.0 is pushed. A new build of the same version replaces the files in its draft.
+# Runs by itself when the app's code changes on main, or from the Actions tab ("Run workflow").
+# A new build of the same version replaces the files in its draft. It does not run on tags: publishing a draft creates
+# its tag on the commit the draft was first made from, and building that would put an old build into the release.
 on:
   workflow_dispatch:
   push:
@@ -11,7 +12,6 @@ on:
     paths:
       - "companion/**"
       - ".github/workflows/companion.yml"
-    tags: ["companion-v*"]
 
 permissions:
   contents: write

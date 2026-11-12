@@ -1,7 +1,7 @@
 RAIDER TOOLKIT COMPANION
 PRIVACY POLICY
 
-Last updated: 10 November 2026
+Last updated: 12 November 2026
 
 OVERVIEW
 - No account, no analytics, no tracking, no ads, no crash reports.
@@ -37,13 +37,16 @@ Sync is off until you turn it on (Settings > Sync in the app, or Sync on the sit
 - How long: until you press "Delete synced data", which removes it straight away, or 180 days after the last change, when it is deleted by itself. "Stop syncing on this PC" only stops this computer; the synced copy stays for your other devices until you delete it.
 - Why: you asked for it by turning sync on (consent, GDPR Art. 6(1)(a)). Stopping or deleting withdraws it.
 
+REPORT A PROBLEM (OPTIONAL)
+Nothing is sent unless you open "Report a problem" and press Send. Then the app sends what you wrote, the topic you picked, the Discord name if you typed one, the app's version and whether the overlay is on. It goes through a Cloudflare Worker (Cloudflare, Inc., which sees your IP address and uses it to limit how many reports one person can send in 15 minutes) to a private channel on the Raider Toolkit Discord (Discord Inc.), where I read it. Reports are kept there until I delete them; ask me and I delete yours. Why: you chose to send it (consent, GDPR Art. 6(1)(a)).
+
 THE MAP TAB
 The Map tab shows the interactive map from raidkits.com inside the app. It loads that web page exactly as a browser would: raidkits.com is hosted on GitHub Pages (see above), and the site counts visits with Cloudflare Web Analytics, which sets no cookies and does not store your IP address. The site's own privacy policy applies to it: https://raidkits.com/#privacy . The website may save its own settings (such as map filters) in the app's browser storage on your computer. The page is only loaded while you have the Map tab open.
 
 WHAT THE APP DOES NOT DO
 - It does not read game memory, game files, logs or your screen, and collects no information about your game, account or matches.
 - It has no analytics, telemetry, advertising or tracking of any kind.
-- It sends nothing you type to anyone, except your list, route and followed quests and keys to the sync service if you turn sync on.
+- It sends nothing you type to anyone, except your list, route and followed quests and keys to the sync service if you turn sync on, and a report when you send one yourself (see above).
 
 LINKS
 Links in the app (raidkits.com, Discord) open in your web browser. Those sites' own privacy policies apply.
