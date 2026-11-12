@@ -1,6 +1,7 @@
 name: Build companion app
 
-# Builds the Windows installer for Raider Toolkit Companion and puts it in a DRAFT release.
+# Builds the Windows installer for Raider Toolkit Companion and puts it in a DRAFT release, together with the
+# Microsoft Store package (.msix) to upload in Partner Center. The Store signs that package itself.
 # Nothing is public until you open the draft under Releases, check it and press Publish.
 # Runs by itself when the app's code changes on main, or from the Actions tab ("Run workflow").
 # A new build of the same version replaces the files in its draft. It does not run on tags: publishing a draft creates
@@ -59,3 +60,23 @@ jobs:
             Unofficial fan app, not affiliated with or endorsed by Embark Studios. Embark decides which programs are allowed with their game; use it at your own risk.
 
             Windows may show "Windows protected your PC" the first time, because the app isn't code-signed. Press More info → Run anyway.
+      - name: Build the Microsoft Store package
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $ver = (Get-Content companion/src-tauri/tauri.conf.json -Raw | ConvertFrom-Json).version
+          $exe = "companion/src-tauri/target/release/raidkits-companion.exe"
+          if (-not (Test-Path $exe)) { throw "App exe not found at $exe" }
+          $lay = "msix-layout"; New-Item -ItemType Directory -Force "$lay/Assets", "$lay/legal" | Out-Null
+          Copy-Item $exe $lay/
+          Copy-Item companion/ui/legal/* "$lay/legal/"
+          Copy-Item companion/msix/Assets/* "$lay/Assets/"
+          (Get-Content companion/msix/AppxManifest.xml -Raw).Replace("__VERSION__", "$ver.0") | Set-Content "$lay/AppxManifest.xml" -Encoding utf8
+          $mk = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\makeappx.exe" | Sort-Object FullName -Descending | Select-Object -First 1
+          if (-not $mk) { throw "makeappx.exe not found" }
+          $out = "Raider.Toolkit.Companion_${ver}_x64_Store.msix"
+          & $mk.FullName pack /d $lay /p $out /o
+          if ($LASTEXITCODE -ne 0) { throw "makeappx failed" }
+          gh release upload "companion-v$ver" $out --clobber -R $env:GITHUB_REPOSITORY

@@ -158,10 +158,32 @@ struct UpdateInfo {
     notes: Option<String>,
 }
 
+/// True when the app runs as the Microsoft Store package. Store copies are updated by the Store,
+/// so they never download updates from GitHub themselves.
+fn is_store() -> bool {
+    #[cfg(windows)]
+    unsafe {
+        use windows_sys::Win32::Storage::Packaging::Appx::GetCurrentPackageFullName;
+        let mut len: u32 = 0;
+        // 15700 (APPMODEL_ERROR_NO_PACKAGE) means a normal install; anything else means a package identity
+        return GetCurrentPackageFullName(&mut len, std::ptr::null_mut()) != 15700;
+    }
+    #[cfg(not(windows))]
+    false
+}
+
+#[tauri::command]
+fn store_build() -> bool {
+    is_store()
+}
+
 /// Asks GitHub whether a newer signed release exists. Only published releases count, never drafts.
 #[tauri::command]
 async fn check_update(app: AppHandle) -> Result<Option<UpdateInfo>, String> {
     use tauri_plugin_updater::UpdaterExt;
+    if is_store() {
+        return Ok(None);
+    }
     let update = app
         .updater()
         .map_err(|e| e.to_string())?
@@ -178,6 +200,9 @@ async fn check_update(app: AppHandle) -> Result<Option<UpdateInfo>, String> {
 #[tauri::command]
 async fn install_update(app: AppHandle) -> Result<(), String> {
     use tauri_plugin_updater::UpdaterExt;
+    if is_store() {
+        return Err("This copy is updated by the Microsoft Store".into());
+    }
     let Some(update) = app
         .updater()
         .map_err(|e| e.to_string())?
@@ -419,7 +444,8 @@ fn main() {
             focus_state,
             set_hotkeys,
             check_update,
-            install_update
+            install_update,
+            store_build
         ])
         .setup(|app| {
             watch_focus(app.handle().clone());

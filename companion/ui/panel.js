@@ -319,6 +319,8 @@
       '<p class="note">You can read them again any time in Settings → Legal, and in the app\'s install folder (the legal folder).</p></div>';
   }
 
+  RT.invoke("store_build").then(function (v) { state.store = !!v; }, function () {});
+
   /* ---------- report a problem: goes to the same private Discord channel as the site's form ---------- */
   var RP_URL = "https://raidkits-sync.hnhdyfy7tb.workers.dev/report", rpLast = 0, rpFrom = null;
   var RP_TOPICS = ["The overlay", "The in-game menu", "Route", "Shopping list", "Map", "Quests or keys", "Updates or installing", "Something else"];
@@ -388,6 +390,7 @@
   }
 
   function checkNow() {
+    if (state.store) { state.upd = "This copy is from the Microsoft Store, which installs updates for you."; render(); return; }
     state.upd = "Checking…"; render();
     RT.invoke("check_update").then(function (u) {
       if (u) { localStorage.setItem("rtc-update", JSON.stringify({ version: u.version, notes: u.notes || "", at: Date.now() })); state.upd = "Version " + u.version + " is out."; }

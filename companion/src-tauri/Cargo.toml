@@ -1,6 +1,6 @@
 [package]
 name = "raidkits-companion"
-version = "0.4.1"
+version = "0.4.2"
 description = "Raider Toolkit Companion: a small always-on-top window with your shopping list, map conditions and item search"
 authors = ["Kuro"]
 license = "MIT"
@@ -20,7 +20,7 @@ serde_json = "1"
 
 # only to ask Windows which window is in front (GetForegroundWindow, GetWindowText, GetClassName)
 [target.'cfg(windows)'.dependencies]
-windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_System_Threading", "Win32_UI_WindowsAndMessaging"] }
+windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_System_Threading", "Win32_UI_WindowsAndMessaging", "Win32_Storage_Packaging_Appx"] }
 
 [profile.release]
 codegen-units = 1
