@@ -59,7 +59,9 @@ jobs:
 
             Unofficial fan app, not affiliated with or endorsed by Embark Studios. Embark decides which programs are allowed with their game; use it at your own risk.
 
-            Windows may show "Windows protected your PC" the first time, because the app isn't code-signed. Press More info → Run anyway.
+            Windows may show "Windows protected your PC" the first time, because this installer isn't code-signed. Press More info → Run anyway. On PCs with Smart App Control on, use the Microsoft Store version instead (signed by Microsoft).
+
+            The `…_Store.msix` file is the Microsoft Store package, uploaded to Partner Center; you don't need it to install the app.
       - name: Build the Microsoft Store package
         shell: pwsh
         env:

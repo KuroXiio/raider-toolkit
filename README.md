@@ -19,29 +19,30 @@ Day-to-day fixes (an item's value, a key location, a correction) go into `script
 The source is in `companion/`. Installers are built by GitHub Actions (`.github/workflows/companion.yml`) from this repository and
 published under [Releases](https://github.com/KuroXiio/raider-toolkit/releases).
 
-**Install:** download the latest `Raider.Toolkit.Companion_…_x64-setup.exe` from Releases and run it.
+**Install:** two versions, with the same app inside:
+
+- **Microsoft Store** (coming soon, once Microsoft's review is done): signed by Microsoft, so Windows installs it without
+  warnings, and the Store keeps it updated.
+- **GitHub:** download the latest `Raider.Toolkit.Companion_…_x64-setup.exe` from Releases and run it. This installer isn't
+  code-signed, so Windows may show "Windows protected your PC": choose More info, then Run anyway. On PCs with Smart App Control
+  turned on, Windows blocks unsigned apps, so use the Store version there. This version updates itself from GitHub.
 
 **Uninstall:** Windows Settings → Apps → Installed apps → Raider Toolkit Companion → Uninstall. Tick "Delete the application data"
-there to also remove your saved list and settings.
+there (GitHub version) to also remove your saved list and settings; the Store version removes its data on its own.
 
-## Code signing policy
+## Builds and signing
 
-Windows installers and app files are signed from the first release after the project is accepted by SignPath Foundation; earlier
-releases are unsigned.
+Both versions are built by this repository's GitHub Actions workflow (`.github/workflows/companion.yml`) from the `main` branch,
+and nothing is released until it has been checked and published by hand.
 
-Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/).
-
-Only files built by this repository's GitHub Actions workflow from the `main` branch are signed, and every release is approved by hand.
-
-Team roles:
-
-- Committers and reviewers: [Kuro (KuroXiio)](https://github.com/KuroXiio)
-- Approvers: [Kuro (KuroXiio)](https://github.com/KuroXiio)
+- The Store package (`…_Store.msix`) is uploaded to Partner Center and signed by Microsoft after its review.
+- The GitHub installer is not code-signed. Its updates are signed with Raider Toolkit's own update key, and installed copies
+  refuse any update not signed with it.
 
 Privacy: the app has no account, analytics, tracking or ads. It downloads Raider Toolkit's public data from raidkits.com and checks
-GitHub for updates. It sends your own data only when you ask it to: your list and route if you turn on sync, and a report if you
-send one with "Report a problem". The full policy is in [`companion/ui/legal/PRIVACY.txt`](companion/ui/legal/PRIVACY.txt) and is
-shown in the app before first use.
+GitHub for updates (the GitHub version only). It sends your own data only when you ask it to: your list and route if you turn on
+sync, and a report if you send one with "Report a problem". The full policy is in
+[`companion/ui/legal/PRIVACY.txt`](companion/ui/legal/PRIVACY.txt) and is shown in the app before first use.
 
 ## Licence
 
