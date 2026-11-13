@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Raider Toolkit</title>
+<!-- The in-game bar: opens over the game with the menu keybind. A slim bar of widgets (map, route, list, quests,
+     conditions); each opens a small window you can move, and pin so it stays on screen while you play.
+     Pinned widgets are drawn by the overlay (overlay.html) once this bar closes. -->
+<link rel="stylesheet" href="style.css">
+<style>
+  html { font-size: calc(16px * var(--scale, 1)); }
+  html, body { height: 100%; overflow: hidden; background: transparent; }
+  body { font-size: 0.94rem; color: #f1ece1; --ease: cubic-bezier(.3, .7, .2, 1); --line: rgba(255,255,255,.1); --mintc: #5ff2ea; --amber: #ffc24b; --sub: #a8a3b8; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  #shade { position: fixed; inset: 0; }
+
+  /* ---------- the bar ---------- */
+  #bar { position: fixed; top: 1.75rem; left: 50%; z-index: 6; display: flex; align-items: center; gap: 0.35rem; padding: 0.5rem 0.6rem; border-radius: 1.1rem;
+         background: rgba(16,15,28,.95); border: 1px solid var(--line); box-shadow: 0 1.2rem 3.6rem rgba(0,0,0,.5);
+         opacity: 0; transform: translate(-50%, -1.1rem); transition: opacity .25s, transform .32s var(--ease); }
+  body.in #bar { opacity: 1; transform: translate(-50%, 0); }
+  #bar .logo { width: 2.1rem; height: 2.1rem; border-radius: 0.55rem; margin: 0 0.5rem 0 0.25rem; }
+  .wb { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.15rem; width: 4.9rem; height: 3.6rem; border-radius: 0.75rem;
+        border: 1px solid transparent; background: transparent; color: #d8d3e6; font-size: 0.75rem; transition: background .18s, border-color .18s, color .18s, transform .12s; }
+  .wb svg { width: 1.4rem; height: 1.4rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .wb:hover { background: rgba(255,255,255,.08); } .wb:active { transform: scale(.95); }
+  .wb[aria-pressed="true"] { background: rgba(95,242,234,.12); border-color: rgba(95,242,234,.45); color: var(--mintc); }
+  .wb .pd { position: absolute; top: 0.35rem; right: 0.45rem; width: 0.4rem; height: 0.4rem; border-radius: 50%; background: var(--mintc); opacity: 0; transition: opacity .2s; }
+  .wb.pinned .pd { opacity: 1; }
+  .sep { width: 1px; height: 2.1rem; background: rgba(255,255,255,.12); margin: 0 0.35rem; }
+  #clock { display: flex; flex-direction: column; align-items: flex-end; padding: 0 0.5rem; white-space: nowrap; }
+  #clock b { font: 700 1.05rem var(--display); } #clock span { font-size: 0.75rem; color: var(--sub); }
+  .ib { width: 2.75rem; height: 2.75rem; flex: none; border: 0; border-radius: 0.75rem; background: transparent; display: grid; place-items: center; color: #f1ece1; transition: background .15s, color .15s; }
+  .ib svg { width: 1.2rem; height: 1.2rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .ib:hover { background: rgba(255,255,255,.1); }
+  .ib.sm { width: 2.25rem; height: 2.25rem; border-radius: 0.6rem; color: var(--sub); } .ib.sm svg { width: 1.05rem; height: 1.05rem; }
+  .ib[aria-pressed="true"], .ib[aria-expanded="true"] { background: rgba(95,242,234,.16); color: var(--mintc); }
+
+  /* ---------- widgets ---------- */
+  .w { position: fixed; z-index: 2; display: flex; flex-direction: column; border-radius: 1rem; overflow: hidden; background: rgba(16,15,28,.96); border: 1px solid rgba(255,255,255,.12);
+       box-shadow: 0 1.5rem 3.75rem rgba(0,0,0,.5); opacity: 0; transform: translateY(0.6rem) scale(.97); visibility: hidden; pointer-events: none;
+       transition: opacity .18s, transform .2s var(--ease), visibility 0s linear .2s; }
+  body.in .w.on { opacity: 1; transform: none; visibility: visible; pointer-events: auto; transition: opacity .22s, transform .26s var(--ease), visibility 0s; }
+  .w.glide { transition: opacity .22s, transform .26s var(--ease), left .4s var(--ease), top .4s var(--ease), width .4s var(--ease), visibility 0s !important; }
+  .w.top { z-index: 4; } .w.drag { transition: none !important; box-shadow: 0 2rem 4.5rem rgba(0,0,0,.6); }
+  .wh { display: flex; align-items: center; gap: 0.5rem; min-height: 2.75rem; padding: 0 0.35rem 0 1rem; border-bottom: 1px solid rgba(255,255,255,.08); cursor: grab; touch-action: none; }
+  .w.drag .wh { cursor: grabbing; }
+  .wh h2 { margin: 0; font: 700 0.95rem var(--display); white-space: nowrap; }
+  .wh .grow { flex: 1; }
+  .wbody { padding: 0.75rem 1rem 0.9rem; display: flex; flex-direction: column; gap: 0.6rem; overflow: auto; }
+  .note { font-size: 0.86rem; color: var(--sub); line-height: 1.45; }
+  .k { font: 500 0.68rem var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--sub); }
+  .k.hi { color: var(--mintc); }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; min-height: 2.75rem; padding: 0 1rem; border-radius: 0.75rem; border: 1px solid rgba(255,255,255,.14); background: transparent;
+         font-weight: 600; font-size: 0.92rem; transition: background .15s, border-color .15s, transform .12s, filter .15s; }
+  .btn:hover { background: rgba(255,255,255,.07); } .btn:active { transform: scale(.97); }
+  .btn.go { border: 0; background: var(--mintc); color: #0c0916; font-family: var(--display); font-weight: 700; } .btn.go:hover { background: var(--mintc); filter: brightness(1.08); }
+  .btn.sm { min-height: 2.25rem; padding: 0 0.75rem; font-size: 0.84rem; border-radius: 0.6rem; }
+  .btn[disabled] { opacity: .4; pointer-events: none; }
+  .btn.warn { color: #ffb4a8; }
+  .row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+  /* map */
+  #w-map { width: 36rem; }
+  #w-map.big { width: min(74rem, 64vw); }
+  .srch { flex: 1; min-width: 6rem; display: flex; align-items: center; gap: 0.45rem; height: 2.1rem; padding: 0 0.7rem; border-radius: 0.6rem; background: rgba(255,255,255,.07); border: 1px solid var(--line); cursor: text; }
+  .srch svg { width: 0.95rem; height: 0.95rem; fill: none; stroke: var(--sub); stroke-width: 2; stroke-linecap: round; flex: none; }
+  .srch input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: #f1ece1; font: 0.88rem "Barlow", sans-serif; user-select: text; }
+  .srch:focus-within { border-color: rgba(95,242,234,.6); }
+  select.ms { height: 2.1rem; padding: 0 0.5rem; border-radius: 0.6rem; border: 1px solid var(--line); background: rgba(255,255,255,.07); color: #f1ece1; font: 600 0.84rem "Barlow", sans-serif; }
+  select.ms option { background: #14131f; }
+  #stage { position: relative; height: 25rem; background: #100f1a; overflow: hidden; cursor: grab; transition: height .4s var(--ease); touch-action: none; }
+  #w-map.big #stage { height: min(46rem, 68vh); }
+  #stage.drag { cursor: grabbing; } #stage.pick { cursor: pointer; }
+  #cv { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #tip { position: absolute; display: none; max-width: 17rem; padding: 0.3rem 0.6rem; border-radius: 0.5rem; background: rgba(12,11,22,.95); border: 1px solid rgba(255,255,255,.14); font-size: 0.8rem; pointer-events: none; z-index: 3; }
+  .zoom { position: absolute; right: 0.6rem; bottom: 0.6rem; display: flex; flex-direction: column; gap: 0.3rem; z-index: 2; }
+  .zoom button { width: 2.25rem; height: 2.25rem; border-radius: 0.6rem; border: 1px solid rgba(255,255,255,.14); background: rgba(12,11,22,.88); font-size: 1.05rem; }
+  #res { position: absolute; left: 0.6rem; right: 0.6rem; top: 0.5rem; z-index: 4; display: flex; flex-direction: column; padding: 0.35rem; border-radius: 0.85rem; background: rgba(16,15,28,.98);
+         border: 1px solid rgba(255,255,255,.14); box-shadow: 0 1rem 2.5rem rgba(0,0,0,.5); max-height: calc(100% - 1rem); overflow: auto; animation: drop .22s var(--ease) both; }
+  #res button { display: flex; align-items: center; gap: 0.7rem; min-height: 2.75rem; padding: 0.2rem 0.6rem; border: 0; border-radius: 0.6rem; background: transparent; text-align: left; transition: background .15s; }
+  #res button:hover, #res button:focus-visible { background: rgba(255,255,255,.09); }
+  #res .nm { flex: 1; } #res .sb { font-size: 0.8rem; color: var(--sub); white-space: nowrap; }
+  .icon { width: 1.9rem; height: 1.9rem; border-radius: 0.45rem; background: rgba(255,255,255,.05); flex: none; object-fit: contain; }
+  .kdot { width: 0.85rem; height: 0.85rem; margin: 0 0.52rem; box-sizing: border-box; border-radius: 50%; border: 0.16rem solid var(--amber); background: #12131c; flex: none; }
+  #chip { position: absolute; left: 0.6rem; bottom: 0.6rem; right: 3.6rem; z-index: 2; display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; padding: 0.45rem 0.45rem 0.45rem 0.75rem; border-radius: 0.8rem;
+          background: rgba(12,11,22,.93); border: 1px solid rgba(255,255,255,.14); animation: drop .25s var(--ease) both; }
+  #chip .t { flex: 1; min-width: 8rem; display: flex; flex-direction: column; } #chip .t b { font-weight: 600; } #chip .t span { font-size: 0.8rem; color: var(--sub); }
+  #banner { position: absolute; left: 50%; top: 0.6rem; transform: translateX(-50%); z-index: 2; display: flex; align-items: center; gap: 0.75rem; padding: 0.4rem 0.4rem 0.4rem 0.9rem; border-radius: 0.8rem;
+            background: rgba(12,11,22,.94); border: 1px solid rgba(95,242,234,.5); white-space: nowrap; animation: drop .25s var(--ease) both; }
+  #wait[hidden] { display: none !important; }
+  #wait { position: absolute; inset: 0; display: grid; place-items: center; color: var(--sub); }
+  @keyframes drop { from { opacity: 0; transform: translateY(-0.4rem); } }
+  #banner { animation-name: dropc; } @keyframes dropc { from { opacity: 0; transform: translate(-50%, -0.4rem); } }
+
+  /* route */
+  #w-route { width: 36rem; }
+  .rt { display: flex; align-items: center; gap: 1rem; }
+  .rtn { display: flex; align-items: baseline; font-family: var(--display); padding-right: 1rem; border-right: 1px solid var(--line); }
+  .rtn b { font-size: 2.4rem; font-weight: 800; line-height: 1; } .rtn span { font-size: 1.05rem; color: var(--sub); margin-left: 0.1rem; }
+  .rtx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.2rem; } .rtx b { font: 700 1.12rem var(--display); }
+  .chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .chipb { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 2.25rem; padding: 0.15rem 0.7rem 0.15rem 0.25rem; border-radius: 99px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.05); font-size: 0.86rem; transition: background .15s, border-color .15s; }
+  .chipb .icon { width: 1.6rem; height: 1.6rem; border-radius: 50%; }
+  .chipb:hover { background: rgba(95,242,234,.12); border-color: rgba(95,242,234,.45); }
+  .chipb em { font-style: normal; font: 500 0.74rem var(--mono); color: var(--sub); }
+  .chipb.x:hover { background: rgba(255,120,100,.12); border-color: rgba(255,140,120,.5); }
+  .prog { height: 3px; background: rgba(255,255,255,.08); } .prog i { display: block; height: 100%; background: var(--mintc); transition: width .35s var(--ease); }
+  details.more summary { cursor: pointer; font-size: 0.86rem; color: var(--sub); list-style: none; padding: 0.2rem 0; } details.more summary::-webkit-details-marker { display: none; }
+  details.more summary::after { content: " ›"; } details.more[open] summary::after { content: " ⌄"; }
+  details.more > div { display: flex; flex-direction: column; gap: 0.5rem; padding-top: 0.4rem; }
+
+  /* list */
+  #w-list { width: 25rem; } #w-list .wbody { padding: 0.4rem 0.5rem 0.6rem; gap: 0; max-height: 26rem; }
+  .li { display: flex; align-items: center; gap: 0.7rem; padding: 0.35rem 0.5rem; border-radius: 0.6rem; transition: opacity .3s; }
+  .li.dn { opacity: .45; } .li .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .li .q { font: 700 0.95rem var(--display); min-width: 3.2rem; text-align: center; }
+  .li button { width: 2.25rem; height: 2.25rem; flex: none; border-radius: 0.6rem; border: 1px solid rgba(255,255,255,.14); background: transparent; font-weight: 700; transition: background .15s, transform .12s; }
+  .li button:hover { background: rgba(255,255,255,.08); } .li button:active { transform: scale(.94); }
+  .addrow { position: relative; padding: 0.4rem 0.5rem 0; }
+  #addres { display: flex; flex-direction: column; } #addres button { display: flex; align-items: center; gap: 0.6rem; min-height: 2.5rem; padding: 0.15rem 0.5rem; border: 0; border-radius: 0.6rem; background: transparent; text-align: left; }
+  #addres button:hover { background: rgba(255,255,255,.08); }
+
+  /* quests, conditions */
+  #w-quests { width: 25rem; } #w-quests .wbody { max-height: 22rem; }
+  .qn { font: 700 1rem var(--display); }
+  .ob { display: flex; gap: 0.6rem; align-items: flex-start; min-height: 2.25rem; padding: 0.2rem 0; font-size: 0.92rem; cursor: pointer; }
+  .ob input { width: 1.15rem; height: 1.15rem; margin-top: 0.15rem; accent-color: var(--mintc); flex: none; } .ob.dn span { color: var(--sub); text-decoration: line-through; }
+  .hr { height: 1px; background: rgba(255,255,255,.08); }
+  #w-cond { width: 23rem; }
+  .cr { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; font-size: 0.92rem; color: #c9c4d6; } .cr b { font: 700 1.05rem var(--display); color: #f1ece1; }
+  .pill { font-size: 0.8rem; padding: 0.15rem 0.6rem; border-radius: 99px; background: rgba(255,255,255,.08); color: var(--sub); white-space: nowrap; } .pill.on { background: rgba(95,242,234,.14); color: var(--mintc); }
+
+  /* quick settings */
+  #set { position: fixed; z-index: 7; width: 23rem; border-radius: 1rem; background: rgba(16,15,28,.98); border: 1px solid rgba(255,255,255,.12); box-shadow: 0 1.5rem 3.75rem rgba(0,0,0,.55);
+         transform-origin: 90% 0; opacity: 0; transform: translateY(-0.5rem) scale(.96); visibility: hidden; pointer-events: none; transition: opacity .2s, transform .26s var(--ease), visibility 0s linear .26s; padding: 0.4rem 1.1rem 0.9rem; }
+  #set.on { opacity: 1; transform: none; visibility: visible; pointer-events: auto; transition: opacity .2s, transform .26s var(--ease), visibility 0s; }
+  .sr { display: flex; align-items: center; gap: 0.9rem; padding: 0.75rem 0; border-bottom: 1px solid rgba(255,255,255,.07); }
+  .sr > div:first-child { flex: 1; } .sr b { display: block; font-weight: 600; } .sr small { font-size: 0.8rem; color: var(--sub); }
+  .seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.35rem; padding: 0 0 0.75rem; border-bottom: 1px solid rgba(255,255,255,.07); }
+  .seg button { min-height: 2.5rem; border-radius: 0.6rem; border: 1px solid rgba(255,255,255,.12); background: transparent; font-weight: 600; font-size: 0.86rem; color: #d8d3e6; transition: background .15s, border-color .15s, color .15s; }
+  .seg button[aria-pressed="true"] { border-color: rgba(95,242,234,.5); background: rgba(95,242,234,.12); color: var(--mintc); }
+  .seg.c4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .sw { position: relative; width: 2.9rem; height: 1.6rem; flex: none; border-radius: 99px; border: 0; padding: 0; background: rgba(255,255,255,.18); transition: background .2s; }
+  .sw i { position: absolute; top: 0.2rem; left: 0.2rem; width: 1.2rem; height: 1.2rem; border-radius: 50%; background: #f1ece1; transition: transform .22s var(--ease), background .2s; }
+  .sw[aria-checked="true"] { background: var(--mintc); } .sw[aria-checked="true"] i { transform: translateX(1.3rem); background: #0c0916; }
+  kbd { font: 500 0.8rem var(--mono); padding: 0.3rem 0.6rem; border-radius: 0.45rem; background: rgba(255,255,255,.08); white-space: nowrap; }
+
+  #hint { position: fixed; left: 50%; bottom: 1.5rem; transform: translateX(-50%); z-index: 5; display: flex; align-items: center; gap: 0.6rem; padding: 0.45rem 0.9rem; border-radius: 99px; background: rgba(16,15,28,.8);
+          border: 1px solid rgba(255,255,255,.12); font-size: 0.84rem; color: #d8d3e6; opacity: 0; transition: opacity .3s .1s; white-space: nowrap; }
+  body.in #hint { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div id="shade"></div>
+
+<div id="bar" role="toolbar" aria-label="Raider Toolkit">
+  <img class="logo" src="icon.png" alt="">
+  <button type="button" class="wb" data-w="map"><span class="pd"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 3 6.5v13L9 17l6 2.5 6-2.5v-13L15 6.5 9 4zM9 4v13M15 6.5v13"/></svg>Map</button>
+  <button type="button" class="wb" data-w="route"><span class="pd"></span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="18" r="2.2"/><circle cx="18" cy="6" r="2.2"/><path d="M8 17h5a3 3 0 0 0 0-6h-2a3 3 0 0 1 0-6h5"/></svg>Route</button>
+  <button type="button" class="wb" data-w="list"><span class="pd"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></svg>List</button>
+  <button type="button" class="wb" data-w="quests"><span class="pd"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 21V4M6 4.5h11l-2.5 4 2.5 4H6"/></svg>Quests</button>
+  <button type="button" class="wb" data-w="cond"><span class="pd"></span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/></svg>Conditions</button>
+  <span class="sep"></span>
+  <div id="clock"><b></b><span></span></div>
+  <button type="button" class="ib" id="cog" aria-label="Settings" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg></button>
+  <button type="button" class="ib" id="closebar" aria-label="Back to the game"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+</div>
+
+<section id="set" aria-label="Quick settings"></section>
+
+<section class="w" id="w-map" aria-label="Map">
+  <header class="wh"><h2>Map</h2>
+    <select class="ms" id="mapsel" aria-label="Map"></select>
+    <label class="srch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><input type="search" id="q" placeholder="Find an item or key…" aria-label="Find an item or key on the map" autocomplete="off"></label>
+    <button type="button" class="ib sm" data-big aria-label="Make the map bigger or smaller" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg></button>
+    <button type="button" class="ib sm" data-pin="map" aria-label="Keep the map on screen while you play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l-1 5 4 3v2H6v-2l4-3-1-5zM12 14v6"/></svg></button>
+    <button type="button" class="ib sm" data-close="map" aria-label="Close the map"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </header>
+  <div id="stage"><canvas id="cv"></canvas><div id="wait">Loading the map…</div><div id="tip"></div><div id="over"></div>
+    <div class="zoom"><button type="button" id="zin" aria-label="Zoom in">+</button><button type="button" id="zout" aria-label="Zoom out">−</button><button type="button" id="zfit" aria-label="Fit the map">⤢</button></div>
+  </div>
+</section>
+
+<section class="w" id="w-route" aria-label="Route">
+  <header class="wh"><h2>Route</h2><span class="grow"></span>
+    <button type="button" class="ib sm" data-pin="route" aria-label="Keep the route on screen while you play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l-1 5 4 3v2H6v-2l4-3-1-5zM12 14v6"/></svg></button>
+    <button type="button" class="ib sm" data-close="route" aria-label="Close the route"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </header>
+  <div id="routebody"></div>
+</section>
+
+<section class="w" id="w-list" aria-label="Shopping list">
+  <header class="wh"><h2 id="listtitle">Shopping list</h2><span class="grow"></span>
+    <button type="button" class="ib sm" data-pin="list" aria-label="Keep the list on screen while you play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l-1 5 4 3v2H6v-2l4-3-1-5zM12 14v6"/></svg></button>
+    <button type="button" class="ib sm" data-close="list" aria-label="Close the list"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </header>
+  <div class="addrow"><label class="srch"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><input type="search" id="addq" placeholder="Add an item…" aria-label="Add an item to your list" autocomplete="off"></label><div id="addres"></div></div>
+  <div class="wbody" id="listbody"></div>
+</section>
+
+<section class="w" id="w-quests" aria-label="Quests and keys">
+  <header class="wh"><h2>Quests &amp; keys</h2><span class="grow"></span>
+    <button type="button" class="ib sm" data-pin="quests" aria-label="Keep quests and keys on screen while you play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l-1 5 4 3v2H6v-2l4-3-1-5zM12 14v6"/></svg></button>
+    <button type="button" class="ib sm" data-close="quests" aria-label="Close quests and keys"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </header>
+  <div class="wbody" id="questbody"></div>
+</section>
+
+<section class="w" id="w-cond" aria-label="Map conditions">
+  <header class="wh"><h2>Conditions</h2><span class="grow"></span>
+    <button type="button" class="ib sm" data-pin="cond" aria-label="Keep the map condition on screen while you play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l-1 5 4 3v2H6v-2l4-3-1-5zM12 14v6"/></svg></button>
+    <button type="button" class="ib sm" data-close="cond" aria-label="Close conditions"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </header>
+  <div class="wbody" id="condbody"></div>
+</section>
+
+<div id="hint"></div>
+
+<script src="data.js"></script>
+<script src="sync.js"></script>
+<script src="mapview.js"></script>
+<script src="route.js"></script>
+<script src="hub.js"></script>
+</body>
+</html>

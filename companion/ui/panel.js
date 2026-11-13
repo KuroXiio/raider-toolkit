@@ -43,7 +43,7 @@
     return '<div class="gs"><h2>How Raider Toolkit works</h2><ol>' +
       "<li><span><b>Build your list here</b> or on raidkits.com. Turn on sync and the two stay the same.</span></li>" +
       "<li><span><b>Start ARC Raiders</b> in Borderless or Windowed mode. Small cards with your map, list and quests appear over the game by themselves, and only while you play.</span></li>" +
-      "<li><span><b>Press <kbd>" + esc(s.hotkey || "your menu keybind") + "</kbd> in game</b> for the menu: the big map, your list and your quests. While it is open you can drag the cards where you want them.</span></li>" +
+      "<li><span><b>Press <kbd>" + esc(s.hotkey || "your menu keybind") + "</kbd> in game</b> for the bar: the map with item and key search, your route, your list, quests and conditions. Pin the ones you want to keep on screen while you play.</span></li>" +
       "<li><span><kbd>" + esc(s.hotkeyOverlay || "your overlay keybind") + "</kbd> hides the cards completely. This window can stay open, minimized or closed to the tray.</span></li></ol>" +
       '<div class="acts"><button type="button" class="btn go" data-act="intro-done">Got it</button><button type="button" class="btn" data-goto="overlay">Set up the overlay</button><button type="button" class="btn" data-goto="settings:sync">Turn on sync</button></div></div>';
   }
@@ -191,7 +191,7 @@
   var SPOT_POS = { tl: { x: 0.012, y: 0.1 }, tc: { x: 0, y: 0.1 }, tr: { x: 0.012, y: 0.1 }, ml: { x: 0.012, y: 0 }, mr: { x: 0.012, y: 0 }, bl: { x: 0.012, y: 0.24 }, bc: { x: 0, y: 0.16 }, br: { x: 0.012, y: 0.24 } };
   /* ---------- settings: short groups, every row the same shape (what it is on the left, the control on the right) ---------- */
   var SSECT = [["map", "Map and route"], ["keys", "Keybinds"], ["sync", "Sync"], ["updates", "Updates and data"], ["about", "About and legal"]];
-  var HK = [["hotkey", "Open or close the in-game menu", "The big map, your list and quests over the game. Works everywhere."], ["hotkeyOverlay", "Show or hide the overlay", "Works everywhere."],
+  var HK = [["hotkey", "Open or close the in-game bar", "The bar with the map, route, list and quests over the game. Works everywhere."], ["hotkeyOverlay", "Show or hide the overlay", "Works everywhere."],
     ["k:route", "Show or hide your route", ""], ["k:next", "Next stop (stop done)", ""], ["k:prev", "Back one stop", ""], ["k:mapsize", "Minimize or expand the map", ""], ["k:bigmap", "Open or close the big map", ""]];
   function hkVal(id) { var s = RT.settings(); return id.indexOf("k:") === 0 ? (s.keys || {})[id.slice(2)] || "" : s[id] || ""; }
   function srow(label, desc, control, extra) {
@@ -217,10 +217,10 @@
     var s = RT.settings();
     var h = '<h1 class="tt">In-game overlay</h1><div class="sbox"><div class="how">' +
       "<div><b>Cards over the game</b>Your map, list, quests and keys sit on screen while you play. Clicks go straight through them to the game.</div>" +
-      "<div><b>The in-game menu</b><kbd>" + esc(s.hotkey || "not set") + "</kbd> opens the big map, your list and quests over the game. While it is open you can drag the cards.</div>" +
+      "<div><b>The in-game bar</b><kbd>" + esc(s.hotkey || "not set") + "</kbd> opens the bar over the game: map, route, list, quests and conditions. Pin a widget there to keep it on screen.</div>" +
       "<div><b>Out of the way</b><kbd>" + esc(s.hotkeyOverlay || "not set") + "</kbd> hides the cards. They also hide by themselves when you leave the game.</div></div>";
     h += srow("Arrange the cards now", state.edit ? "The cards are showing and can be dragged. ⇱ on a card unpins it into its own small window you can resize. Press Done when you are happy." : "Shows the cards on your desktop so you can drag them into place without starting the game.",
-      '<button type="button" class="btn sm' + (state.edit ? " go" : "") + '" data-act="edit">' + (state.edit ? "Done" : "Arrange") + '</button><button type="button" class="btn sm" data-act="menu">Open the in-game menu</button>');
+      '<button type="button" class="btn sm' + (state.edit ? " go" : "") + '" data-act="edit">' + (state.edit ? "Done" : "Arrange") + '</button><button type="button" class="btn sm" data-act="menu">Open the in-game bar</button>');
     return h + setOverlay() + setLayout() + "</div>";
   }
   function setOverlay() {
@@ -231,14 +231,13 @@
     h += srow("Style", "Cards under each other, or side by side.", '<div class="seg2"><button type="button" data-style="stack" aria-pressed="' + (s.style !== "line") + '">Stacked</button><button type="button" data-style="line" aria-pressed="' + (s.style === "line") + '">Side by side</button></div>');
     h += srow("Size", "On top of the automatic scaling to your screen height.", slider("size", 0.7, 1.6, 0.05, s.size, Math.round(s.size * 100) + "%"));
     h += srow("Opacity", "How solid the cards are.", slider("bg", 0.3, 1, 0.05, s.bg, Math.round(s.bg * 100) + "%"));
-    h += srow("Where it sits", "Or drag it while arranging or while the in-game menu is open.", '<div class="spots">' + SPOTS.map(function (x) { return x[0] ? '<button type="button" data-spot="' + x[0] + '" aria-pressed="' + (s.pos.a === x[0]) + '" aria-label="' + x[1] + '" title="' + x[1] + '"><i></i></button>' : "<span></span>"; }).join("") + "</div>");
-    h += '<div class="h">In-game menu</div>' + srow("Opacity", "How solid the menu window is.", slider("pbg", 0.6, 1, 0.05, s.panelBg, Math.round(s.panelBg * 100) + "%"));
+    h += srow("Where it sits", "Or drag it while arranging.", '<div class="spots">' + SPOTS.map(function (x) { return x[0] ? '<button type="button" data-spot="' + x[0] + '" aria-pressed="' + (s.pos.a === x[0]) + '" aria-label="' + x[1] + '" title="' + x[1] + '"><i></i></button>' : "<span></span>"; }).join("") + "</div>");
     h += '<p class="note">Places are kept as a share of the screen and sizes follow the screen height, so the layout stays the same at any resolution or screen shape. Play in Borderless or Windowed mode so the overlay can show on top of the game.</p>';
     return h;
   }
   function setLayout() {
     var s = RT.settings();
-    var h = '<div class="h">Cards in the overlay</div><p class="note">Tick the ones you want and drag the handle to change the order. <b>Unpin</b> gives a card its own small window that you can move and resize while arranging or while the in-game menu is open.</p><ul class="arr" id="arr">' +
+    var h = '<div class="h">Cards in the overlay</div><p class="note">Tick the ones you want and drag the handle to change the order. <b>Unpin</b> gives a card its own small window that you can move and resize while arranging.</p><ul class="arr" id="arr">' +
       s.order.map(function (k, i) {
         var pinned = RT.widget(k).pinned;
         return '<li data-k="' + k + '"><span class="grip" title="Drag to move" aria-hidden="true"><i></i></span><label class="chk"><input type="checkbox" data-part="' + k + '"' + (s.parts[k] ? " checked" : "") + "> " + esc(RT.SECTIONS[k]) + "</label>" +
@@ -273,17 +272,20 @@
     var h = '<div class="h">Keybinds</div>' + HK.slice(0, 2).map(function (x) { return hkRow(x[0], x[1], x[2]); }).join("");
     h += '<div class="h">Map and route</div><p class="note">These work only while the game or this app is in front, so they never take keys away from other programs.</p>' + HK.slice(2).map(function (x) { return hkRow(x[0], x[1], x[2]); }).join("");
     if (err) h += '<p class="err" role="alert">Couldn\'t use ' + esc(err) + ". Another program may already use it; pick a different one.</p>";
-    h += '<p class="note">Use Ctrl, Alt or Shift with a key, or an F key. They use the same standard Windows shortcut feature as Discord and Steam. The tray icon (bottom right of the taskbar) also opens this window and the in-game menu, shows or hides the overlay, and quits.</p>';
+    h += '<p class="note">Use Ctrl, Alt or Shift with a key, or an F key. They use the same standard Windows shortcut feature as Discord and Steam. The tray icon (bottom right of the taskbar) also opens this window and the in-game bar, shows or hides the overlay, and quits.</p>';
     return h;
   }
   function setSync() { return RT.syncView ? RT.syncView(state) : ""; }
   function setUpdates() {
     var s = RT.settings(), D = RT.data(), up = JSON.parse(localStorage.getItem("rtc-update") || "null");
     var h = '<div class="h">Updates</div>';
-    h += srow("Version " + esc(state.version || "…"), up ? '<b style="color:#ffd666">Version ' + esc(up.version) + " is out.</b>" : "Updates come from the app's GitHub releases and are signed, so only updates made by Raider Toolkit install.",
-      (up ? '<button type="button" class="btn sm go" data-act="install">Install ' + esc(up.version) + "</button>" : "") + '<button type="button" class="btn sm" data-act="check">Check now</button>');
-    if (state.upd) h += '<p class="note" role="status">' + esc(state.upd) + "</p>";
-    h += srow("Check automatically", "When the app starts and every 6 hours. Your list and settings are kept.", sw("autoUpdate", s.autoUpdate, "Check automatically"));
+    if (state.store) h += srow("Version " + esc(state.version || "…"), "This copy is from the Microsoft Store, which installs updates for you.", "");
+    else {
+      h += srow("Version " + esc(state.version || "…"), up ? '<b style="color:#ffd666">Version ' + esc(up.version) + " is out.</b>" : "Updates come from the app's GitHub releases and are signed, so only updates made by Raider Toolkit install.",
+        (up ? '<button type="button" class="btn sm go" data-act="install">Install ' + esc(up.version) + "</button>" : "") + '<button type="button" class="btn sm" data-act="check">Check now</button>');
+      if (state.upd) h += '<p class="note" role="status">' + esc(state.upd) + "</p>";
+      h += srow("Check automatically", "When the app starts and every 6 hours. Your list and settings are kept.", sw("autoUpdate", s.autoUpdate, "Check automatically"));
+    }
     h += '<div class="h">Help</div>' + srow("Report a problem", "Something wrong with the app, the overlay or the data? It goes to a private channel on our Discord.", '<button type="button" class="btn sm" data-act="report">Report a problem</button>');
     h += '<div class="h">Data</div>' + srow("Game data", D ? "From raidkits.com · patch " + esc(D.patch) + " · updated " + esc(D.built) : "Not loaded yet.", '<button type="button" class="btn sm" data-act="refresh">Update now</button>');
     return h;
@@ -302,9 +304,9 @@
   /* ---------- a required update: nothing else works until it is installed ---------- */
   function requiredView(req) {
     return '<div class="gate"><h1>Update required</h1>' +
-      '<p class="note">Version <b>' + esc(req.version) + "</b> of Raider Toolkit Companion is needed to keep using it. You have version " + esc(req.have || state.version) + ". It installs in a few seconds and the app restarts by itself; your list and settings are kept.</p>" +
+      '<p class="note">Version <b>' + esc(req.version) + "</b> of Raider Toolkit Companion is needed to keep using it. You have version " + esc(req.have || state.version) + (state.store ? ". Update it in the Microsoft Store (Library → Get updates); your list and settings are kept.</p>" : ". It installs in a few seconds and the app restarts by itself; your list and settings are kept.</p>") +
       (req.notes ? '<pre class="doc">' + esc(req.notes) + "</pre>" : "") +
-      '<div class="acts"><button type="button" class="btn go" data-act="install">Install ' + esc(req.version) + ' and restart</button><button type="button" class="btn" data-act="decline">Quit</button></div>' +
+      '<div class="acts">' + (state.store ? '<button type="button" class="btn go" data-act="store">Open the Microsoft Store</button>' : '<button type="button" class="btn go" data-act="install">Install ' + esc(req.version) + ' and restart</button>') + '<button type="button" class="btn" data-act="decline">Quit</button></div>' +
       (state.upd ? '<p class="note" role="status">' + esc(state.upd) + "</p>" : "") + "</div>";
   }
 
@@ -319,11 +321,11 @@
       '<p class="note">You can read them again any time in Settings → Legal, and in the app\'s install folder (the legal folder).</p></div>';
   }
 
-  RT.invoke("store_build").then(function (v) { state.store = !!v; }, function () {});
+  RT.invoke("store_build").then(function (v) { state.store = !!v; if (v) render(); }, function () {});
 
   /* ---------- report a problem: goes to the same private Discord channel as the site's form ---------- */
   var RP_URL = "https://raidkits-sync.hnhdyfy7tb.workers.dev/report", rpLast = 0, rpFrom = null;
-  var RP_TOPICS = ["The overlay", "The in-game menu", "Route", "Shopping list", "Map", "Quests or keys", "Updates or installing", "Something else"];
+  var RP_TOPICS = ["The overlay", "The in-game bar", "Route", "Shopping list", "Map", "Quests or keys", "Updates or installing", "Something else"];
   function rpOpen() {
     var ov = $("rpov"), pick = { list: "Shopping list", map: "Map", quests: "Quests or keys", keys: "Quests or keys", overlay: "The overlay", settings: "Updates or installing" }[tab] || "Something else";
     $("rpTopic").innerHTML = RP_TOPICS.map(function (x) { return "<option" + (x === pick ? " selected" : "") + ">" + esc(x) + "</option>"; }).join("");
@@ -363,7 +365,7 @@
     var s = RT.settings();
     var html = '<span class="st"><span class="dot' + (s.overlay ? " on" : "") + '"></span>Overlay ' + (s.overlay ? "on" : "off") + (s.overlay && s.gameOnly ? " · in game only" : "") + "</span>" +
       '<button type="button" data-act="ov-toggle">' + (s.overlay ? "Turn overlay off" : "Turn overlay on") + "</button>" +
-      "<span>In-game menu <kbd>" + esc(s.hotkey || "not set") + "</kbd></span>" +
+      "<span>In-game bar <kbd>" + esc(s.hotkey || "not set") + "</kbd></span>" +
       '<button type="button" class="rpb" data-act="report"><i aria-hidden="true"></i>Report a problem</button>';
     if ($("sfoot").__h !== html) { $("sfoot").__h = html; $("sfoot").innerHTML = html; }
   }
@@ -457,6 +459,7 @@
       case "refresh": t.disabled = true; t.textContent = "Updating…"; RT.load(true).then(function () { render(); }, function () { t.textContent = "Couldn't reach raidkits.com"; }); break;
       case "check": checkNow(); break;
       case "report": rpOpen(); break;
+      case "store": RT.openUrl("ms-windows-store://pdp/?productid=9NVWVPNN94NF"); break;
       case "install": t.disabled = true; t.textContent = "Downloading…"; state.upd = "Downloading and checking the update. The app restarts by itself when it's done.";
         RT.invoke("install_update").catch(function (er) { state.upd = "The update couldn't be installed (" + er + "). Try again later, or download it from raidkits.com."; render(); });
         break;

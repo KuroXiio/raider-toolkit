@@ -13,8 +13,8 @@
     hotkeyOverlay: "Ctrl+Shift+H",         // shows and hides the overlay
     overlay: true,                         // false: hidden completely
     style: "stack",                        // "stack" (lines under each other) or "line" (one row)
-    parts: { map: true, cond: false, prog: true, items: true, quests: true, keys: true, maps: false },
-    order: ["map", "cond", "prog", "items", "quests", "keys", "maps"],   // the overlay's parts, top to bottom (or left to right)
+    parts: { map: true, route: true, cond: false, prog: false, items: true, quests: true, keys: true, maps: false },
+    order: ["map", "route", "cond", "prog", "items", "quests", "keys", "maps"],   // the overlay's parts, top to bottom (or left to right)
     mapView: "map",                        // the map widget: "map", "route" (the route you sent from the site) or "min" (just the header)
     floor: "u",                            // Stella Montis: "u" upper or "l" lower floor
     layers: { list: true, keys: true, quests: true, ext: true },   // what the maps show
@@ -28,8 +28,9 @@
     bg: 0.8,                               // opacity of the overlay's background, 0.3 to 1
     pos: { a: "tr", x: 0.012, y: 0.1 },    // anchored to a corner or edge, offsets as a share of the screen
     panelBg: 0.95,                         // opacity of the panel's background
+    hub: { open: { map: true, route: true, list: true, quests: false, cond: false }, pos: {}, big: false },   // the in-game bar: which widgets are open and where you dragged them
   };
-  var SECTIONS = { map: "Map, with your pins and route", cond: "Condition on your map, with a countdown", prog: "List progress", items: "Items you still need",
+  var SECTIONS = { map: "Map, with your pins and route", route: "Your route: the next stop and what to look for", cond: "Condition on your map, with a countdown", prog: "List progress", items: "Items you still need",
     quests: "Quests you follow", keys: "Keys you follow, and where they go", maps: "Other maps with a condition right now" };
   /* TERMS_VERSION: the licence agreement the user must accept. Raise it only when a change affects what users agree to
      (see README); the app then blocks until they accept. PRIVACY_VERSION: raise it when the privacy policy changes;
@@ -121,7 +122,7 @@
     });
     return r;
   }
-  function setRoute(r) { if (r) write("rtc-route", r); else { localStorage.removeItem("rtc-route"); if (window.RTSync) RTSync.touched("rtc-route"); } write("rtc-route-at", 0); }
+  function setRoute(r, keepAt) { if (r) write("rtc-route", r); else { localStorage.removeItem("rtc-route"); if (window.RTSync) RTSync.touched("rtc-route"); } if (!keepAt) write("rtc-route-at", 0); }
   function routeAt() { var r = route(), n = read("rtc-route-at", 0) | 0; return r ? Math.max(0, Math.min(r.stops.length, n)) : 0; }
   function setRouteAt(n) { var r = route(); if (r) write("rtc-route-at", Math.max(0, Math.min(r.stops.length, n | 0))); }
   /* a "Send to app" route link from the site: #app-route= + base64url JSON (the same shape as route() above) */

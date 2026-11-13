@@ -33,6 +33,9 @@
         },
         {
           "url": "https://discord.com/*"
+        },
+        {
+          "url": "ms-windows-store:*"
         }
       ]
     },

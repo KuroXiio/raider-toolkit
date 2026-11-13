@@ -46,7 +46,7 @@
   var mapInfo = { counts: null };
   function mapPart(s, c, now) {
     var rt = RTMap.route(), at = RT.routeAt(), view = s.mapView === "route" && !rt ? "map" : s.mapView;
-    var btns = '<button type="button" class="ib act" data-act="bigmap" title="Big map and menu (' + esc(s.hotkey || "") + ')" aria-label="Open the in-game menu">' + IC.big + "</button>" +
+    var btns = '<button type="button" class="ib act" data-act="bigmap" title="Open the in-game bar (' + esc(s.hotkey || "") + ')" aria-label="Open the in-game bar">' + IC.big + "</button>" +
       '<button type="button" class="ib act" data-act="mapsize" title="' + (view === "min" ? "Expand" : "Minimize") + " (" + kb(s, "mapsize") + ')" aria-label="' + (view === "min" ? "Expand the map" : "Minimize the map") + '">' + (view === "min" ? IC.down : IC.up) + "</button>";
     var h = header(s, c, now, btns), stop = rt && rt.stops[at];
     if (view === "min") {
@@ -54,7 +54,10 @@
       return { cls: "map min", html: h };
     }
     h += '<div class="mapbox" data-mapbox="' + view + '"></div><div class="bd">';
-    if (view === "route") {
+    if (view === "route" && s.parts.route && RT.widget("route").pinned) {
+      // the route card says the rest
+      h += '<div class="kbh">' + kb(s, "next") + " stop done · " + kb(s, "prev") + " back</div>";
+    } else if (view === "route") {
       var n = rt.stops.length;
       h += '<div class="ttl hi">' + (stop ? "Next stop · " + (at + 1) + " of " + n : "Last stop: extract") + "</div>" +
         '<div class="head">' + esc(stop ? stop.w || "Stop " + (at + 1) : (rt.end && rt.end.n) || "Extract") + "</div>" +
@@ -79,6 +82,14 @@
     var P = {}, c = RT.data() ? RT.condition(s.map, s.region, now) : null;
     P.map = mapPart(s, c, now);
     P.cond = { html: header(s, c, now) + (c && !c.cur && c.next ? '<div class="bd" style="padding-top:0">' + nextLine(c, now) + "</div>" : "") };
+    var rt = RTMap.route();
+    if (rt) {
+      var at = RT.routeAt(), tot = rt.stops.length + (rt.end ? 1 : 0), stop = rt.stops[at];
+      P.route = { html: '<div class="bd rt"><div class="rtn"><b>' + Math.min(at + 1, tot) + "</b><span>/" + tot + '</span></div><div class="rtx"><div class="ttl hi">' + (stop ? "Next stop" : "Extract") + '</div><div class="head">' +
+        esc(stop ? stop.w || "Stop " + (at + 1) : (rt.end && rt.end.n) || "Extract") + "</div>" +
+        (stop && stop.ids && stop.ids.length ? '<div class="sub">' + esc(stop.ids.slice(0, 4).map(function (id) { return (RT.item(id) || {}).n || id; }).join(" · ")) + "</div>" : "") +
+        '</div></div><div class="bar flat"><i style="width:' + Math.round(Math.min(at + 1, tot) / tot * 100) + '%"></i></div>' };
+    }
     var l = RT.list(), p = RT.progress();
     if (p.total) P.prog = { html: '<div class="bd"><div class="ttl"><span>List</span><span>' + p.done + " / " + p.total + ' done</span></div><div class="bar"><i style="width:' + Math.round(p.done / p.total * 100) + '%"></i></div></div>' };
     if (p.total && RT.data()) {

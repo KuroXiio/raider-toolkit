@@ -3,6 +3,8 @@ name: Build companion app
 # Builds the Windows installer for Raider Toolkit Companion and puts it in a DRAFT release, together with the
 # Microsoft Store package (.msix) to upload in Partner Center. The Store signs that package itself.
 # Nothing is public until you open the draft under Releases, check it and press Publish.
+# A version with a suffix (0.5.0-beta.1) is published straight away as a pre-release instead: it never counts as the
+# latest release, so installed apps don't update to it.
 # Runs by itself when the app's code changes on main, or from the Actions tab ("Run workflow").
 # A new build of the same version replaces the files in its draft. It does not run on tags: publishing a draft creates
 # its tag on the commit the draft was first made from, and building that would put an old build into the release.
@@ -38,6 +40,13 @@ jobs:
         run: |
           if grep -q PUBKEY_PENDING companion/src-tauri/tauri.conf.json; then echo "::error::The update public key is missing in companion/src-tauri/tauri.conf.json"; exit 1; fi
           if [ -z "${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}" ]; then echo "::error::Add the TAURI_SIGNING_PRIVATE_KEY secret (see companion/README.md)"; exit 1; fi
+      - name: Is this a test build
+        id: kind
+        shell: bash
+        run: |
+          v=$(node -p "require('./companion/src-tauri/tauri.conf.json').version")
+          # a version like 0.5.0-beta.1 goes out as a pre-release: people can download it, installed apps don't update to it
+          if [[ "$v" == *-* ]]; then echo "pre=true" >> "$GITHUB_OUTPUT"; else echo "pre=false" >> "$GITHUB_OUTPUT"; fi
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -49,8 +58,8 @@ jobs:
           tauriScript: npx --yes @tauri-apps/cli@2
           tagName: companion-v__VERSION__
           releaseName: Raider Toolkit Companion v__VERSION__
-          releaseDraft: true
-          prerelease: false
+          releaseDraft: ${{ steps.kind.outputs.pre != 'true' }}
+          prerelease: ${{ steps.kind.outputs.pre == 'true' }}
           includeUpdaterJson: true
           releaseBody: |
             An overlay with your Raider Toolkit shopping list, map condition, followed quests and keys, plus a panel you open with a keybind (Ctrl+Shift+Space by default) with the interactive map, quests, keys, search and settings. Installed copies update themselves once this release is published.
@@ -75,7 +84,7 @@ jobs:
           Copy-Item $exe $lay/
           Copy-Item companion/ui/legal/* "$lay/legal/"
           Copy-Item companion/msix/Assets/* "$lay/Assets/"
-          (Get-Content companion/msix/AppxManifest.xml -Raw).Replace("__VERSION__", "$ver.0") | Set-Content "$lay/AppxManifest.xml" -Encoding utf8
+          (Get-Content companion/msix/AppxManifest.xml -Raw).Replace("__VERSION__", (($ver -replace "-.*", "") + ".0")) | Set-Content "$lay/AppxManifest.xml" -Encoding utf8
           $mk = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\makeappx.exe" | Sort-Object FullName -Descending | Select-Object -First 1
           if (-not $mk) { throw "makeappx.exe not found" }
           $out = "Raider.Toolkit.Companion_${ver}_x64_Store.msix"

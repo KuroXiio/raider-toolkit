@@ -62,7 +62,8 @@ fn shared(app: &AppHandle) -> std::sync::MutexGuard<'_, View> {
 fn apply_visibility(app: &AppHandle) {
     let show = {
         let v = shared(app);
-        v.user_show && (!v.game_only || v.game || v.menu || v.edit)
+        // pinned widgets step aside while the bar is open, and always show while you arrange them
+        v.edit || (v.user_show && !v.menu && (!v.game_only || v.game))
     };
     for (label, w) in app.webview_windows() {
         if label == "overlay" || label.starts_with("w-") {
@@ -95,8 +96,8 @@ fn sync_edit(app: &AppHandle) {
     let _ = app.emit("panel-open", on);
 }
 
-/// Opens or closes the in-game menu: a window in the middle of the screen with the big map, the list and the quests,
-/// over a dimmed backdrop. `None` flips it.
+/// Opens or closes the in-game bar (hub.html): a see-through window over the whole screen that dims the game and shows
+/// the bar and its widgets. `None` flips it. (The notes below about the backdrop date from the earlier, smaller menu.)
 ///
 /// Three kinds of window are involved, stacked in this order: the backdrop ("dim", which lets every click through),
 /// the overlay's cards (so they can be dragged while the menu is open), and the menu itself.
@@ -107,20 +108,13 @@ fn set_menu(app: &AppHandle, open: Option<bool>) {
     let open = open.unwrap_or(!w.is_visible().unwrap_or(false));
     let dim = app.get_webview_window("dim");
     if open {
+        // the bar covers the whole screen and dims the game itself, so the separate backdrop stays away
         if let Some(d) = &dim {
-            let _ = d.set_ignore_cursor_events(true);
-            let _ = d.maximize();
-            let _ = d.show();
+            let _ = d.hide();
         }
-        // about two thirds of the screen, so the overlay's cards along the edges stay reachable
         if let Ok(Some(m)) = w.current_monitor() {
-            let f = m.scale_factor();
-            let (sw, sh) = (m.size().width as f64 / f, m.size().height as f64 / f);
-            let _ = w.set_size(tauri::LogicalSize::new(
-                (sw * 0.64).clamp(720.0, 1400.0),
-                (sh * 0.76).clamp(480.0, 900.0),
-            ));
-            let _ = w.center();
+            let _ = w.set_size(*m.size());
+            let _ = w.set_position(*m.position());
         }
         {
             let mut v = shared(app);
@@ -463,7 +457,7 @@ fn main() {
                 }
             }
             let panel = MenuItem::with_id(app, "panel", "Open Raider Toolkit", true, None::<&str>)?;
-            let ingame = MenuItem::with_id(app, "menu", "In-game menu", true, None::<&str>)?;
+            let ingame = MenuItem::with_id(app, "menu", "In-game bar", true, None::<&str>)?;
             let overlay = MenuItem::with_id(
                 app,
                 "overlay",
