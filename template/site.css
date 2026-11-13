@@ -1645,6 +1645,10 @@ a:focus-visible, summary:focus-visible { outline: 2px solid var(--mint); outline
 .happ li { display: flex; gap: 10px; align-items: flex-start; color: #d6d3e6; }
 .happ li::before { content: ""; flex: none; width: 8px; height: 8px; margin-top: 8px; border-radius: 50%; background: var(--mint); }
 .happ .cta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.happ .cta .msb { display: inline-block; line-height: 0; border-radius: 10px; transition: transform .15s ease, filter .15s ease; }
+.happ .cta .msb img { height: 60px; width: auto; display: block; }
+.happ .cta .msb:hover { transform: translateY(-1px); filter: brightness(1.12); }
+.happ .cta .msb:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 .happ .appbox > div > small { display: block; margin-top: 14px; color: var(--dim); font-size: .8rem; line-height: 1.5; }
 .appshot { --rad: 16px; position: relative; aspect-ratio: 16 / 10; border-radius: var(--rad); overflow: hidden; border: 1px solid rgba(255,255,255,.12); background: #0b0f26; }
 .appshot .sbg { position: absolute; inset: 0; }
