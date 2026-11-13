@@ -37,7 +37,9 @@
     if (k === "route") return [m, Math.min(H - el.offsetHeight - 70, top + mapH + 18)];
     if (k === "list") return [W - m - w, top];
     if (k === "quests") return [W - m - w, Math.min(H - el.offsetHeight - 70, top + listH + 18)];
-    return [(W - w) / 2, top];
+    // conditions: the middle of the screen, or the gap between the map and the list when the screen is narrow
+    var l = m + $("w-map").offsetWidth + 14, r = W - m - $("w-list").offsetWidth - 14;
+    return [Math.max(l, Math.min(r - w, (W - w) / 2)), top];
   }
   function layout() {
     var h = hub();
