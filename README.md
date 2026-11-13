@@ -21,7 +21,7 @@ published under [Releases](https://github.com/KuroXiio/raider-toolkit/releases).
 
 **Install:** two versions, with the same app inside:
 
-- **Microsoft Store** (coming soon, once Microsoft's review is done): signed by Microsoft, so Windows installs it without
+- **[Microsoft Store](https://apps.microsoft.com/detail/9NVWVPNN94NF)**: signed by Microsoft, so Windows installs it without
   warnings, and the Store keeps it updated.
 - **GitHub:** download the latest `Raider.Toolkit.Companion_…_x64-setup.exe` from Releases and run it. This installer isn't
   code-signed, so Windows may show "Windows protected your PC": choose More info, then Run anyway. On PCs with Smart App Control
