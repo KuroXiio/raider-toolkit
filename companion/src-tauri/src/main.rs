@@ -44,6 +44,10 @@ struct View {
     own: bool,
     menu: bool,
     edit: bool,
+    /// something is pinned in the bar, so its window stays over the game after the bar closes
+    pins: bool,
+    /// the window that was in front when the bar opened (0: none), so closing the bar can hand the keyboard back to it
+    back: isize,
     away: u8,
     binds: HashMap<String, String>,
     actions_on: bool,
@@ -58,18 +62,94 @@ fn shared(app: &AppHandle) -> std::sync::MutexGuard<'_, View> {
         .unwrap_or_else(|e| e.into_inner())
 }
 
-/// Shows or hides the overlay and its unpinned widgets (windows "w-…") together, as the state says.
+/// Shows a window without making it the active one, so the game keeps the keyboard and mouse.
+#[cfg(windows)]
+fn show_quiet(w: &tauri::WebviewWindow) {
+    use windows_sys::Win32::UI::WindowsAndMessaging::{ShowWindow, SW_SHOWNOACTIVATE};
+    match w.hwnd() {
+        Ok(h) => unsafe {
+            ShowWindow(h.0 as _, SW_SHOWNOACTIVATE);
+        },
+        Err(_) => {
+            let _ = w.show();
+        }
+    }
+}
+#[cfg(not(windows))]
+fn show_quiet(w: &tauri::WebviewWindow) {
+    let _ = w.show();
+}
+
+/// The window in front right now, unless it is one of ours (0 then). Only its handle is kept, to give the keyboard back to it.
+#[cfg(windows)]
+fn front_handle() -> isize {
+    use windows_sys::Win32::System::Threading::GetCurrentProcessId;
+    use windows_sys::Win32::UI::WindowsAndMessaging::{
+        GetForegroundWindow, GetWindowThreadProcessId,
+    };
+    unsafe {
+        let h = GetForegroundWindow();
+        if h.is_null() {
+            return 0;
+        }
+        let mut pid: u32 = 0;
+        GetWindowThreadProcessId(h, &mut pid);
+        if pid == GetCurrentProcessId() {
+            0
+        } else {
+            h as isize
+        }
+    }
+}
+#[cfg(not(windows))]
+fn front_handle() -> isize {
+    0
+}
+/// Puts that window back in front (the same thing as clicking it on the taskbar).
+#[cfg(windows)]
+fn bring_front(h: isize) {
+    use windows_sys::Win32::UI::WindowsAndMessaging::{IsWindow, SetForegroundWindow};
+    if h != 0 {
+        unsafe {
+            if IsWindow(h as _) != 0 {
+                SetForegroundWindow(h as _);
+            }
+        }
+    }
+}
+#[cfg(not(windows))]
+fn bring_front(_h: isize) {}
+
+/// Shows or hides the pinned widgets, as the state says. They live in the bar's own window ("menu"): while the bar is
+/// closed that window stays over the game, see-through, showing only what is pinned and letting every click through.
+/// The earlier overlay window and its unpinned widget windows ("overlay", "w-…") stay hidden; the overlay page still
+/// runs in the background for keybinds, sync and update checks.
 fn apply_visibility(app: &AppHandle) {
-    let show = {
+    let (show, menu) = {
         let v = shared(app);
-        // pinned widgets step aside while the bar is open, and always show while you arrange them
-        v.edit || (v.user_show && !v.menu && (!v.game_only || v.game))
+        (v.pins && v.user_show && (!v.game_only || v.game), v.menu)
     };
     for (label, w) in app.webview_windows() {
-        if label == "overlay" || label.starts_with("w-") {
-            if w.is_visible().unwrap_or(false) != show {
-                let _ = if show { w.show() } else { w.hide() };
+        if (label == "overlay" || label.starts_with("w-")) && w.is_visible().unwrap_or(false) {
+            let _ = w.hide();
+        }
+    }
+    if menu {
+        return; // the bar is open: set_menu looks after its window
+    }
+    if let Some(w) = app.get_webview_window("menu") {
+        let visible = w.is_visible().unwrap_or(false);
+        if show && !visible {
+            let _ = w.set_ignore_cursor_events(true);
+            if let Ok(Some(m)) = w.current_monitor() {
+                let _ = w.set_size(*m.size());
+                let _ = w.set_position(*m.position());
             }
+            show_quiet(&w);
+            let _ = w.set_always_on_top(false);
+            let _ = w.set_always_on_top(true);
+        } else if !show && visible {
+            let _ = w.hide();
         }
     }
 }
@@ -88,62 +168,62 @@ fn overlay_visible(app: &AppHandle, show: Option<bool>) {
 /// Tells the overlay whether its cards can be moved and clicked right now (the in-game menu is open, or the layout
 /// is being arranged from the main window), and shows or hides it to match.
 fn sync_edit(app: &AppHandle) {
-    let on = {
-        let v = shared(app);
-        v.menu || v.edit
-    };
     apply_visibility(app);
-    let _ = app.emit("panel-open", on);
+    let _ = app.emit("panel-open", false);
 }
 
 /// Opens or closes the in-game bar (hub.html): a see-through window over the whole screen that dims the game and shows
-/// the bar and its widgets. `None` flips it. (The notes below about the backdrop date from the earlier, smaller menu.)
-///
-/// Three kinds of window are involved, stacked in this order: the backdrop ("dim", which lets every click through),
-/// the overlay's cards (so they can be dragged while the menu is open), and the menu itself.
+/// the bar and its widgets. `None` flips it.
+/// Open: the window takes clicks and the keyboard. Closed: the keyboard goes back to the window that had it, and the same
+/// window either hides or, if something is pinned, stays as the click-through layer of pinned widgets (apply_visibility).
 fn set_menu(app: &AppHandle, open: Option<bool>) {
     let Some(w) = app.get_webview_window("menu") else {
         return;
     };
-    let open = open.unwrap_or(!w.is_visible().unwrap_or(false));
-    let dim = app.get_webview_window("dim");
+    let open = open.unwrap_or(!shared(app).menu);
+    if let Some(d) = app.get_webview_window("dim") {
+        let _ = d.hide();
+    }
     if open {
-        // the bar covers the whole screen and dims the game itself, so the separate backdrop stays away
-        if let Some(d) = &dim {
-            let _ = d.hide();
-        }
-        if let Ok(Some(m)) = w.current_monitor() {
-            let _ = w.set_size(*m.size());
-            let _ = w.set_position(*m.position());
-        }
+        let back = front_handle();
         {
             let mut v = shared(app);
             v.menu = true;
             v.away = 0;
-        }
-        sync_edit(app);
-        // put the cards above the backdrop
-        for (label, c) in app.webview_windows() {
-            if label == "overlay" || label.starts_with("w-") {
-                let _ = c.set_always_on_top(false);
-                let _ = c.set_always_on_top(true);
+            if back != 0 {
+                v.back = back;
             }
         }
+        let _ = app.emit("menu-open", true);
+        let _ = w.set_ignore_cursor_events(false);
+        if let Ok(Some(m)) = w.current_monitor() {
+            let _ = w.set_size(*m.size());
+            let _ = w.set_position(*m.position());
+        }
         let _ = w.show();
+        let _ = w.set_always_on_top(false);
+        let _ = w.set_always_on_top(true);
         let _ = w.set_focus();
     } else {
-        let _ = w.hide();
-        if let Some(d) = &dim {
-            let _ = d.hide();
-        }
-        {
+        let back = {
             let mut v = shared(app);
+            let was = v.menu;
             v.menu = false;
             v.away = 0;
-        }
-        sync_edit(app);
+            if was {
+                std::mem::replace(&mut v.back, 0)
+            } else {
+                0
+            }
+        };
+        let _ = app.emit("menu-open", false);
+        // hide first, so the pinned layer never flashes the bar; it comes back by itself once the game is in front
+        let _ = w.set_ignore_cursor_events(true);
+        let _ = w.hide();
+        bring_front(back);
+        apply_visibility(app);
     }
-    let _ = app.emit("menu-open", open);
+    let _ = app.emit("panel-open", false);
 }
 
 #[derive(serde::Serialize)]
@@ -230,6 +310,13 @@ fn toggle_menu(app: AppHandle, open: Option<bool>) {
 fn set_edit(app: AppHandle, on: bool) {
     shared(&app).edit = on;
     sync_edit(&app);
+}
+
+/// The bar tells the app whether any widget is pinned (and has something to show).
+#[tauri::command]
+fn set_pins(app: AppHandle, on: bool) {
+    shared(&app).pins = on;
+    apply_visibility(&app);
 }
 
 /// Quits the app (Decline on the agreement screen, or Quit).
@@ -387,7 +474,12 @@ fn watch_focus(app: AppHandle) {
             v.away >= 2
         };
         if leave {
-            shared(&app).edit = false;
+            {
+                // you went to another program yourself: don't pull the earlier window back in front
+                let mut v = shared(&app);
+                v.edit = false;
+                v.back = 0;
+            }
             set_menu(&app, Some(false));
             let _ = app.emit("edit-off", ());
         }
@@ -424,6 +516,8 @@ fn main() {
             own: false,
             menu: false,
             edit: false,
+            pins: false,
+            back: 0,
             away: 0,
             binds: HashMap::new(),
             actions_on: false,
@@ -432,6 +526,7 @@ fn main() {
             open_panel,
             toggle_menu,
             set_edit,
+            set_pins,
             quit_app,
             show_overlay,
             set_game_only,

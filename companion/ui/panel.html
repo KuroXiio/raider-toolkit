@@ -37,6 +37,25 @@
   .rpstat { margin: 0; min-height: 1em; font-size: 13px; color: var(--dim); }
   .rpstat.ok { color: var(--cyan); } .rpstat.bad { color: #ff8f8f; }
   .sfoot button { height: 32px; border-radius: 8px; border: 1px solid var(--line); background: transparent; color: var(--fg); font-weight: 600; font-size: 12.5px; }
+  .home { max-width: 980px; padding-bottom: 24px; }
+  .home .lead { margin: 0 0 18px; color: var(--dim); font-size: 15px; }
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }
+  .step { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 20px 20px 18px; border-radius: 16px; border: 1px solid var(--line); background: var(--card); }
+  .step .num { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: rgba(95,242,234,.14); color: var(--cyan); font: 700 13px var(--mono); }
+  .step h2 { margin: 4px 0 0; font: 600 13px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
+  .step .big { margin: 0; font: 800 21px/1.2 var(--display); color: var(--fg); }
+  .step .big kbd { font: 700 15px var(--mono); padding: 4px 9px; border-radius: 8px; border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.06); white-space: nowrap; }
+  .step .note { margin: 0; flex: 1; line-height: 1.5; font-size: 14px; }
+  .step .acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .step .btn, .imp .btn { height: 40px; padding: 0 16px; font-size: 14px; }
+  .imp { margin-top: 18px; padding: 20px; border-radius: 16px; border: 1px solid rgba(95,242,234,.22); background: rgba(95,242,234,.04); }
+  .imp h2 { margin: 0 0 4px; font: 800 18px var(--display); }
+  .imp .pr { display: flex; gap: 8px; margin: 12px 0 6px; } .imp .pr input { flex: 1; min-width: 0; height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line); background: rgba(0,0,0,.25); color: var(--fg); font: 14px var(--mono); }
+  .imp .pr input:focus { outline: 0; border-color: rgba(95,242,234,.6); }
+  .where { display: grid; gap: 10px; margin: 14px 0 8px; } .where div { display: grid; grid-template-columns: 150px 1fr; gap: 12px; font-size: 14px; line-height: 1.5; }
+  .where dt { font-weight: 700; color: var(--fg); } .where dd { margin: 0; color: #d6d3e6; }
+  .where .rec { margin-left: 6px; font: 600 10px var(--mono); letter-spacing: .08em; text-transform: uppercase; padding: 2px 6px; border-radius: 99px; background: rgba(95,242,234,.16); color: var(--cyan); }
+  @media (max-width: 620px) { .where div { grid-template-columns: 1fr; gap: 2px; } }
   .gs { margin: 14px 0 6px; padding: 16px 18px; border-radius: 14px; border: 1px solid rgba(95,242,234,.25); background: rgba(95,242,234,.05); max-width: 760px; }
   .gs h2 { margin: 0 0 10px; font: 800 18px var(--display); }
   .gs ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; counter-reset: gs; }

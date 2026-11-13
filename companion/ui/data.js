@@ -28,7 +28,7 @@
     bg: 0.8,                               // opacity of the overlay's background, 0.3 to 1
     pos: { a: "tr", x: 0.012, y: 0.1 },    // anchored to a corner or edge, offsets as a share of the screen
     panelBg: 0.95,                         // opacity of the panel's background
-    hub: { open: { map: true, route: true, list: true, quests: false, cond: false }, pos: {}, big: false },   // the in-game bar: which widgets are open and where you dragged them
+    hub: { open: { map: true, route: true, list: true, quests: false, cond: false }, pin: { map: false, route: true, list: true, quests: false, cond: false }, pos: {}, big: false, size: 1 },   // the in-game bar: open widgets, the ones kept on screen while you play, where they sit (share of the screen), size
   };
   var SECTIONS = { map: "Map, with your pins and route", route: "Your route: the next stop and what to look for", cond: "Condition on your map, with a countdown", prog: "List progress", items: "Items you still need",
     quests: "Quests you follow", keys: "Keys you follow, and where they go", maps: "Other maps with a condition right now" };

@@ -5,10 +5,11 @@
 <title>Raider Toolkit</title>
 <!-- The in-game bar: opens over the game with the menu keybind. A slim bar of widgets (map, route, list, quests,
      conditions); each opens a small window you can move, and pin so it stays on screen while you play.
-     Pinned widgets are drawn by the overlay (overlay.html) once this bar closes. -->
+     When the bar closes, this same window stays over the game showing only the pinned widgets, where you left them,
+     and lets every click through (body.pin). The main window embeds this page as its Map and route page (body.embed). -->
 <link rel="stylesheet" href="style.css">
 <style>
-  html { font-size: calc(16px * var(--scale, 1)); }
+  html { font-size: calc(13px * var(--scale, 1)); }
   html, body { height: 100%; overflow: hidden; background: transparent; }
   body { font-size: 0.94rem; color: #f1ece1; --ease: cubic-bezier(.3, .7, .2, 1); --line: rgba(255,255,255,.1); --mintc: #5ff2ea; --amber: #ffc24b; --sub: #a8a3b8; }
   button { font: inherit; color: inherit; cursor: pointer; }
@@ -61,7 +62,7 @@
   .row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 
   /* map */
-  #w-map { width: 36rem; }
+  #w-map { width: 31rem; }
   #w-map.big { width: min(74rem, 64vw); }
   .srch { flex: 1; min-width: 6rem; display: flex; align-items: center; gap: 0.45rem; height: 2.1rem; padding: 0 0.7rem; border-radius: 0.6rem; background: rgba(255,255,255,.07); border: 1px solid var(--line); cursor: text; }
   .srch svg { width: 0.95rem; height: 0.95rem; fill: none; stroke: var(--sub); stroke-width: 2; stroke-linecap: round; flex: none; }
@@ -69,7 +70,7 @@
   .srch:focus-within { border-color: rgba(95,242,234,.6); }
   select.ms { height: 2.1rem; padding: 0 0.5rem; border-radius: 0.6rem; border: 1px solid var(--line); background: rgba(255,255,255,.07); color: #f1ece1; font: 600 0.84rem "Barlow", sans-serif; }
   select.ms option { background: #14131f; }
-  #stage { position: relative; height: 25rem; background: #100f1a; overflow: hidden; cursor: grab; touch-action: none; }
+  #stage { position: relative; height: 20rem; background: #100f1a; overflow: hidden; cursor: grab; touch-action: none; }
   #w-map.glide #stage { transition: height .4s var(--ease); }
   #w-map.big #stage { height: min(46rem, 68vh); }
   #stage.drag { cursor: grabbing; } #stage.pick { cursor: pointer; }
@@ -95,7 +96,7 @@
   #banner { animation-name: dropc; } @keyframes dropc { from { opacity: 0; transform: translate(-50%, -0.4rem); } }
 
   /* route */
-  #w-route { width: 36rem; }
+  #w-route { width: 31rem; }
   .rt { display: flex; align-items: center; gap: 1rem; }
   .rtn { display: flex; align-items: baseline; font-family: var(--display); padding-right: 1rem; border-right: 1px solid var(--line); }
   .rtn b { font-size: 2.4rem; font-weight: 800; line-height: 1; } .rtn span { font-size: 1.05rem; color: var(--sub); margin-left: 0.1rem; }
@@ -112,7 +113,7 @@
   details.more > div { display: flex; flex-direction: column; gap: 0.5rem; padding-top: 0.4rem; }
 
   /* list */
-  #w-list { width: 25rem; } #w-list .wbody { padding: 0.4rem 0.5rem 0.6rem; gap: 0; max-height: 26rem; }
+  #w-list { width: 23rem; } #w-list .wbody { padding: 0.4rem 0.5rem 0.6rem; gap: 0; max-height: 26rem; }
   .li { display: flex; align-items: center; gap: 0.7rem; padding: 0.35rem 0.5rem; border-radius: 0.6rem; transition: opacity .3s; }
   .li.dn { opacity: .45; } .li .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .li .q { font: 700 0.95rem var(--display); min-width: 3.2rem; text-align: center; }
@@ -123,12 +124,12 @@
   #addres button:hover { background: rgba(255,255,255,.08); }
 
   /* quests, conditions */
-  #w-quests { width: 25rem; } #w-quests .wbody { max-height: 22rem; }
+  #w-quests { width: 23rem; } #w-quests .wbody { max-height: 22rem; }
   .qn { font: 700 1rem var(--display); }
   .ob { display: flex; gap: 0.6rem; align-items: flex-start; min-height: 2.25rem; padding: 0.2rem 0; font-size: 0.92rem; cursor: pointer; }
   .ob input { width: 1.15rem; height: 1.15rem; margin-top: 0.15rem; accent-color: var(--mintc); flex: none; } .ob.dn span { color: var(--sub); text-decoration: line-through; }
   .hr { height: 1px; background: rgba(255,255,255,.08); }
-  #w-cond { width: 23rem; }
+  #w-cond { width: 21rem; }
   .cr { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; font-size: 0.92rem; color: #c9c4d6; } .cr b { font: 700 1.05rem var(--display); color: #f1ece1; }
   .pill { font-size: 0.8rem; padding: 0.15rem 0.6rem; border-radius: 99px; background: rgba(255,255,255,.08); color: var(--sub); white-space: nowrap; } .pill.on { background: rgba(95,242,234,.14); color: var(--mintc); }
 
@@ -150,6 +151,38 @@
   #hint { position: fixed; left: 50%; bottom: 1.5rem; transform: translateX(-50%); z-index: 5; display: flex; align-items: center; gap: 0.6rem; padding: 0.45rem 0.9rem; border-radius: 99px; background: rgba(16,15,28,.8);
           border: 1px solid rgba(255,255,255,.12); font-size: 0.84rem; color: #d8d3e6; opacity: 0; transition: opacity .3s .1s; white-space: nowrap; }
   body.in #hint { opacity: 1; }
+
+  /* ---------- a pinned widget is see-through, the way it will look over the game ---------- */
+  .w.pinned { background: rgba(16,15,28,var(--bga, .8)); }
+  .ib[data-pin][aria-pressed="true"] svg { fill: currentColor; }
+
+  /* ---------- pinned mode: the bar is closed, only pinned widgets stay, nothing can be clicked ---------- */
+  body.pin, body.pin * { pointer-events: none !important; }
+  body.pin #shade, body.pin #bar, body.pin #set, body.pin #hint, body.pin .wh, body.pin .zoom, body.pin #over, body.pin #tip, body.pin .addrow,
+  body.pin .acts, body.pin details.more, body.pin .li button, body.pin .ob input, body.pin .nopin { display: none !important; }
+  body.pin .w { box-shadow: none; border-color: rgba(255,255,255,.08); transition: opacity .25s; transform: none; }
+  body.pin .w.on { opacity: 1; visibility: visible; }
+  body.pin .w:not(.on) { opacity: 0; visibility: hidden; }
+  body.pin .wbody { padding: 0.6rem 0.8rem; gap: 0.45rem; }
+  body.pin #stage { background: transparent; } body.pin #cv { opacity: calc(var(--bga, .8) + .15); }
+  body.pin .chipb { min-height: 1.9rem; }
+  body.pin .ob { min-height: 0; padding: 0.1rem 0; cursor: default; }
+  body.pin .ob::before { content: ""; width: 0.4rem; height: 0.4rem; margin: 0.45rem 0.1rem 0 0.1rem; border-radius: 50%; background: var(--mintc); flex: none; }
+  body.pin #w-list .wbody { padding: 0.35rem 0.4rem; }
+  body.pin .li { padding: 0.2rem 0.4rem; }
+
+  /* ---------- inside the main window: the same widgets, docked instead of floating ---------- */
+  html.embed, html.embed body { background: #0c0b14; overflow: hidden; }
+  body.embed { display: grid; grid-template-columns: minmax(0, 1fr) 24rem; grid-auto-rows: min-content; align-content: start; gap: 0.75rem; padding: 0.75rem; box-sizing: border-box; overflow-y: auto; }
+  body.embed #shade, body.embed #bar, body.embed #set, body.embed #hint, body.embed [data-close], body.embed [data-big] { display: none !important; }
+  body.embed .w { position: static; width: auto !important; opacity: 1; transform: none; visibility: visible; pointer-events: auto; box-shadow: none; grid-column: 2; background: #14131f; transition: none; }
+  body.embed .wh { cursor: default; }
+  body.embed #w-map { grid-column: 1; grid-row: 1 / span 6; position: sticky; top: 0; height: calc(100vh - 1.5rem); }
+  body.embed #stage { flex: 1; height: auto; }
+  body.embed #w-list .wbody, body.embed #w-quests .wbody { max-height: none; }
+  @media (max-width: 760px) { body.embed { grid-template-columns: minmax(0, 1fr); } body.embed .w { grid-column: 1; } body.embed #w-map { position: static; height: 60vh; grid-row: auto; } }
+  .pinl { display: none; font-size: 0.8rem; color: var(--sub); margin-right: 0.2rem; }
+  body.embed .pinl { display: inline; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
 </style>
 </head>
@@ -176,7 +209,7 @@
     <select class="ms" id="mapsel" aria-label="Map"></select>
     <label class="srch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg><input type="search" id="q" placeholder="Find an item or key…" aria-label="Find an item or key on the map" autocomplete="off"></label>
     <button type="button" class="ib sm" data-big aria-label="Make the map bigger or smaller" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7"/></svg></button>
-    <button type="button" class="ib sm" data-pin="map" aria-label="Keep the map on screen while you play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l-1 5 4 3v2H6v-2l4-3-1-5zM12 14v6"/></svg></button>
+    <span class="pinl">In game</span><button type="button" class="ib sm" data-pin="map" aria-label="Keep the map on screen while you play" title="Keep the map on screen while you play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l-1 5 4 3v2H6v-2l4-3-1-5zM12 14v6"/></svg></button>
     <button type="button" class="ib sm" data-close="map" aria-label="Close the map"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
   </header>
   <div id="stage"><canvas id="cv"></canvas><div id="wait">Loading the map…</div><div id="tip"></div><div id="over"></div>
@@ -186,7 +219,7 @@
 
 <section class="w" id="w-route" aria-label="Route">
   <header class="wh"><h2>Route</h2><span class="grow"></span>
-    <button type="button" class="ib sm" data-pin="route" aria-label="Keep the route on screen while you play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l-1 5 4 3v2H6v-2l4-3-1-5zM12 14v6"/></svg></button>
+    <span class="pinl">In game</span><button type="button" class="ib sm" data-pin="route" aria-label="Keep the route on screen while you play" title="Keep the route on screen while you play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l-1 5 4 3v2H6v-2l4-3-1-5zM12 14v6"/></svg></button>
     <button type="button" class="ib sm" data-close="route" aria-label="Close the route"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
   </header>
   <div id="routebody"></div>
@@ -194,7 +227,7 @@
 
 <section class="w" id="w-list" aria-label="Shopping list">
   <header class="wh"><h2 id="listtitle">Shopping list</h2><span class="grow"></span>
-    <button type="button" class="ib sm" data-pin="list" aria-label="Keep the list on screen while you play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l-1 5 4 3v2H6v-2l4-3-1-5zM12 14v6"/></svg></button>
+    <span class="pinl">In game</span><button type="button" class="ib sm" data-pin="list" aria-label="Keep the list on screen while you play" title="Keep the list on screen while you play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l-1 5 4 3v2H6v-2l4-3-1-5zM12 14v6"/></svg></button>
     <button type="button" class="ib sm" data-close="list" aria-label="Close the list"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
   </header>
   <div class="addrow"><label class="srch"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><input type="search" id="addq" placeholder="Add an item…" aria-label="Add an item to your list" autocomplete="off"></label><div id="addres"></div></div>
@@ -203,7 +236,7 @@
 
 <section class="w" id="w-quests" aria-label="Quests and keys">
   <header class="wh"><h2>Quests &amp; keys</h2><span class="grow"></span>
-    <button type="button" class="ib sm" data-pin="quests" aria-label="Keep quests and keys on screen while you play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l-1 5 4 3v2H6v-2l4-3-1-5zM12 14v6"/></svg></button>
+    <span class="pinl">In game</span><button type="button" class="ib sm" data-pin="quests" aria-label="Keep quests and keys on screen while you play" title="Keep quests and keys on screen while you play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l-1 5 4 3v2H6v-2l4-3-1-5zM12 14v6"/></svg></button>
     <button type="button" class="ib sm" data-close="quests" aria-label="Close quests and keys"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
   </header>
   <div class="wbody" id="questbody"></div>
@@ -211,7 +244,7 @@
 
 <section class="w" id="w-cond" aria-label="Map conditions">
   <header class="wh"><h2>Conditions</h2><span class="grow"></span>
-    <button type="button" class="ib sm" data-pin="cond" aria-label="Keep the map condition on screen while you play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l-1 5 4 3v2H6v-2l4-3-1-5zM12 14v6"/></svg></button>
+    <span class="pinl">In game</span><button type="button" class="ib sm" data-pin="cond" aria-label="Keep the map condition on screen while you play" title="Keep the map condition on screen while you play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l-1 5 4 3v2H6v-2l4-3-1-5zM12 14v6"/></svg></button>
     <button type="button" class="ib sm" data-close="cond" aria-label="Close conditions"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
   </header>
   <div class="wbody" id="condbody"></div>

@@ -5,16 +5,31 @@
   "use strict";
   var esc = RT.esc, $ = function (id) { return document.getElementById(id); }, T = window.__TAURI__;
   var WIDS = ["map", "route", "list", "quests", "cond"];
-  // a widget's pin is one or two of the overlay's parts
-  var PARTS = { map: ["map"], route: ["route"], list: ["items"], quests: ["quests", "keys"], cond: ["cond"] };
+  // Three ways this page runs: the bar over the game (you can click everything), pinned (the bar is closed: only the
+  // pinned widgets stay over the game and every click goes through), and docked inside the main window (embed).
+  var EMBED = /[?&]embed=1/.test(location.search), PIN = !EMBED && !!T && !/[?&]bar=1/.test(location.search), lastAny = null;
+  var DEFPIN = { map: false, route: true, list: true, quests: false, cond: false }, root = document.documentElement;
   var cv = $("cv"), stage = $("stage"), tip = $("tip"), view = { z: 1, dx: 0, dy: 0 }, lastKey = "", pins = null, pinSig = "", out = null, mdata = null;
   var found = null, picking = false, q = "", addq = "", setOpen = false;
 
-  document.documentElement.style.setProperty("--scale", Math.max(0.85, Math.min(2, (screen.height || 1080) / 1080)));
-
-  function hub() { var s = RT.settings(); return s.hub; }
+  // sizes follow the screen: the same share of a 1080p, 1440p, 4K or ultrawide screen, times the size you picked
+  function scale() {
+    var s = RT.settings(), k = EMBED ? 1.08 : Math.max(0.7, Math.min(2.2, Math.min((screen.width || 1920) / 1920, (screen.height || 1080) / 1080))) * (hub().size || 1);
+    root.style.setProperty("--scale", k); root.style.setProperty("--bga", s.bg);
+  }
+  function mode() { document.body.classList.toggle("pin", PIN); document.body.classList.toggle("embed", EMBED); root.classList.toggle("embed", EMBED); }
+  function hub() { var h = RT.settings().hub; if (!h.pin) h.pin = JSON.parse(JSON.stringify(DEFPIN)); if (!h.size) h.size = 1; return h; }
   function saveHub(fn) { var h = hub(); fn(h); RT.setSetting("hub", h); }
-  function pinned(k) { var s = RT.settings(); return PARTS[k].every(function (p) { return s.parts[p]; }); }
+  function pinned(k) { return !!hub().pin[k]; }
+  // is there anything to show for a pinned widget right now? An empty one stays off the screen while you play.
+  function has(k) {
+    if (k === "route") return !!RT.route();
+    if (k === "list") return hereIds().length > 0;
+    if (k === "quests") { var f = RT.follow(); return Object.keys(f.quests).length + f.keys.length > 0; }
+    return true;
+  }
+  function hereIds() { var s = RT.settings(), l = RT.list(); return l.order.filter(function (id) { var x = l.items[id]; return x && RT.item(id) && x.have < x.need && RT.onMap(id, s.map); }); }
+  function mapShown() { var h = hub(); return EMBED || (PIN ? h.pin.map : h.open.map); }
   function key() { var s = RT.settings(), rt = RT.route(); return routeOn() ? rt.k : RTMap.keyOf(s.map, s.floor); }
   function routeOn() { return !found && !picking && RT.settings().mapView === "route" && !!RT.route(); }
   function itemsHere(id) { return mdata ? RTMap.spots(mdata, id) : []; }
@@ -44,9 +59,10 @@
   function layout() {
     var h = hub();
     WIDS.forEach(function (k) {
-      var el = $("w-" + k), on = !!h.open[k];
-      el.classList.toggle("on", on);
-      if (k === "map") el.classList.toggle("big", !!h.big);
+      var el = $("w-" + k), on = EMBED || (PIN ? !!h.pin[k] && has(k) : !!h.open[k]);
+      el.classList.toggle("on", on); el.classList.toggle("pinned", !!h.pin[k] && !EMBED);
+      if (k === "map") el.classList.toggle("big", !!h.big && !PIN && !EMBED);
+      if (EMBED) { el.style.left = el.style.top = ""; return; }
       var p = h.pos[k], xy = p && !(k === "map" && h.big) ? [p.x * innerWidth, p.y * innerHeight] : defPos(k, el);
       var x = Math.max(8, Math.min(innerWidth - el.offsetWidth - 8, xy[0])), y = Math.max(8, Math.min(innerHeight - 60, xy[1]));
       el.style.left = Math.round(x) + "px"; el.style.top = Math.round(y) + "px";
@@ -59,7 +75,7 @@
 
   /* ---------- map ---------- */
   function draw() {
-    if (!hub().open.map) return;
+    if (!mapShown()) return;
     var s = RT.settings(), k = key(), rt = RT.route(), on = routeOn();
     if (k !== lastKey) { lastKey = k; view = { z: 1, dx: 0, dy: 0 }; mdata = null; pins = null; pinSig = ""; }
     if (!RTMap.files(k)) { $("wait").hidden = false; $("wait").textContent = RT.data() ? "No map picture for this map yet." : "Loading the map…"; return; }
@@ -70,7 +86,7 @@
       if (sig !== pinSig) { pinSig = sig; pins = RTMap.pins(k, data); }
       $("wait").hidden = true;
       var sp = picking ? RTMap.spawns(data) : null;
-      var o = { key: k, pins: on ? { list: [], keys: pins.keys || [], quests: [], ext: pins.ext || [] } : pins, layers: s.layers, r: 6, cluster: 16, view: view, dim: 0.9, dash: RTMap.dash(), route: on ? rt : null, at: RT.routeAt(),
+      var o = { key: k, pins: on ? { list: [], keys: pins.keys || [], quests: [], ext: pins.ext || [] } : pins, layers: s.layers, r: 6, cluster: 26, view: view, dim: 0.9, dash: RTMap.dash(), route: on ? rt : null, at: RT.routeAt(),
         found: found && found.pts.length ? found : null, spawns: sp,
         fit: sp && sp.length > 1 ? sp : found && found.pts.length ? (found.pts.length > 1 ? found.pts : null) : on ? [rt.spawn].concat(rt.stops.map(function (x) { return x.p; })).concat(rt.end ? [rt.end.p] : []) : RTMap.extent(pins) };
       if (found && found.pts.length === 1 && view.z === 1 && !found.zoomed) { found.zoomed = 1; var f = RTMap.files(k); view = { z: 2.4, dx: found.pts[0][0] - f.w / 2, dy: found.pts[0][1] - f.h / 2 }; o.view = view; o.fit = null; }
@@ -101,7 +117,8 @@
     stage.classList.toggle("pick", picking);
   }
   function showItem(id) {
-    var it = RT.item(id), pts = itemsHere(id), s = RT.settings();
+    if (!mdata) { var k0 = key(); if (RTMap.files(k0)) { RTMap.markers(k0, function (d) { mdata = mdata || d; showItem(id); }); return; } }
+    var it = RT.item(id), pts = itemsHere(id), s = RT.settings(); if (!it) return;
     found = { kind: "item", id: id, name: it.n, q: it.n, pts: pts, sub: pts.length ? pts.length + (pts.length === 1 ? " spot" : " spots") + " on " + (RT.SHORT[s.map] || "this map") : (it.f ? "Look in: " + it.f : "No marked spots on " + (RT.SHORT[s.map] || "this map")) };
     q = it.n; $("q").value = q; view = { z: 1, dx: 0, dy: 0 }; all();
   }
@@ -120,7 +137,7 @@
       var want = RTRoute.wanted(s.map);
       h = '<div class="wbody"><span class="note">' + (want.length ? "Plan a route on " + esc(mapName) + " for the " + want.length + (want.length === 1 ? " item" : " items") + " on your list that " + (want.length === 1 ? "is" : "are") + " found there."
         : "Nothing on your list is found on " + esc(mapName) + ". Add items to your list first, or pick another map.") + "</span>" +
-        '<div class="row"><button type="button" class="btn go" data-act="plan"' + (want.length ? "" : " disabled") + ">Plan a route</button></div>" +
+        '<div class="row acts"><button type="button" class="btn go" data-act="plan"' + (want.length ? "" : " disabled") + ">Plan a route: pick your spawn</button></div>" +
         '<span class="note">You can also plan on raidkits.com and press Send to app.</span></div>';
     } else {
       var at = RT.routeAt(), tot = rt.stops.length + (rt.end ? 1 : 0), stop = rt.stops[at], last = at >= rt.stops.length;
@@ -128,7 +145,7 @@
         esc(stop ? stop.w || "Stop " + (at + 1) : (rt.end && rt.end.n) || "Extract") + "</b></div></div>";
       if (stop && stop.ids && stop.ids.length) h += '<div class="chips" aria-label="Found one? Tap it">' + stop.ids.map(function (id) {
         var x = RT.list().items[id]; return '<button type="button" class="chipb" data-got="' + esc(id) + '" title="Found one? Tap to count it">' + RT.icon(id) + esc((RT.item(id) || {}).n || id) + (x ? " <em>" + x.have + "/" + x.need + "</em>" : "") + "</button>"; }).join("") + "</div>";
-      h += '<div class="row"><button type="button" class="btn" data-act="prev" aria-label="Previous stop"' + (at ? "" : " disabled") + '>‹</button><button type="button" class="btn go" style="flex:1" data-act="' + (last ? "end" : "next") + '">' + (last ? "Finish route" : "Next stop ›") + "</button></div>";
+      h += '<div class="row acts"><button type="button" class="btn" data-act="prev" aria-label="Previous stop"' + (at ? "" : " disabled") + '>‹</button><button type="button" class="btn go" style="flex:1" data-act="' + (last ? "end" : "next") + '">' + (last ? "Finish route" : "Next stop ›") + "</button></div>";
       h += '<details class="more"' + (route.more ? " open" : "") + "><summary>Change route</summary><div>";
       if (rt.own) {
         var its = rt.items || [];
@@ -149,6 +166,7 @@
     var here = ids.filter(function (id) { return RT.onMap(id, s.map); }), rest = ids.filter(function (id) { return here.indexOf(id) < 0; });
     $("listtitle").textContent = "Shopping list";
     var rowOf = function (id) { var x = l.items[id], dn = x.have >= x.need; return '<div class="li' + (dn ? " dn" : "") + '">' + RT.icon(id) + '<span class="nm">' + esc(RT.item(id).n) + '</span><button type="button" data-have="' + esc(id) + '" data-d="-1" aria-label="One fewer">−</button><span class="q">' + x.have + "/" + x.need + '</span><button type="button" data-have="' + esc(id) + '" data-d="1" aria-label="One more">+</button></div>'; };
+    if (PIN) { var need = hereIds(), b0 = $("listbody"), ph = need.slice(0, 8).map(rowOf).join("") + (need.length > 8 ? '<span class="note" style="padding:0.2rem 0.5rem">+' + (need.length - 8) + " more</span>" : ""); if (b0.__h !== ph) { b0.__h = ph; b0.innerHTML = ph; } return; }
     var h = !ids.length ? '<span class="note" style="padding:0.5rem">Your list is empty. Add an item above, or build it on raidkits.com and turn on sync.</span>' :
       (here.length ? '<span class="k" style="padding:0.4rem 0.5rem 0.2rem">On ' + esc(RT.SHORT[s.map] || "this map") + "</span>" + here.map(rowOf).join("") : "") +
       (rest.length ? '<span class="k" style="padding:0.6rem 0.5rem 0.2rem">Other maps</span>' + rest.map(rowOf).join("") : "");
@@ -161,13 +179,13 @@
   /* ---------- quests and keys ---------- */
   function quests() {
     var f = RT.follow(), qs = Object.keys(f.quests).map(RT.quest).filter(Boolean), ks = f.keys.map(RT.key).filter(Boolean), h = "";
-    if (!qs.length && !ks.length) h = '<span class="note">Follow a quest or a key in the main window and it shows up here. Keys can also be followed from the map search.</span><div class="row"><button type="button" class="btn sm" data-act="app">Open Raider Toolkit</button></div>';
+    if (!qs.length && !ks.length) h = '<span class="note">Follow a quest or a key on the Quests and Keys pages of the main window and it shows up here. Keys can also be followed from the map search.</span>' + (EMBED ? "" : '<div class="row acts"><button type="button" class="btn sm" data-act="app">Open Raider Toolkit</button></div>');
     h += qs.map(function (x) {
       var done = f.quests[x.id].done || [];
-      return '<div><div class="qn">' + esc(x.n) + "</div>" + (x.o || []).map(function (o, i) { var d = done.indexOf(i) > -1; return '<label class="ob' + (d ? " dn" : "") + '"><input type="checkbox" data-obj="' + esc(x.id) + '" data-i="' + i + '"' + (d ? " checked" : "") + "><span>" + esc(o) + "</span></label>"; }).join("") + "</div>";
+      return '<div><div class="qn">' + esc(x.n) + "</div>" + (x.o || []).map(function (o, i) { var d = done.indexOf(i) > -1; if (d && PIN) return ""; return '<label class="ob' + (d ? " dn" : "") + '"><input type="checkbox" data-obj="' + esc(x.id) + '" data-i="' + i + '"' + (d ? " checked" : "") + "><span>" + esc(o) + "</span></label>"; }).join("") + "</div>";
     }).join('<div class="hr"></div>');
     if (ks.length) h += (qs.length ? '<div class="hr"></div>' : "") + '<span class="k">Keys</span>' + ks.map(function (k) {
-      return '<div class="cr"><span><b style="font-size:0.98rem">' + esc(k.n) + "</b><br>" + esc(k.door || "") + "</span>" + (Array.isArray(k.pin) ? '<button type="button" class="btn sm" data-key="' + esc(k.id) + '">Show</button>' : "") + "</div>"; }).join("");
+      return '<div class="cr"><span><b style="font-size:0.98rem">' + esc(k.n) + "</b><br>" + esc(k.door || "") + "</span>" + (Array.isArray(k.pin) ? '<button type="button" class="btn sm nopin" data-key="' + esc(k.id) + '">Show</button>' : "") + "</div>"; }).join("");
     var b = $("questbody"); if (b.__h !== h) { b.__h = h; b.innerHTML = h; }
   }
 
@@ -181,19 +199,19 @@
       if (c && c.cur) h += '<div class="cr"><span>Ends in</span><span class="mono">' + RT.clock(c.ends - now) + "</span></div>";
       if (c && c.next) h += '<div class="cr"><span>Next: ' + esc(c.next) + '</span><span class="mono">' + (c.cur ? "at " + RT.localTime(c.at) : "in " + RT.clock(c.at - now)) + "</span></div>";
       var other = RT.MAP_ORDER.filter(function (k) { return k !== s.map; }).map(function (k) { return [k, RT.condition(k, s.region, now)]; }).filter(function (x) { return x[1] && x[1].cur; });
-      if (other.length) h += '<div class="hr"></div><span class="k">Other maps now</span>' + other.map(function (x) { return '<div class="cr"><span>' + esc(RT.SHORT[x[0]]) + " · " + esc(x[1].cur) + '</span><span class="mono">' + RT.clock(x[1].ends - now) + "</span></div>"; }).join("");
+      if (other.length && !PIN) h += '<div class="hr"></div><span class="k">Other maps now</span>' + other.map(function (x) { return '<div class="cr"><span>' + esc(RT.SHORT[x[0]]) + " · " + esc(x[1].cur) + '</span><span class="mono">' + RT.clock(x[1].ends - now) + "</span></div>"; }).join("");
     }
     var b = $("condbody"); if (b.__h !== h) { b.__h = h; b.innerHTML = h; }
   }
 
   /* ---------- quick settings ---------- */
   function settings() {
-    var s = RT.settings(), looks = [[0.5, "See-through"], [0.8, "Balanced"], [0.96, "Solid"]], spots = [["tl", "Top left"], ["tr", "Top right"], ["bl", "Bottom left"], ["br", "Bottom right"]];
+    var s = RT.settings(), looks = [[0.5, "See-through"], [0.8, "Balanced"], [0.96, "Solid"]], sizes = [[0.85, "Small"], [1, "Medium"], [1.2, "Large"]], hz = hub().size || 1;
     var near = function (v) { return looks.reduce(function (a, b) { return Math.abs(b[0] - s.bg) < Math.abs(a[0] - s.bg) ? b : a; })[0] === v; };
-    var h = '<div class="sr" style="border:0;padding-bottom:0.5rem"><div><b>Pinned widgets</b><small>How see-through they are while you play</small></div></div>' +
+    var h = '<div class="sr" style="border:0;padding-bottom:0.5rem"><div><b>Pinned widgets</b><small>How see-through they are. Pinned ones stay on screen while you play, right where they are now.</small></div></div>' +
       '<div class="seg" role="group" aria-label="Pinned widget background">' + looks.map(function (x) { return '<button type="button" data-bg="' + x[0] + '" aria-pressed="' + near(x[0]) + '">' + x[1] + "</button>"; }).join("") + "</div>" +
-      '<div class="sr" style="border:0;padding-bottom:0.5rem"><div><b>Where they sit</b><small>The corner pinned widgets stack in</small></div></div>' +
-      '<div class="seg c4" role="group" aria-label="Corner for pinned widgets">' + spots.map(function (x) { return '<button type="button" data-spot="' + x[0] + '" aria-pressed="' + ((s.pos || {}).a === x[0]) + '">' + x[1] + "</button>"; }).join("") + "</div>" +
+      '<div class="sr" style="border:0;padding-bottom:0.5rem"><div><b>Size</b><small>Of the bar and every widget. Drag a widget by its top edge to move it.</small></div></div>' +
+      '<div class="seg" role="group" aria-label="Size">' + sizes.map(function (x) { return '<button type="button" data-size="' + x[0] + '" aria-pressed="' + (Math.abs(hz - x[0]) < 0.01) + '">' + x[1] + "</button>"; }).join("") + "</div>" +
       '<div class="sr"><div><b>Only in game</b><small>Hide pinned widgets when you Alt-Tab</small></div><button type="button" class="sw" role="switch" data-sw="gameOnly" aria-checked="' + !!s.gameOnly + '" aria-label="Only show pinned widgets while the game is in front"><i></i></button></div>' +
       '<div class="sr"><div><b>Show pinned widgets</b><small>' + esc(s.hotkeyOverlay || "") + ' also hides and shows them</small></div><button type="button" class="sw" role="switch" data-sw="overlay" aria-checked="' + !!s.overlay + '" aria-label="Show pinned widgets"><i></i></button></div>' +
       '<div class="sr" style="border:0"><div><b>Open this bar</b></div><kbd>' + esc(s.hotkey || "") + "</kbd></div>" +
@@ -201,14 +219,27 @@
     var b = $("set"); if (b.__h !== h) { b.__h = h; b.innerHTML = h; }
   }
 
-  function all() { bar(); over(); route(); list(); quests(); cond(); settings(); layout(); draw(); }
+  // a new route arrived (planned here, or sent from raidkits.com): show it on its map straight away
+  var rsig = null;
+  function routeWatch() {
+    var rt = RT.route(), sig = rt ? [rt.k, rt.stops.length, rt.n || "", (rt.spawn || []).join(",")].join("|") : "";
+    if (rsig !== null && sig && sig !== rsig) { var mk = RTMap.mapOf(rt.k); if (RT.settings().map !== mk) RT.setSetting("map", mk); if (RT.settings().mapView !== "route") RT.setSetting("mapView", "route"); found = null; picking = false; view = { z: 1, dx: 0, dy: 0 }; }
+    rsig = sig;
+  }
+  function all() {
+    routeWatch(); scale(); mode(); bar(); over(); route(); list(); quests(); cond(); settings(); layout(); draw();
+    // tell the app whether anything is pinned, so it knows to keep this window over the game once the bar closes
+    if (T && !EMBED) { var h = hub(), any = WIDS.some(function (k) { return h.pin[k] && has(k); }); if (any !== lastAny) { lastAny = any; RT.invoke("set_pins", { on: any }); } }
+  }
   function open(k, on) { saveHub(function (h) { h.open[k] = on == null ? !h.open[k] : on; }); $("w-" + k).classList.add("top"); WIDS.forEach(function (o) { if (o !== k) $("w-" + o).classList.remove("top"); }); }
   function close() {
-    if (!T) return;
+    if (!T || EMBED || PIN) return;
     document.body.classList.remove("in");
     setTimeout(function () { RT.invoke("toggle_menu", { open: false }); }, 170);
   }
-  function enter() { setOpen = false; document.body.classList.remove("in"); void document.body.offsetWidth; all(); requestAnimationFrame(function () { document.body.classList.add("in"); draw(); }); }
+  function enter() { setOpen = false; document.body.classList.remove("in"); void document.body.offsetWidth; all(); if (PIN) return; requestAnimationFrame(function () { document.body.classList.add("in"); draw(); }); }
+  // the bar closed: forget searches and half-made choices, keep only what is pinned
+  function toPinned() { PIN = true; found = null; picking = false; q = ""; $("q").value = ""; addq = ""; $("addq").value = ""; setOpen = false; view = { z: 1, dx: 0, dy: 0 }; document.body.classList.remove("in"); all(); }
 
   /* ---------- actions ---------- */
   function act(a) {
@@ -229,12 +260,13 @@
   }
   document.addEventListener("click", function (e) {
     var b = e.target.closest("button"), t = e.target;
+    if (PIN) return;
     if (t.id === "shade") { if (setOpen) { setOpen = false; all(); } else close(); return; }
     if (!b) return;
     var d = b.dataset;
-    if (d.w) { open(d.w); if (d.w === "map" && !hub().open.map) { picking = false; } all(); glideAll(); }
-    else if (d.close) { open(d.close, false); if (d.close === "map") picking = false; all(); glideAll(); }
-    else if (d.pin) { var s = RT.settings(), on = !pinned(d.pin); PARTS[d.pin].forEach(function (p) { s.parts[p] = on; }); RT.setSetting("parts", s.parts); if (on && !s.overlay) RT.setSetting("overlay", true); all(); }
+    if (d.w) { open(d.w); if (!hub().open[d.w]) { saveHub(function (h) { h.pin[d.w] = false; }); if (d.w === "map") picking = false; } all(); }
+    else if (d.close) { open(d.close, false); saveHub(function (h) { h.pin[d.close] = false; }); if (d.close === "map") picking = false; all(); }
+    else if (d.pin) { var on = !pinned(d.pin); saveHub(function (h) { h.pin[d.pin] = on; if (on) h.open[d.pin] = true; }); if (on && !RT.settings().overlay) { RT.setSetting("overlay", true); RT.invoke("show_overlay", { show: true }); } all(); }
     else if (d.big != null) { saveHub(function (h) { h.big = !h.big; }); b.setAttribute("aria-pressed", String(hub().big)); glide($("w-map")); all(); var n = 0, iv = setInterval(function () { draw(); if (++n > 12) clearInterval(iv); }, 40); }
     else if (b.id === "cog") { setOpen = !setOpen; all(); }
     else if (b.id === "closebar") close();
@@ -246,13 +278,12 @@
     else if (d.got) { var y = RT.list().items[d.got]; if (y) { RT.setHave(d.got, y.have + 1); afterListChange(); } else RTRoute.drop(d.got, function () { all(); }); }
     else if (d.drop) { RTRoute.drop(d.drop, function () { all(); }); }
     else if (d.bg) { RT.setSetting("bg", +d.bg); all(); }
-    else if (d.spot) { RT.setSetting("pos", { a: d.spot, x: 0.012, y: d.spot.charAt(0) === "t" ? 0.1 : 0.06 }); all(); }
+    else if (d.size) { saveHub(function (h) { h.size = +d.size; }); all(); }
     else if (d.sw) { var v = !RT.settings()[d.sw]; RT.setSetting(d.sw, v); if (d.sw === "overlay") RT.invoke("show_overlay", { show: v }); if (d.sw === "gameOnly") RT.invoke("set_game_only", { on: v }); all(); }
     else if (b.id === "zin") zoomAt(1.4, cv.clientWidth / 2, cv.clientHeight / 2);
     else if (b.id === "zout") zoomAt(1 / 1.4, cv.clientWidth / 2, cv.clientHeight / 2);
     else if (b.id === "zfit") { view = { z: 1, dx: 0, dy: 0 }; draw(); }
   });
-  function glideAll() { /* opening or closing one widget never moves the others */ }
   document.addEventListener("toggle", function (e) { if (e.target.classList && e.target.classList.contains("more")) route.more = e.target.open; }, true);
   document.addEventListener("change", function (e) {
     var c = e.target;
@@ -297,7 +328,7 @@
   /* ---------- drag a widget by its header ---------- */
   var mv = null;
   document.addEventListener("pointerdown", function (e) {
-    var hd = e.target.closest(".wh"); if (!hd || e.target.closest("button, input, select, label")) return;
+    var hd = e.target.closest(".wh"); if (!hd || EMBED || e.target.closest("button, input, select, label")) return;
     var el = hd.parentElement, r = el.getBoundingClientRect();
     mv = { el: el, k: el.id.slice(2), ox: e.clientX - r.left, oy: e.clientY - r.top }; el.classList.add("drag", "top");
     WIDS.forEach(function (o) { if ("w-" + o !== el.id) $("w-" + o).classList.remove("top"); });
@@ -318,9 +349,15 @@
   var allWas = all; all = function () { mapsel(); allWas(); };
   window.addEventListener("storage", function () { pinSig = ""; all(); });
   window.addEventListener("resize", function () { layout(); draw(); });
-  if (!RTMap.calm) setInterval(function () { if (routeOn() && !document.hidden && hub().open.map) draw(); }, 40);
+  // the route line marches only while the bar is open; pinned over the game it stands still, so it costs nothing
+  if (!RTMap.calm) setInterval(function () { if (!PIN && routeOn() && !document.hidden && mapShown()) draw(); }, 40);
   setInterval(function () { bar(); cond(); }, 1000);
-  if (T) T.event.listen("menu-open", function (e) { if (e.payload) enter(); });
+  if (T && !EMBED) T.event.listen("menu-open", function (e) { if (e.payload) { PIN = false; enter(); } else toPinned(); });
   enter();
-  RT.load().then(all, all);
+  RT.load().then(function () {
+    all();
+    // the main window can open this page on one item or key (its "show on the map" buttons)
+    var m = /[?&](item|key)=([^&]+)/.exec(location.search);
+    if (m && !PIN) { if (m[1] === "item") showItem(decodeURIComponent(m[2])); else showKey(decodeURIComponent(m[2])); }
+  }, all);
 })();
