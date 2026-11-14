@@ -13,7 +13,8 @@
   html, body { height: 100%; overflow: hidden; background: transparent; }
   body { font-size: 0.94rem; color: #f1ece1; --ease: cubic-bezier(.3, .7, .2, 1); --line: rgba(255,255,255,.1); --mintc: #5ff2ea; --amber: #ffc24b; --sub: #a8a3b8; }
   button { font: inherit; color: inherit; cursor: pointer; }
-  #shade { position: fixed; inset: 0; }
+  #shade { position: fixed; inset: 0; background: rgba(6,5,12,.42); opacity: 0; transition: opacity .2s ease; }
+  body.in #shade { opacity: 1; }
 
   /* ---------- the bar ---------- */
   #bar { position: fixed; top: 1.75rem; left: 50%; z-index: 6; display: flex; align-items: center; gap: 0.35rem; padding: 0.5rem 0.6rem; border-radius: 1.1rem;
@@ -177,18 +178,20 @@
 
   /* ---------- pinned mode: the bar is closed, only pinned widgets stay, nothing can be clicked ---------- */
   body.pin, body.pin * { pointer-events: none !important; }
-  body.pin #shade, body.pin #bar, body.pin #set, body.pin #hint, body.pin .wh, body.pin .zoom, body.pin #over, body.pin #tip, body.pin .addrow,
-  body.pin .acts, body.pin details.more, body.pin .li button, body.pin .rm, body.pin .ob input, body.pin .nopin { display: none !important; }
+  body.pin #shade, body.pin #bar, body.pin #set, body.pin #hint, body.pin .zoom, body.pin #over, body.pin #tip, body.pin .addrow,
+  body.pin .acts, body.pin details.more, body.pin .rm, body.pin .ob input, body.pin .nopin { display: none !important; }
   body.pin .w { box-shadow: none; border-color: rgba(255,255,255,.08); transition: opacity .25s; transform: none; }
   body.pin .w.on { opacity: 1; visibility: visible; }
   body.pin .w:not(.on) { opacity: 0; visibility: hidden; }
-  body.pin .wbody { padding: 0.6rem 0.8rem; gap: 0.45rem; }
+  /* a pinned widget keeps the exact box it has in the bar (same place, width and height, title row included), so what
+     you line up with the bar open is what you get in the game; only its controls go */
+  body.pin .wh > *:not(h2) { visibility: hidden !important; }
+  body.pin .li button { visibility: hidden !important; }
+  body.pin .w.on { overflow: hidden; }
   body.pin #stage { background: transparent; } body.pin #cv { opacity: var(--mapa, .95); }
   body.pin .chipb { min-height: 1.9rem; }
   body.pin .ob { min-height: 0; padding: 0.1rem 0; cursor: default; }
   body.pin .ob::before { content: ""; width: 0.4rem; height: 0.4rem; margin: 0.45rem 0.1rem 0 0.1rem; border-radius: 50%; background: var(--mintc); flex: none; }
-  body.pin #w-list .wbody { padding: 0.35rem 0.4rem; }
-  body.pin .li { padding: 0.2rem 0.4rem; }
 
   /* ---------- inside the main window: the same widgets, docked instead of floating ---------- */
   html.embed, html.embed body { background: #0c0b14; overflow: hidden; }

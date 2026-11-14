@@ -68,8 +68,9 @@
       var p = h.pos[k], xy = p && !(k === "map" && h.big) ? [p.x * innerWidth, p.y * innerHeight] : defPos(k, el);
       var x = Math.max(8, Math.min(innerWidth - el.offsetWidth - 8, xy[0])), y = Math.max(8, Math.min(innerHeight - 60, xy[1]));
       el.style.left = Math.round(x) + "px"; el.style.top = Math.round(y) + "px";
+      el.style.height = PIN && h.hgt && h.hgt[k] ? Math.round(h.hgt[k] * innerHeight) + "px" : "";
       // the bar is where a widget's place is decided: remember it, so the pinned widget sits on the very same spot
-      if (!PIN && on && !p && !(k === "map" && h.big) && innerWidth > 200) { keep = keep || {}; keep[k] = { x: x / innerWidth, y: y / innerHeight }; }
+      if (!PIN && on && !p && RT.data() && !(k === "map" && h.big) && innerWidth > 200) { keep = keep || {}; keep[k] = { x: x / innerWidth, y: y / innerHeight }; }
     });
     if (keep) saveHub(function (hh) { Object.keys(keep).forEach(function (k) { if (!hh.pos[k]) hh.pos[k] = keep[k]; }); });
     var cog = $("cog").getBoundingClientRect(), set = $("set");
@@ -212,7 +213,6 @@
     var here = ids.filter(function (id) { return RT.onMap(id, s.map); }), rest = ids.filter(function (id) { return here.indexOf(id) < 0; });
     $("listtitle").textContent = "Shopping list";
     var rowOf = function (id) { var x = l.items[id], dn = x.have >= x.need; return '<div class="li' + (dn ? " dn" : "") + '">' + RT.icon(id) + '<span class="nm">' + esc(RT.item(id).n) + '</span><button type="button" data-have="' + esc(id) + '" data-d="-1" aria-label="One fewer">−</button><span class="q">' + x.have + "/" + x.need + '</span><button type="button" data-have="' + esc(id) + '" data-d="1" aria-label="One more">+</button><button type="button" class="rm" data-del="' + esc(id) + '" aria-label="Remove ' + esc(RT.item(id).n) + ' from your list" title="Remove">×</button></div>'; };
-    if (PIN) { var need = hereIds(), b0 = $("listbody"), ph = need.slice(0, 8).map(rowOf).join("") + (need.length > 8 ? '<span class="note" style="padding:0.2rem 0.5rem">+' + (need.length - 8) + " more</span>" : ""); if (b0.__h !== ph) { b0.__h = ph; b0.innerHTML = ph; } return; }
     var h = !ids.length ? '<span class="note" style="padding:0.5rem">Your list is empty. Add an item above, or build it on raidkits.com and turn on sync.</span>' :
       (here.length ? '<span class="k" style="padding:0.4rem 0.5rem 0.2rem">On ' + esc(RT.SHORT[s.map] || "this map") + "</span>" + here.map(rowOf).join("") : "") +
       (rest.length ? '<span class="k" style="padding:0.6rem 0.5rem 0.2rem">Other maps</span>' + rest.map(rowOf).join("") : "");
@@ -271,7 +271,7 @@
       (n.pages.length > 1 ? '<button type="button" data-ndel aria-label="Delete this page" title="Delete this page">' + (ndel ? "Sure?" : "Delete") + "</button>" : "");
     var tb = $("ntabs"); if (tb.__h !== th) { tb.__h = th; tb.innerHTML = th; var nn = $("nname"); if (nn) { nn.focus(); nn.select(); } }
     var ta = $("note"); if (document.activeElement !== ta && ta.value !== pg.t) ta.value = pg.t;
-    var vh = "<b>" + esc(pg.n) + "</b>" + esc(pg.t), nv = $("noteview"); if (nv.__h !== vh) { nv.__h = vh; nv.innerHTML = vh; }
+    var vh = (pg.n !== "Notes" ? "<b>" + esc(pg.n) + "</b>" : "") + esc(pg.t), nv = $("noteview"); if (nv.__h !== vh) { nv.__h = vh; nv.innerHTML = vh; }
   }
   var ndel = false;
   function nameDone(save) { var nn = $("nname"); if (nn && save && nedit > -1) { var n = notes(); if (n.pages[nedit]) { n.pages[nedit].n = nn.value.trim() || "Notes"; saveNotes(n); } } nedit = -1; notesView(); }
@@ -313,7 +313,12 @@
   }
   function enter() { setOpen = false; document.body.classList.remove("in"); void document.body.offsetWidth; all(); if (PIN) return; var show = function () { if (!PIN && !document.body.classList.contains("in")) { document.body.classList.add("in"); draw(); } }; requestAnimationFrame(show); setTimeout(show, 60); }
   // the bar closed: forget searches and half-made choices, keep only what is pinned
-  function toPinned() { PIN = true; found = null; picking = false; q = ""; $("q").value = ""; addq = ""; $("addq").value = ""; fqq = ""; $("fq").value = ""; setOpen = false; nedit = -1; ndel = false; view = { z: 1, dx: 0, dy: 0 }; document.body.classList.remove("in"); all(); }
+  function toPinned() {
+    // remember how tall each widget is in the bar, so the pinned one is the very same box
+    if (!PIN && innerHeight > 200) saveHub(function (h) { h.hgt = h.hgt || {}; WIDS.forEach(function (k) { var el = $("w-" + k); if (h.open[k] && el.offsetHeight && !(k === "map" && h.big)) h.hgt[k] = el.offsetHeight / innerHeight; }); });
+    toPinned2();
+  }
+  function toPinned2() { PIN = true; found = null; picking = false; q = ""; $("q").value = ""; addq = ""; $("addq").value = ""; fqq = ""; $("fq").value = ""; setOpen = false; nedit = -1; ndel = false; view = { z: 1, dx: 0, dy: 0 }; document.body.classList.remove("in"); all(); }
 
   /* ---------- actions ---------- */
   function act(a) {
@@ -450,6 +455,7 @@
   if (!RTMap.calm) setInterval(function () { if (!routeOn() || document.hidden || !mapShown()) return; var now = performance.now(); if (PIN && now - marchAt < 75) return; marchAt = now; draw(); }, 40);
   setInterval(function () { bar(); cond(); }, 1000);
   if (T && !EMBED) T.event.listen("menu-open", function (e) { if (e.payload) { PIN = false; enter(); } else toPinned(); });
+  if (/[?&]bar=1/.test(location.search)) window.__pin = toPinned;   // for trying pinned mode in a browser
   enter();
   RT.load().then(function () {
     all();
