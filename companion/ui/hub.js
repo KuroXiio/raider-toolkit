@@ -240,7 +240,7 @@
     document.body.classList.remove("in");
     setTimeout(function () { RT.invoke("toggle_menu", { open: false }); }, 170);
   }
-  function enter() { setOpen = false; document.body.classList.remove("in"); void document.body.offsetWidth; all(); if (PIN) return; requestAnimationFrame(function () { document.body.classList.add("in"); draw(); }); }
+  function enter() { setOpen = false; document.body.classList.remove("in"); void document.body.offsetWidth; all(); if (PIN) return; var show = function () { if (!PIN && !document.body.classList.contains("in")) { document.body.classList.add("in"); draw(); } }; requestAnimationFrame(show); setTimeout(show, 60); }
   // the bar closed: forget searches and half-made choices, keep only what is pinned
   function toPinned() { PIN = true; found = null; picking = false; q = ""; $("q").value = ""; addq = ""; $("addq").value = ""; fqq = ""; $("fq").value = ""; setOpen = false; view = { z: 1, dx: 0, dy: 0 }; document.body.classList.remove("in"); all(); }
 

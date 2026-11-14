@@ -54,6 +54,13 @@ struct View {
     seen_game: bool,
     /// pinned widgets are forced on screen until this moment (the settings page's test button)
     test: Option<std::time::Instant>,
+    /// the game was in front when the bar opened
+    back_game: bool,
+    /// just after the bar closes: until this moment the game still counts as in front, while Windows hands the
+    /// keyboard back to it
+    hold: Option<std::time::Instant>,
+    /// when the bar was last opened or closed (a held-down keybind must not flip it over and over)
+    flipped: Option<std::time::Instant>,
     away: u8,
     binds: HashMap<String, String>,
     actions_on: bool,
@@ -190,7 +197,20 @@ fn set_menu(app: &AppHandle, open: Option<bool>) {
     let Some(w) = app.get_webview_window("menu") else {
         return;
     };
-    let open = open.unwrap_or(!shared(app).menu);
+    let open = {
+        let mut v = shared(app);
+        let now = std::time::Instant::now();
+        if open.is_none() {
+            // the keybind: ignore a repeat that comes straight after the last flip (the key held down)
+            if v.flipped.map_or(false, |t| {
+                now.duration_since(t) < Duration::from_millis(350)
+            }) {
+                return;
+            }
+        }
+        v.flipped = Some(now);
+        open.unwrap_or(!v.menu)
+    };
     if let Some(d) = app.get_webview_window("dim") {
         let _ = d.hide();
     }
@@ -198,8 +218,12 @@ fn set_menu(app: &AppHandle, open: Option<bool>) {
         let back = front_handle();
         {
             let mut v = shared(app);
+            if !v.menu {
+                v.back_game = v.game;
+            }
             v.menu = true;
             v.away = 0;
+            v.hold = None;
             if back != 0 {
                 v.back = back;
             }
@@ -220,14 +244,24 @@ fn set_menu(app: &AppHandle, open: Option<bool>) {
             let was = v.menu;
             v.menu = false;
             v.away = 0;
-            if was {
+            let back = if was {
                 std::mem::replace(&mut v.back, 0)
             } else {
                 0
+            };
+            if was && back != 0 && v.back_game {
+                // the bar was opened over the game and the game gets the keyboard back: pinned widgets come straight
+                // back, without waiting for the next look at which window is in front
+                v.game = true;
+                v.own = false;
+                v.hold = Some(std::time::Instant::now() + Duration::from_millis(2500));
             }
+            back
         };
         let _ = app.emit("menu-open", false);
-        // hide first, so the pinned layer never flashes the bar; it comes back by itself once the game is in front
+        // give the keyboard back while this window still has it (Windows refuses once it is hidden), then hide it so
+        // the pinned layer never flashes the bar
+        bring_front(back);
         let _ = w.set_ignore_cursor_events(true);
         let _ = w.hide();
         bring_front(back);
@@ -356,6 +390,9 @@ struct PinState {
     user_show: bool,
     game_only: bool,
     shown: bool,
+    game: bool,
+    own: bool,
+    menu: bool,
 }
 #[tauri::command]
 fn pin_state(app: AppHandle) -> PinState {
@@ -371,6 +408,9 @@ fn pin_state(app: AppHandle) -> PinState {
         user_show: v.user_show,
         game_only: v.game_only,
         shown: visible && !v.menu,
+        game: v.game,
+        own: v.own,
+        menu: v.menu,
     }
 }
 
@@ -510,6 +550,9 @@ fn watch_focus(app: AppHandle) {
         let (game, own, what) = front_window();
         let changed = {
             let mut v = shared(&app);
+            // right after the bar closes, Windows can report no window or the wrong one for a moment
+            let held = v.hold.map_or(false, |t| std::time::Instant::now() < t) && !game;
+            let (game, own) = if held { (v.game, v.own) } else { (game, own) };
             let c = v.game != game || v.own != own;
             v.game = game;
             v.own = own;
@@ -541,8 +584,9 @@ fn watch_focus(app: AppHandle) {
             set_menu(&app, Some(false));
             let _ = app.emit("edit-off", ());
         }
+        // every time, not only on a change: it does nothing unless what is on screen differs from what should be
+        apply_visibility(&app);
         if changed {
-            apply_visibility(&app);
             sync_action_keys(&app);
             let _ = app.emit("focus", (game, own));
         }
@@ -579,6 +623,9 @@ fn main() {
             seen: String::new(),
             seen_game: false,
             test: None,
+            back_game: false,
+            hold: None,
+            flipped: None,
             away: 0,
             binds: HashMap::new(),
             actions_on: false,
