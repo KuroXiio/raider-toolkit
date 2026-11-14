@@ -247,6 +247,8 @@
     h += srow("Only while you play", "Hides them when another program is in front, for example when you Alt-Tab to a browser." + (f ? ' <span class="' + (f[0] ? "ok" : "dim") + '">' + (f[0] ? "ARC Raiders is in front right now." : "ARC Raiders isn't in front right now.") + "</span>" : ""), sw("gameOnly", s.gameOnly, "Only while you play"));
     h += srow("Size", "Of the bar and its widgets. They already follow your screen's resolution and shape.", '<div class="seg2">' + [[0.85, "Small"], [1, "Medium"], [1.2, "Large"]].map(function (x) { return '<button type="button" data-hubsize="' + x[0] + '" aria-pressed="' + (Math.abs(sz - x[0]) < 0.01) + '">' + x[1] + "</button>"; }).join("") + "</div>");
     h += srow("See-through", "How solid pinned widgets are over the game.", slider("bg", 0.3, 1, 0.05, s.bg, Math.round(s.bg * 100) + "%"));
+    var mb = s.mapBg == null ? 0.95 : s.mapBg;
+    h += srow("Pinned map", "Set on its own, because a map is harder to read when it is see-through.", slider("mapBg", 0.3, 1, 0.05, mb, Math.round(mb * 100) + "%"));
     h += '<p class="note">Play in Borderless or Windowed mode so the bar and pinned widgets can show on top of the game. To move a widget, open the bar and drag it by its top edge.</p>';
     return h;
   }
@@ -523,6 +525,7 @@
     if (t.id === "kq") { state.kq = t.value; render(true); }
     if (t.id === "size") { RT.setSetting("size", +t.value); $("sizev").textContent = Math.round(t.value * 100) + "%"; }
     if (t.id === "bg") { RT.setSetting("bg", +t.value); $("bgv").textContent = Math.round(t.value * 100) + "%"; }
+    if (t.id === "mapBg") { RT.setSetting("mapBg", +t.value); $("mapBgv").textContent = Math.round(t.value * 100) + "%"; }
     if (t.id === "pbg") { RT.setSetting("panelBg", +t.value); $("pbgv").textContent = Math.round(t.value * 100) + "%"; document.documentElement.style.setProperty("--pbg", +t.value); }
     if (t.id === "lmax") { RT.setSetting("listMax", +t.value); $("lmaxv").textContent = t.value; }
   });

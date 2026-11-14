@@ -26,6 +26,7 @@
     autoUpdate: true,                      // check for a new version when the app starts and every 6 hours
     size: 1,                               // on top of the automatic scaling to the screen height
     bg: 0.8,                               // opacity of the overlay's background, 0.3 to 1
+    mapBg: 0.95,                         // how solid the pinned map is (it reads worse than text when see-through)
     pos: { a: "tr", x: 0.012, y: 0.1 },    // anchored to a corner or edge, offsets as a share of the screen
     panelBg: 0.95,                         // opacity of the panel's background
     hub: { open: { map: true, route: true, list: true, quests: false, cond: false, notes: false }, pin: { map: false, route: true, list: true, quests: false, cond: false, notes: false }, pos: {}, big: false, size: 1 },   // the in-game bar: open widgets, the ones kept on screen while you play, where they sit (share of the screen), size

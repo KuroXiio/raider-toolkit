@@ -172,6 +172,7 @@
   .btn.go kbd { border-color: rgba(0,0,0,.3); background: rgba(0,0,0,.12); color: inherit; margin-left: 0.4rem; }
   /* ---------- a pinned widget is see-through, the way it will look over the game ---------- */
   .w.pinned { background: rgba(16,15,28,var(--bga, .8)); }
+  #w-map.pinned { background: rgba(16,15,28,var(--mapa, .95)); } #w-map.pinned #cv { opacity: var(--mapa, .95); }
   .ib[data-pin][aria-pressed="true"] svg { fill: currentColor; }
 
   /* ---------- pinned mode: the bar is closed, only pinned widgets stay, nothing can be clicked ---------- */
@@ -182,7 +183,7 @@
   body.pin .w.on { opacity: 1; visibility: visible; }
   body.pin .w:not(.on) { opacity: 0; visibility: hidden; }
   body.pin .wbody { padding: 0.6rem 0.8rem; gap: 0.45rem; }
-  body.pin #stage { background: transparent; } body.pin #cv { opacity: calc(var(--bga, .8) + .15); }
+  body.pin #stage { background: transparent; } body.pin #cv { opacity: var(--mapa, .95); }
   body.pin .chipb { min-height: 1.9rem; }
   body.pin .ob { min-height: 0; padding: 0.1rem 0; cursor: default; }
   body.pin .ob::before { content: ""; width: 0.4rem; height: 0.4rem; margin: 0.45rem 0.1rem 0 0.1rem; border-radius: 50%; background: var(--mintc); flex: none; }

@@ -15,7 +15,7 @@
   // sizes follow the screen: the same share of a 1080p, 1440p, 4K or ultrawide screen, times the size you picked
   function scale() {
     var s = RT.settings(), k = EMBED ? 1.08 : Math.max(0.7, Math.min(2.2, Math.min((screen.width || 1920) / 1920, (screen.height || 1080) / 1080))) * (hub().size || 1);
-    root.style.setProperty("--scale", k); root.style.setProperty("--bga", s.bg);
+    root.style.setProperty("--scale", k); root.style.setProperty("--bga", s.bg); root.style.setProperty("--mapa", s.mapBg == null ? 0.95 : s.mapBg);
   }
   function mode() { document.body.classList.toggle("pin", PIN); document.body.classList.toggle("embed", EMBED); root.classList.toggle("embed", EMBED); }
   function hub() { var h = RT.settings().hub; if (!h.pin) h.pin = JSON.parse(JSON.stringify(DEFPIN)); if (!h.size) h.size = 1; return h; }
@@ -282,6 +282,8 @@
     var near = function (v) { return looks.reduce(function (a, b) { return Math.abs(b[0] - s.bg) < Math.abs(a[0] - s.bg) ? b : a; })[0] === v; };
     var h = '<div class="sr" style="border:0;padding-bottom:0.5rem"><div><b>Pinned widgets</b><small>How see-through they are. Pinned ones stay on screen while you play, right where they are now.</small></div></div>' +
       '<div class="seg" role="group" aria-label="Pinned widget background">' + looks.map(function (x) { return '<button type="button" data-bg="' + x[0] + '" aria-pressed="' + near(x[0]) + '">' + x[1] + "</button>"; }).join("") + "</div>" +
+      '<div class="sr" style="border:0;padding-bottom:0.5rem"><div><b>Pinned map</b><small>Set on its own, because a map is harder to read when it is see-through.</small></div></div>' +
+      '<div class="seg" role="group" aria-label="Pinned map background">' + [[0.6, "See-through"], [0.8, "Balanced"], [0.95, "Solid"]].map(function (x) { return '<button type="button" data-mapbg="' + x[0] + '" aria-pressed="' + (Math.abs((s.mapBg == null ? 0.95 : s.mapBg) - x[0]) < 0.08) + '">' + x[1] + "</button>"; }).join("") + "</div>" +
       '<div class="sr" style="border:0;padding-bottom:0.5rem"><div><b>Size</b><small>Of the bar and every widget. Drag a widget by its top edge to move it.</small></div></div>' +
       '<div class="seg" role="group" aria-label="Size">' + sizes.map(function (x) { return '<button type="button" data-size="' + x[0] + '" aria-pressed="' + (Math.abs(hz - x[0]) < 0.01) + '">' + x[1] + "</button>"; }).join("") + "</div>" +
       '<div class="sr"><div><b>Only in game</b><small>Hide pinned widgets when you Alt-Tab</small></div><button type="button" class="sw" role="switch" data-sw="gameOnly" aria-checked="' + !!s.gameOnly + '" aria-label="Only show pinned widgets while the game is in front"><i></i></button></div>' +
@@ -357,6 +359,7 @@
     else if (d.got) { var y = RT.list().items[d.got]; if (y) { RT.setHave(d.got, y.have + 1); afterListChange(); } else RTRoute.drop(d.got, function () { all(); }); }
     else if (d.drop) { RTRoute.drop(d.drop, function () { all(); }); }
     else if (d.bg) { RT.setSetting("bg", +d.bg); all(); }
+    else if (d.mapbg) { RT.setSetting("mapBg", +d.mapbg); all(); }
     else if (d.size) { saveHub(function (h) { h.size = +d.size; }); all(); }
     else if (d.sw) { var v = !RT.settings()[d.sw]; RT.setSetting(d.sw, v); if (d.sw === "overlay") RT.invoke("show_overlay", { show: v }); if (d.sw === "gameOnly") RT.invoke("set_game_only", { on: v }); all(); }
     else if (b.id === "zin") zoomAt(1.4, cv.clientWidth / 2, cv.clientHeight / 2);
@@ -442,8 +445,9 @@
   var allWas = all; all = function () { mapsel(); allWas(); };
   window.addEventListener("storage", function () { pinSig = ""; all(); });
   window.addEventListener("resize", function () { layout(); draw(); });
-  // the route line marches only while the bar is open; pinned over the game it stands still, so it costs nothing
-  if (!RTMap.calm) setInterval(function () { if (!PIN && routeOn() && !document.hidden && mapShown()) draw(); }, 40);
+  // the route line keeps marching, in the bar and pinned over the game (a little slower there, to stay light)
+  var marchAt = 0;
+  if (!RTMap.calm) setInterval(function () { if (!routeOn() || document.hidden || !mapShown()) return; var now = performance.now(); if (PIN && now - marchAt < 75) return; marchAt = now; draw(); }, 40);
   setInterval(function () { bar(); cond(); }, 1000);
   if (T && !EMBED) T.event.listen("menu-open", function (e) { if (e.payload) { PIN = false; enter(); } else toPinned(); });
   enter();
