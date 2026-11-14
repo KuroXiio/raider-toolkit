@@ -526,17 +526,29 @@ fn front_window() -> (bool, bool, String) {
         let mut t = [0u16; 256];
         let n = GetWindowTextW(h, t.as_mut_ptr(), t.len() as i32).max(0) as usize;
         let shown = String::from_utf16_lossy(&t[..n]);
-        let title = shown.to_lowercase();
+        // The game's window title has invisible characters (zero-width space U+200B, BOM U+FEFF) mixed in between
+        // the letters, so keep only letters, digits and plain spaces before comparing, and squash repeated spaces.
+        let title = shown
+            .chars()
+            .filter(|ch| ch.is_alphanumeric() || *ch == ' ')
+            .collect::<String>()
+            .to_lowercase()
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .join(" ");
         let mut c = [0u16; 128];
         let m = GetClassNameW(h, c.as_mut_ptr(), c.len() as i32).max(0) as usize;
         let class = String::from_utf16_lossy(&c[..m]);
-        // ARC Raiders is an Unreal Engine game; its window is named after the game (or its project name, Pioneer)
-        let game = (class == "UnrealWindow"
-            && (title.contains("arc raiders")
-                || title.contains("arcraiders")
-                || title.contains("pioneer")))
-            || title.trim() == "arc raiders";
-        (game, false, format!("{} ({})", shown.trim(), class))
+        // ARC Raiders is an Unreal Engine game, but its window class is not the stock "UnrealWindow"
+        // (seen as "BodaciousApe" in Nov 2026 and may change between patches), so the title is what counts:
+        // exactly "arc raiders" once cleaned up. Under a known game class, looser title matches are allowed too.
+        let unreal_class = class == "UnrealWindow" || class == "BodaciousApe";
+        let game = title == "arc raiders"
+            || (unreal_class
+                && (title.contains("arc raiders")
+                    || title.contains("arcraiders")
+                    || title.contains("pioneer")));
+        (game, false, format!("{} ({})", title, class))
     }
 }
 #[cfg(not(windows))]
