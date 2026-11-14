@@ -1,0 +1,30 @@
+name: Release notes
+# Puts the text from companion/notes/<version>.md on that version's release (draft or published).
+# Runs when a notes file changes, after the app has been built, or by hand.
+on:
+  push:
+    branches: [main]
+    paths: ["companion/notes/**"]
+  workflow_run:
+    workflows: ["Build companion app"]
+    types: [completed]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  notes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set the release text
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for f in companion/notes/*.md; do
+            v=$(basename "$f" .md)
+            if gh release view "companion-v$v" >/dev/null 2>&1; then
+              gh release edit "companion-v$v" --notes-file "$f" && echo "$v updated"
+            else
+              echo "$v has no release yet"
+            fi
+          done

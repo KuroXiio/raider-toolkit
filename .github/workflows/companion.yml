@@ -62,7 +62,7 @@ jobs:
           prerelease: ${{ steps.kind.outputs.pre == 'true' }}
           includeUpdaterJson: true
           releaseBody: |
-            An overlay with your Raider Toolkit shopping list, map condition, followed quests and keys, plus a panel you open with a keybind (Ctrl+Shift+Space by default) with the interactive map, quests, keys, search and settings. Installed copies update themselves once this release is published.
+            A bar over ARC Raiders on a keybind (Ctrl+Shift+Space by default) with your map, route, shopping list, quests, map conditions and notes. Pin the ones you want and they stay on screen while you play. Installed copies update themselves once this release is published.
 
             It is an ordinary Windows window. It never reads, changes or connects to the game: no game files, memory, screen capture, injected code or simulated input. Everything it shows comes from raidkits.com and what you type in.
 
