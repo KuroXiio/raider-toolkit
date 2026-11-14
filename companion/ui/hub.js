@@ -10,7 +10,7 @@
   var EMBED = /[?&]embed=1/.test(location.search), PIN = !EMBED && !!T && !/[?&]bar=1/.test(location.search), lastAny = null;
   var DEFPIN = { map: false, route: true, list: true, quests: false, cond: false, notes: false }, root = document.documentElement;
   var cv = $("cv"), stage = $("stage"), tip = $("tip"), view = { z: 1, dx: 0, dy: 0 }, lastKey = "", pins = null, pinSig = "", out = null, mdata = null;
-  var found = null, picking = false, q = "", addq = "", fqq = "", setOpen = false;
+  var swapFrom = "", found = null, picking = false, q = "", addq = "", fqq = "", setOpen = false;
 
   // sizes follow the screen: the same share of a 1080p, 1440p, 4K or ultrawide screen, times the size you picked
   function scale() {
@@ -23,7 +23,7 @@
   function pinned(k) { return !!hub().pin[k]; }
   // is there anything to show for a pinned widget right now? An empty one stays off the screen while you play.
   function has(k) {
-    if (k === "route") return !!RT.route();
+    if (k === "route") { var r0 = RT.route(); return !!r0 && RTMap.mapOf(r0.k) === RT.settings().map; }
     if (k === "list") return hereIds().length > 0;
     if (k === "quests") { var f = RT.follow(); return Object.keys(f.quests).length + f.keys.length > 0; }
     if (k === "notes") { var n = notes(); return !!(n.pages[n.at] && n.pages[n.at].t.trim()); }
@@ -32,7 +32,7 @@
   function hereIds() { var s = RT.settings(), l = RT.list(); return l.order.filter(function (id) { var x = l.items[id]; return x && RT.item(id) && x.have < x.need && RT.onMap(id, s.map); }); }
   function mapShown() { var h = hub(); return EMBED || (PIN ? h.pin.map : h.open.map); }
   function key() { var s = RT.settings(), rt = RT.route(); return routeOn() ? rt.k : RTMap.keyOf(s.map, s.floor); }
-  function routeOn() { return !found && !picking && RT.settings().mapView === "route" && !!RT.route(); }
+  function routeOn() { var rt = RT.route(), s = RT.settings(); return !found && !picking && s.mapView === "route" && !!rt && RTMap.mapOf(rt.k) === s.map; }
   function itemsHere(id) { return mdata ? RTMap.spots(mdata, id) : []; }
 
   /* ---------- the bar ---------- */
@@ -93,7 +93,8 @@
       var sp = picking ? RTMap.spawns(data) : null;
       var o = { key: k, pins: on ? { list: [], keys: pins.keys || [], quests: [], ext: pins.ext || [] } : pins, layers: s.layers, r: 6, cluster: 26, view: view, dim: 0.9, dash: RTMap.dash(), route: on ? rt : null, at: RT.routeAt(),
         found: found && found.pts.length ? found : null, spawns: sp,
-        fit: sp && sp.length > 1 ? sp : found && found.pts.length ? (found.pts.length > 1 ? found.pts : null) : on ? leg(rt) : RTMap.extent(pins) };
+        fit: sp && sp.length > 1 ? sp : found && found.pts.length ? (found.pts.length > 1 ? found.pts : null) : on ? camera(RT.routeOn() ? leg(rt) : [rt.spawn].concat(rt.stops.map(function (x) { return x.p; })).concat(rt.end ? [rt.end.p] : []), rt) : RTMap.extent(pins) };
+      o.play = on && RT.routeOn();
       if (found && found.pts.length === 1 && view.z === 1 && !found.zoomed) { found.zoomed = 1; var f = RTMap.files(k); view = { z: 2.4, dx: found.pts[0][0] - f.w / 2, dy: found.pts[0][1] - f.h / 2 }; o.view = view; o.fit = null; }
       RTMap.draw(cv, o); out = o.out;
     });
@@ -102,10 +103,32 @@
   function leg(rt) {
     var at = RT.routeAt(), pts = [rt.spawn].concat(rt.stops.map(function (x) { return x.p; })).concat(rt.end ? [rt.end.p] : []);
     var to = Math.min(at + 1, pts.length - 1), from = Math.max(0, to - 1);
-    if (legAt !== at + "|" + rt.k) { legAt = at + "|" + rt.k; view.z = 1; view.dx = 0; view.dy = 0; }
     return [pts[from], pts[to]];
   }
-  var legAt = "";
+  /* the map glides from one view of the route to the next (start, next stop, back) instead of jumping */
+  var cam = null;
+  function camera(pts, rt) {
+    var xs = pts.map(function (p) { return p[0]; }), ys = pts.map(function (p) { return p[1]; });
+    var b = [Math.min.apply(null, xs), Math.min.apply(null, ys), Math.max.apply(null, xs), Math.max.apply(null, ys)], id = rt.k + "|" + (rt.spawn || []).join(",");
+    if (!cam || cam.id !== id || RTMap.calm || document.hidden) cam = { id: id, cur: b, to: b, t0: 0 };
+    else if (cam.to.join() !== b.join()) { cam.from = cam.cur.slice(); cam.to = b; cam.t0 = performance.now(); requestAnimationFrame(glideCam); }
+    return [[cam.cur[0], cam.cur[1]], [cam.cur[2], cam.cur[3]]];
+  }
+  function glideCam() {
+    if (!cam || !cam.t0) return;
+    var t = Math.min(1, (performance.now() - cam.t0) / 700), e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    cam.cur = cam.from.map(function (v, i) { return v + (cam.to[i] - v) * e; });
+    if (t >= 1) { cam.cur = cam.to; cam.t0 = 0; }
+    draw();
+    if (cam.t0) requestAnimationFrame(glideCam);
+  }
+  // moving to another stop puts the map back to its normal state: no search, no zoom or pan of your own
+  var atSig = "";
+  function atWatch() {
+    var rt = RT.route(), sig = rt ? RT.routeAt() + "|" + RT.routeOn() : "";
+    if (atSig && sig && sig !== atSig) { view.z = 1; view.dx = 0; view.dy = 0; if (found || q) { found = null; q = ""; $("q").value = ""; } }
+    atSig = sig;
+  }
   function keyOf(a) { var k = (RT.settings().keys || {})[a]; return k ? "<kbd>" + esc(k) + "</kbd>" : ""; }
   function over() {
     var h = "", s = RT.settings(), rt = RT.route();
@@ -147,12 +170,20 @@
   /* ---------- route ---------- */
   function route() {
     var s = RT.settings(), rt = RT.route(), h = "", mapName = RT.SHORT[s.map] || "this map";
-    if (!rt) {
+    if (picking) {
+      h = '<div class="wbody"><div class="rtx"><span class="k hi">New route on ' + esc(mapName) + "</span><b>Tap where you spawned on the map</b></div>" +
+        '<span class="note">The route is planned from your shopping list for this map.</span><div class="row acts"><button type="button" class="btn sm" data-act="pickoff">Cancel</button></div></div>';
+    } else if (!rt || RTMap.mapOf(rt.k) !== s.map) {
       var want = RTRoute.wanted(s.map);
-      h = '<div class="wbody"><span class="note">' + (want.length ? "Plan a route on " + esc(mapName) + " for the " + want.length + (want.length === 1 ? " item" : " items") + " on your list that " + (want.length === 1 ? "is" : "are") + " found there."
-        : "Nothing on your list is found on " + esc(mapName) + ". Add items to your list first, or pick another map.") + "</span>" +
-        '<div class="row acts"><button type="button" class="btn go" data-act="plan"' + (want.length ? "" : " disabled") + ">Plan a route: pick your spawn</button></div>" +
-        '<span class="note">You can also plan on raidkits.com and press Send to app.</span></div>';
+      h = '<div class="wbody"><span class="note">' + (want.length ? want.length + (want.length === 1 ? " item" : " items") + " on your list " + (want.length === 1 ? "is" : "are") + " found on " + esc(mapName) + "."
+        : "Nothing on your list is found on " + esc(mapName) + ". Add items to your list, or pick another map.") + "</span>" +
+        '<div class="row acts"><button type="button" class="btn go" data-act="plan"' + (want.length ? "" : " disabled") + ">Plan a route</button></div></div>";
+    } else if (!RT.routeOn()) {
+      var its0 = rt.items || [], nst = rt.stops.length;
+      h = '<div class="wbody"><div class="rtx"><span class="k hi">Route ready</span><b>' + nst + (nst === 1 ? " stop" : " stops") + " on " + esc(mapName) + (rt.end && rt.end.n ? ", out at " + esc(rt.end.n) : "") + "</b></div>" +
+        (its0.length ? '<div class="chips">' + its0.map(function (id) { return '<span class="chipb" style="cursor:default">' + RT.icon(id) + esc((RT.item(id) || {}).n || id) + ((rt.odds || {})[id] ? " <em>" + rt.odds[id] + "%</em>" : "") + "</span>"; }).join("") + "</div>" : "") +
+        '<div class="row acts"><button type="button" class="btn go" style="flex:1" data-act="start">Start' + (keyOf("next") ? " " + keyOf("next") : "") + '</button><button type="button" class="btn" data-act="plan">Change spawn</button><button type="button" class="btn warn" data-act="end" aria-label="Remove this route" title="Remove this route">✕</button></div>' +
+        (PIN && keyOf("next") ? '<div class="kh"><span>' + keyOf("next") + " start</span></div>" : "") + "</div>";
     } else {
       var at = RT.routeAt(), tot = rt.stops.length + (rt.end ? 1 : 0), stop = rt.stops[at], last = at >= rt.stops.length;
       h = '<div class="wbody"><div class="rt"><div class="rtn"><b>' + Math.min(at + 1, tot) + "</b><span>/" + tot + '</span></div><div class="rtx"><span class="k hi">' + (last ? "Extract" : "Next stop") + "</span><b>" +
@@ -168,7 +199,7 @@
           '<span class="note">The % is a rough chance to find at least one. Add more from the map: search an item and press + Route.</span>';
       } else h += '<span class="note">This route was sent from raidkits.com, so it stays as you planned it there. Start a new one here to change it.</span>';
       h += '<div class="row">' + (stop ? '<button type="button" class="btn sm" data-act="skip">Skip this stop</button>' : "") + (rt.own ? '<button type="button" class="btn sm" data-act="replan">Re-plan from here</button>' : "") +
-        '<button type="button" class="btn sm" data-act="plan">New route</button><button type="button" class="btn sm warn" data-act="end">End route</button></div></div></details></div>' +
+        '<button type="button" class="btn sm" data-act="plan">New spawn</button><button type="button" class="btn sm warn" data-act="end">End route</button></div></div></details></div>' +
         '<div class="prog"><i style="width:' + Math.round(Math.min(at + 1, tot) / tot * 100) + '%"></i></div>';
     }
     var b = $("routebody"); if (b.__h !== h) { b.__h = h; b.innerHTML = h; }
@@ -263,12 +294,12 @@
   // a new route arrived (planned here, or sent from raidkits.com): show it on its map straight away
   var rsig = null;
   function routeWatch() {
-    var rt = RT.route(), sig = rt ? [rt.k, rt.stops.length, rt.n || "", (rt.spawn || []).join(",")].join("|") : "";
-    if (rsig !== null && sig && sig !== rsig) { var mk = RTMap.mapOf(rt.k); if (RT.settings().map !== mk) RT.setSetting("map", mk); if (RT.settings().mapView !== "route") RT.setSetting("mapView", "route"); found = null; picking = false; view = { z: 1, dx: 0, dy: 0 }; }
+    var rt = RT.route(), sig = rt ? [rt.k, rt.own ? "own" : rt.at || rt.n || "", (rt.spawn || []).join(",")].join("|") : "";
+    if (rsig !== null && sig && sig !== rsig) { var mk = RTMap.mapOf(rt.k); if (RT.settings().map !== mk) RT.setSetting("map", mk); if (RT.settings().mapView !== "route") RT.setSetting("mapView", "route"); if (!rt.own) RT.setRouteOn(false); found = null; picking = false; view = { z: 1, dx: 0, dy: 0 }; }
     rsig = sig;
   }
   function all() {
-    routeWatch(); scale(); mode(); bar(); over(); route(); list(); quests(); cond(); notesView(); settings(); layout(); draw();
+    routeWatch(); atWatch(); scale(); mode(); bar(); over(); route(); list(); quests(); cond(); notesView(); settings(); layout(); draw();
     // tell the app whether anything is pinned, so it knows to keep this window over the game once the bar closes
     if (T && !EMBED) { var h = hub(), any = WIDS.some(function (k) { return h.pin[k] && has(k); }); if (any !== lastAny) { lastAny = any; RT.invoke("set_pins", { on: any }); } }
   }
@@ -285,8 +316,9 @@
   /* ---------- actions ---------- */
   function act(a) {
     var s = RT.settings(), rt = RT.route();
-    if (a === "plan") { found = null; q = ""; $("q").value = ""; picking = true; if (rt) RT.setSetting("mapView", "map"); open("map", true); view = { z: 1, dx: 0, dy: 0 }; }
-    else if (a === "pickoff") { picking = false; if (rt) RT.setSetting("mapView", "route"); view = { z: 1, dx: 0, dy: 0 }; }
+    if (a === "plan") { found = null; q = ""; $("q").value = ""; picking = true; swapFrom = ""; open("map", true); view = { z: 1, dx: 0, dy: 0 }; }
+    else if (a === "pickoff") { picking = false; if (rt) { if (swapFrom && RT.settings().map !== swapFrom) RT.setSetting("map", swapFrom); RT.setSetting("mapView", "route"); } swapFrom = ""; view = { z: 1, dx: 0, dy: 0 }; }
+    else if (a === "start" && rt) { RT.setRouteAt(0); RT.setRouteOn(true); RT.setSetting("mapView", "route"); open("map", true); }
     else if (a === "next" && rt) RT.setRouteAt(RT.routeAt() + 1);
     else if (a === "prev" && rt) RT.setRouteAt(RT.routeAt() - 1);
     else if (a === "skip") { RTRoute.skip(); }
@@ -335,7 +367,14 @@
   document.addEventListener("change", function (e) {
     var c = e.target;
     if (c.id === "region") { RT.setSetting("region", c.value); cond(); bar(); return; }
-    if (c.id === "mapsel") { RT.setSetting("map", c.value); found = null; q = ""; $("q").value = ""; picking = false; var rt = RT.route(); if (rt && RTMap.mapOf(rt.k) !== c.value) RT.setSetting("mapView", "map"); all(); return; }
+    if (c.id === "mapsel") {
+      RT.setSetting("map", c.value); found = null; q = ""; $("q").value = ""; picking = false; view = { z: 1, dx: 0, dy: 0 };
+      var rt = RT.route();
+      // a route is for one map: on another map it is planned again from your list, as soon as you say where you spawn
+      if (rt && RTMap.mapOf(rt.k) !== c.value) { if (RTRoute.wanted(c.value).length) { picking = true; swapFrom = RTMap.mapOf(rt.k); } else RT.setSetting("mapView", "map"); }
+      else if (rt && RT.settings().mapView !== "route") RT.setSetting("mapView", "route");
+      all(); return;
+    }
     if (c.dataset.obj) { var f = RT.follow(), fq = f.quests[c.dataset.obj]; if (fq) { var i = +c.dataset.i, at = fq.done.indexOf(i); if (c.checked && at < 0) fq.done.push(i); if (!c.checked && at > -1) fq.done.splice(at, 1); RT.saveFollow(f); quests(); } }
   });
   $("q").addEventListener("input", function () { q = this.value.trim(); if (found && found.q !== q) found = null; if (!q) view = { z: 1, dx: 0, dy: 0 }; over(); draw(); });

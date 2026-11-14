@@ -189,7 +189,8 @@
     if (a === "route") { if (!rt) return; RT.setSetting("mapView", view === "route" ? "map" : "route"); RT.setSetting("lastView", view === "route" ? "map" : "route"); }
     if (a === "next" || a === "prev") {
       if (!rt) return;
-      RT.setRouteAt(RT.routeAt() + (a === "next" ? 1 : -1));
+      if (!RT.routeOn()) { if (a === "next") { RT.setRouteAt(0); RT.setRouteOn(true); } }   // the first press starts the route
+      else RT.setRouteAt(RT.routeAt() + (a === "next" ? 1 : -1));
       if (view !== "route") { RT.setSetting("mapView", "route"); RT.setSetting("lastView", "route"); }
     }
     lastSize = ""; render();

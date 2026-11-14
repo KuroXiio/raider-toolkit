@@ -162,7 +162,7 @@
       if (L.keys) pn.keys.forEach(function (k) { var q = P(k.p); mark(x, q, R + 3, "ring", COL.key, GL.key); hits.push({ q: q, r: R + 3, t: k.n }); });
     }
     if (o.names !== false && W >= 260) areas(x, key, P, s / base, W, H);
-    if (o.route && !o.found && !o.spawns) { o.route.dash = o.dash || 0; drawRoute(x, o.route, P, o.at || 0, R + 4); }
+    if (o.route && !o.found && !o.spawns) { o.route.dash = o.dash || 0; drawRoute(x, o.route, P, o.at || 0, R + 4, o.play); }
     o.out.hits = hits;
   }
   function dot(x, q, r, c) { x.beginPath(); x.arc(q[0], q[1], r, 0, 6.2832); x.fillStyle = c; x.fill(); x.stroke(); }
@@ -174,8 +174,22 @@
     x.fillStyle = fg; x.font = "700 " + Math.round(r * 1.05) + "px 'JetBrains Mono', monospace"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillText(t, q[0], q[1] + 0.5);
   }
   /* the route: a dotted line, S at the start, numbered stops (done ones grey, the next one big and bright), E at the extract */
-  function drawRoute(x, rt, P, at, r) {
+  function drawRoute(x, rt, P, at, r, play) {
     var pts = [rt.spawn].concat(rt.stops.map(function (s) { return s.p; })).concat(rt.end ? [rt.end.p] : []).map(P);
+    if (play) {   // playing: what is behind you is grey, the stretch you are on is lit, what comes later stays hidden
+      var cur = Math.min(at + 1, pts.length - 1), GREY = "rgba(255,255,255,.3)";
+      x.save(); x.lineCap = "round"; x.lineWidth = 2; x.strokeStyle = GREY; x.beginPath();
+      for (var i = 0; i < cur; i++) { if (i) x.lineTo(pts[i][0], pts[i][1]); else x.moveTo(pts[i][0], pts[i][1]); }
+      x.stroke();
+      x.setLineDash([2, 6]); x.lineDashOffset = -(rt.dash || 0); x.lineWidth = 2.5; x.strokeStyle = COL.list; x.beginPath();
+      x.moveTo(pts[cur - 1][0], pts[cur - 1][1]); x.lineTo(pts[cur][0], pts[cur][1]); x.stroke(); x.restore();
+      x.lineWidth = 1.5; x.strokeStyle = COL.ink;
+      badge(x, pts[0], r - 1, cur > 1 ? "#3a3750" : COL.fg, "S", cur > 1 ? "#9b97b0" : COL.ink);
+      for (var j = 0; j < at && j < rt.stops.length; j++) badge(x, pts[j + 1], r - 1, "#3a3750", String(j + 1), "#9b97b0");
+      if (at < rt.stops.length) badge(x, pts[at + 1], r + 3, COL.list, String(at + 1), COL.ink);
+      else if (rt.end) mark(x, pts[pts.length - 1], r + 3, "fill", COL.ext, GL.ext);
+      return;
+    }
     x.save(); x.setLineDash([2, 6]); x.lineDashOffset = -(rt.dash || 0); x.lineCap = "round"; x.lineWidth = 2.5; x.strokeStyle = COL.list; x.beginPath();
     pts.forEach(function (q, i) { if (i) x.lineTo(q[0], q[1]); else x.moveTo(q[0], q[1]); }); x.stroke(); x.restore();
     x.lineWidth = 1.5; x.strokeStyle = COL.ink;

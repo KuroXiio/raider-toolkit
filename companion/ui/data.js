@@ -126,7 +126,10 @@
     });
     return r;
   }
-  function setRoute(r, keepAt) { if (r) write("rtc-route", r); else { localStorage.removeItem("rtc-route"); if (window.RTSync) RTSync.touched("rtc-route"); } if (!keepAt) write("rtc-route-at", 0); }
+  function setRoute(r, keepAt) { if (r) write("rtc-route", r); else { localStorage.removeItem("rtc-route"); if (window.RTSync) RTSync.touched("rtc-route"); } if (!keepAt) { write("rtc-route-at", 0); localStorage.removeItem("rtc-route-on"); } }
+  // a planned route waits until you press Start; from then on it is "on" and the map follows you stop by stop
+  function routeOn() { return !!route() && read("rtc-route-on", false) === true; }
+  function setRouteOn(on) { if (on) write("rtc-route-on", true); else localStorage.removeItem("rtc-route-on"); }
   function routeAt() { var r = route(), n = read("rtc-route-at", 0) | 0; return r ? Math.max(0, Math.min(r.stops.length, n)) : 0; }
   function setRouteAt(n) { var r = route(); if (r) write("rtc-route-at", Math.max(0, Math.min(r.stops.length, n | 0))); }
   /* a "Send to app" route link from the site: #app-route= + base64url JSON (the same shape as route() above) */
@@ -218,8 +221,8 @@
     data: function () { return D; }, item: function (id) { return byId[id]; }, load: load,
     settings: settings, setSetting: setSetting, DEFAULTS: DEFAULTS, SECTIONS: SECTIONS, TERMS_VERSION: TERMS_VERSION,
     versionLess: versionLess, onMap: onMap, follow: follow, saveFollow: saveFollow, toggleQuest: toggleQuest, toggleKey: toggleKey, quest: quest, key: key, mapUrl: mapUrl, widget: widget, setWidget: setWidget,
-    binds: binds, route: route, setRoute: setRoute, routeAt: routeAt, setRouteAt: setRouteAt, importRoute: importRoute,
-    reset: function () { ["rtc-sync", "rtc-settings", "rtc-list", "rtc-follow", "rtc-placed", "rtc-hotkey-err", "rtc-update", "rtc-route", "rtc-route-at", "rtc-notes"].forEach(function (k) { localStorage.removeItem(k); }); },
+    binds: binds, route: route, setRoute: setRoute, routeAt: routeAt, setRouteAt: setRouteAt, routeOn: routeOn, setRouteOn: setRouteOn, importRoute: importRoute,
+    reset: function () { ["rtc-sync", "rtc-settings", "rtc-list", "rtc-follow", "rtc-placed", "rtc-hotkey-err", "rtc-update", "rtc-route", "rtc-route-at", "rtc-route-on", "rtc-notes"].forEach(function (k) { localStorage.removeItem(k); }); },
     accepted: function () { var a = read("rtc-accepted", null); return !!(a && a.v === TERMS_VERSION); },
     acceptedAt: function () { var a = read("rtc-accepted", null); return a && a.at; },
     accept: function () { write("rtc-accepted", { v: TERMS_VERSION, at: new Date().toISOString() }); write("rtc-privacy-seen", PRIVACY_VERSION); },
