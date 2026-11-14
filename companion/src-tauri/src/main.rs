@@ -48,6 +48,12 @@ struct View {
     pins: bool,
     /// the window that was in front when the bar opened (0: none), so closing the bar can hand the keyboard back to it
     back: isize,
+    /// the last window of another program that was in front ("title (class)"), and whether it counted as the game:
+    /// shown on the settings page so a wrong guess can be seen
+    seen: String,
+    seen_game: bool,
+    /// pinned widgets are forced on screen until this moment (the settings page's test button)
+    test: Option<std::time::Instant>,
     away: u8,
     binds: HashMap<String, String>,
     actions_on: bool,
@@ -127,7 +133,11 @@ fn bring_front(_h: isize) {}
 fn apply_visibility(app: &AppHandle) {
     let (show, menu) = {
         let v = shared(app);
-        (v.pins && v.user_show && (!v.game_only || v.game), v.menu)
+        let test = v.test.map_or(false, |t| std::time::Instant::now() < t);
+        (
+            test || (v.pins && v.user_show && (!v.game_only || v.game)),
+            v.menu,
+        )
     };
     for (label, w) in app.webview_windows() {
         if (label == "overlay" || label.starts_with("w-")) && w.is_visible().unwrap_or(false) {
@@ -337,6 +347,45 @@ fn set_game_only(app: AppHandle, on: bool) {
     apply_visibility(&app);
 }
 
+/// What the settings page shows about pinned widgets, so it is plain why they are or aren't on screen.
+#[derive(serde::Serialize)]
+struct PinState {
+    seen: String,
+    seen_game: bool,
+    pins: bool,
+    user_show: bool,
+    game_only: bool,
+    shown: bool,
+}
+#[tauri::command]
+fn pin_state(app: AppHandle) -> PinState {
+    let visible = app
+        .get_webview_window("menu")
+        .map(|w| w.is_visible().unwrap_or(false))
+        .unwrap_or(false);
+    let v = shared(&app);
+    PinState {
+        seen: v.seen.clone(),
+        seen_game: v.seen_game,
+        pins: v.pins,
+        user_show: v.user_show,
+        game_only: v.game_only,
+        shown: visible && !v.menu,
+    }
+}
+
+/// Shows the pinned widgets for ten seconds, whatever is in front (the settings page's test button).
+#[tauri::command]
+fn test_pins(app: AppHandle) {
+    shared(&app).test = Some(std::time::Instant::now() + Duration::from_secs(10));
+    apply_visibility(&app);
+    let a = app.clone();
+    std::thread::spawn(move || {
+        std::thread::sleep(Duration::from_millis(10200));
+        apply_visibility(&a);
+    });
+}
+
 /// Whether the game or this app is in front right now (for the panel's settings page).
 #[tauri::command]
 fn focus_state(app: AppHandle) -> (bool, bool) {
@@ -419,7 +468,7 @@ fn set_hotkeys(app: AppHandle, binds: HashMap<String, String>) -> Vec<String> {
 /// Which window is in front: the game's, one of ours, or something else. This asks Windows for the title and class
 /// name of the foreground window (what Alt-Tab and the taskbar show). It never opens, reads or touches the game's process.
 #[cfg(windows)]
-fn front_window() -> (bool, bool) {
+fn front_window() -> (bool, bool, String) {
     use windows_sys::Win32::System::Threading::GetCurrentProcessId;
     use windows_sys::Win32::UI::WindowsAndMessaging::{
         GetClassNameW, GetForegroundWindow, GetWindowTextW, GetWindowThreadProcessId,
@@ -427,38 +476,47 @@ fn front_window() -> (bool, bool) {
     unsafe {
         let h = GetForegroundWindow();
         if h.is_null() {
-            return (false, false);
+            return (false, false, String::new());
         }
         let mut pid: u32 = 0;
         GetWindowThreadProcessId(h, &mut pid);
         if pid == GetCurrentProcessId() {
-            return (false, true);
+            return (false, true, String::new());
         }
         let mut t = [0u16; 256];
         let n = GetWindowTextW(h, t.as_mut_ptr(), t.len() as i32).max(0) as usize;
-        let title = String::from_utf16_lossy(&t[..n]).to_lowercase();
+        let shown = String::from_utf16_lossy(&t[..n]);
+        let title = shown.to_lowercase();
         let mut c = [0u16; 128];
         let m = GetClassNameW(h, c.as_mut_ptr(), c.len() as i32).max(0) as usize;
         let class = String::from_utf16_lossy(&c[..m]);
-        let game = title.contains("arc raiders")
-            && (class == "UnrealWindow" || title.trim() == "arc raiders");
-        (game, false)
+        // ARC Raiders is an Unreal Engine game; its window is named after the game (or its project name, Pioneer)
+        let game = (class == "UnrealWindow"
+            && (title.contains("arc raiders")
+                || title.contains("arcraiders")
+                || title.contains("pioneer")))
+            || title.trim() == "arc raiders";
+        (game, false, format!("{} ({})", shown.trim(), class))
     }
 }
 #[cfg(not(windows))]
-fn front_window() -> (bool, bool) {
-    (true, false)
+fn front_window() -> (bool, bool, String) {
+    (true, false, String::new())
 }
 
 /// Checks twice a second which window is in front, and shows or hides the overlay when that changes.
 fn watch_focus(app: AppHandle) {
     std::thread::spawn(move || loop {
-        let (game, own) = front_window();
+        let (game, own, what) = front_window();
         let changed = {
             let mut v = shared(&app);
             let c = v.game != game || v.own != own;
             v.game = game;
             v.own = own;
+            if !own && !what.is_empty() {
+                v.seen = what;
+                v.seen_game = game;
+            }
             c
         };
         // The game or another program came to the front (a click outside the menu, or Alt-Tab): close the in-game menu
@@ -518,6 +576,9 @@ fn main() {
             edit: false,
             pins: false,
             back: 0,
+            seen: String::new(),
+            seen_game: false,
+            test: None,
             away: 0,
             binds: HashMap::new(),
             actions_on: false,
@@ -527,6 +588,8 @@ fn main() {
             toggle_menu,
             set_edit,
             set_pins,
+            pin_state,
+            test_pins,
             quit_app,
             show_overlay,
             set_game_only,

@@ -312,6 +312,7 @@
     if (!WID) {
       var s0 = RT.settings();
       RT.invoke("set_game_only", { on: !!s0.gameOnly });
+      shown = !!s0.overlay; RT.invoke("show_overlay", { show: shown });   // pinned widgets are allowed on screen from the start; the app still waits for the game
       RT.invoke("set_hotkeys", { binds: RT.binds(s0) }).then(function (failed) {
         if (failed && failed.length) localStorage.setItem("rtc-hotkey-err", JSON.stringify(failed.join(", "))); else localStorage.removeItem("rtc-hotkey-err");
       });

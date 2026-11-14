@@ -236,6 +236,12 @@
     var h = '<p class="note">Pinned widgets stay on screen while you play, where you dragged them in the bar. <kbd class="kbd">' + esc(s.hotkeyOverlay || "not set") + "</kbd> hides them.</p>";
     h += '<div class="h">Pinned widgets</div>';
     h += W.map(function (x) { return srow(x[1], x[0] === "route" ? "Your next stop and what to pick up there." : x[0] === "list" ? "What you still need on this map." : x[0] === "map" ? "Your pins, or your route when you have one." : x[0] === "quests" ? "Objectives and keys you follow." : "What is active on your map, and for how long.", sw("pin:" + x[0], !!pin[x[0]], "Keep " + x[1] + " on screen while you play")); }).join("");
+    var ps = state.pin;
+    h += '<div class="h">Check</div>';
+    h += srow("Test pinned widgets", "Shows them for 10 seconds right now, over whatever is on screen. If you see them here but not in the game, the game is in exclusive Fullscreen or isn't being recognised (see below).", '<button type="button" class="btn sm" data-act="pin-test">Show for 10 seconds</button>');
+    if (ps) h += '<p class="note diag">' + (ps.pins ? "Something is pinned and has content to show." : "Nothing to show right now: no widget is pinned, or the pinned ones are empty (no route yet, nothing on your list for this map).") + "<br>" +
+      (ps.seen ? "Last other window in front: <b>" + esc(ps.seen) + "</b> · " + (ps.seen_game ? '<span class="ok">recognised as ARC Raiders</span>' : '<span class="err">not recognised as ARC Raiders</span>') : "No other window has been in front yet.") + "<br>" +
+      "On screen now: " + (ps.shown ? "yes" : "no") + (ps.user_show ? "" : " · pinned widgets are switched off") + (ps.game_only ? " · only while you play is on" : "") + "</p>";
     h += '<div class="h">Look</div>';
     h += srow("Show pinned widgets", "Your keybind and the tray icon switch it too.", sw("overlay", s.overlay, "Show pinned widgets"));
     h += srow("Only while you play", "Hides them when another program is in front, for example when you Alt-Tab to a browser." + (f ? ' <span class="' + (f[0] ? "ok" : "dim") + '">' + (f[0] ? "ARC Raiders is in front right now." : "ARC Raiders isn't in front right now.") + "</span>" : ""), sw("gameOnly", s.gameOnly, "Only while you play"));
@@ -456,6 +462,7 @@
       case "cn-done": localStorage.setItem("rtc-connect-seen", "1"); state.linkSent = false; state.linkErr = ""; tab = "home"; render(); break;
       case "cn-link": t.disabled = true; state.linkErr = ""; RTSync.link().then(function () { localStorage.setItem("rtc-connect-seen", "1"); state.linkSent = true; render(); }, function (er) { state.linkErr = er.message || String(er); render(); }); break;
       case "link": t.disabled = true; RTSync.link().then(function () { state.homeOk = true; state.homeMsg = state.syncMsg = "Your browser opened raidkits.com. Press Connect there."; state.syncMsgOk = true; render(); }, function (er) { state.homeOk = state.syncMsgOk = false; state.homeMsg = state.syncMsg = er.message || String(er); render(); }); break;
+      case "pin-test": RT.invoke("test_pins"); break;
       case "sync-new-home": t.disabled = true; RTSync.create().then(function () { state.syncShow = true; tab = "settings"; state.sset = "sync"; state.syncMsgOk = true; state.syncMsg = "Sync is on. Now paste the code on raidkits.com: Shopping list → Sync."; render(); }, function (er) { state.homeOk = false; state.homeMsg = er.message; render(); }); break;
       case "home-go":
         var txt = ($("himp").value || "").trim(), done = function (ok, msg) { state.homeOk = ok; state.homeMsg = msg; render(); };
@@ -565,6 +572,11 @@
     });
   }
   /* whether the game is in front right now, for the "Only while you play" row */
+  // the In game settings show live why pinned widgets are or aren't on screen
+  setInterval(function () {
+    if (tab !== "settings" || (state.sset || "game") !== "game" || !window.__TAURI__) return;
+    RT.invoke("pin_state").then(function (p) { if (!p) return; var k = JSON.stringify(p); if (k !== state.pinKey) { state.pinKey = k; state.pin = p; if (!(document.activeElement && /^(range|text)$/.test(document.activeElement.type || ""))) render(); } }, function () {});
+  }, 1500);
   function focusNow() { RT.invoke("focus_state").then(function (f) { if (f) { state.focus = f; if (tab === "overlay") render(); } }, function () {}); }
   if (window.__TAURI__) window.__TAURI__.event.listen("focus", function (e) { state.focus = e.payload; if (tab === "overlay" && !(document.activeElement && document.activeElement.type === "range")) render(); });
   if (window.__TAURI__) window.__TAURI__.event.listen("edit-off", function () { if (state.edit) { state.edit = false; render(); } });
