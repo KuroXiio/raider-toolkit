@@ -2048,3 +2048,22 @@ a:focus-visible, summary:focus-visible { outline: 2px solid var(--mint); outline
 #v-maps:not(.pick) .mapstage .mview { height: clamp(420px, calc(100dvh - var(--navh, 66px) - 86px), 1400px); }
 @media (max-width: 900px) { #v-maps:not(.pick) .mapstage .mview { height: clamp(360px, calc(100dvh - var(--navh, 66px) - 150px), 900px); } }
 .mlr .mlaa { flex: 0 0 18px; }
+.appask { width: min(460px, calc(100vw - 28px)); }
+.appask[open] { display: block; }
+.appask .aab { padding: 26px 24px 18px; display: flex; flex-direction: column; gap: 18px; }
+.appask h3 { margin: 0; font-size: 22px; padding-right: 40px; }
+.appask .aaopt { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.appask .aao { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 18px 16px; min-height: 132px; text-align: left; border-radius: 14px; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.03); color: inherit; font: inherit; cursor: pointer; transition: border-color .15s, background .15s, transform .12s; }
+.appask .aao:hover, .appask .aao:focus-visible { border-color: rgba(95,242,234,.6); background: rgba(95,242,234,.07); outline: 0; }
+.appask .aao:active { transform: scale(.98); }
+.appask .aao svg { width: 26px; height: 26px; fill: none; stroke: #5ff2ea; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; margin-bottom: 6px; }
+.appask .aao b { font-size: 17px; }
+.appask .aao span { font-size: 13.5px; line-height: 1.45; color: #a8a3b8; }
+.appask .aaf { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; color: #a8a3b8; }
+.appask .aano { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.appask .aaf a { color: #5ff2ea; }
+@media (max-width: 440px) { .appask .aaopt { grid-template-columns: 1fr; } .appask .aao { min-height: 0; } }
+.appask .aaq { margin: 0; font-size: 14px; color: #a8a3b8; }
+.appask .aao.on { border-color: #5ff2ea; background: rgba(95,242,234,.1); }
+#appLink .aao { min-height: 0; padding: 14px 16px; }
+.appask > .aab > p { margin: -8px 0 0; color: #c9c5dc; line-height: 1.55; }

@@ -371,7 +371,31 @@
     var sc = {}; planListIds().forEach(function (id) { var c = mkSpots(id); Object.keys(c).forEach(function (k) { var m = k.indexOf("stella_") === 0 ? "stella" : k; sc[m] = sc[m] || { n: 0, s: 0, best: k, bs: 0 }; if (!sc[m]["i" + id]) { sc[m]["i" + id] = 1; sc[m].n++; } sc[m].s += c[k]; if (c[k] > sc[m].bs && m === "stella") { sc[m].bs = c[k]; sc[m].best = k; } }); });
     return sc;
   }
+  /* Before the map opens from the shopping list: on Windows, without sync, ask once per visit whether the list should
+     also go to the desktop app (which plans the route itself once you pick a spawn there). */
   function planFromList() {
+    var dlg = $("#appAsk"), skip = false;
+    try { skip = localStorage.getItem("rt-appask") === "no" || sessionStorage.getItem("rt-appask") === "1"; } catch (e) {}
+    if (!dlg || !dlg.showModal || skip || !/Windows/.test(navigator.userAgent) || (typeof syncSt === "function" && syncSt()) || !planListIds().length) { planFromListGo(); return; }
+    try { sessionStorage.setItem("rt-appask", "1"); } catch (e) {}
+    dlg.showModal();
+  }
+  (function () {
+    var dlg = $("#appAsk"); if (!dlg) return;
+    document.body.appendChild(dlg);   // so it opens from any page
+    var done = function () { try { if ($("#appAskNo").checked) localStorage.setItem("rt-appask", "no"); } catch (e) {} if (dlg.open) dlg.close(); };
+    dlg.addEventListener("click", function (e) {
+      if (e.target === dlg || e.target.closest("[data-aclose]")) { done(); return; }
+      if (e.target.closest("[data-ahere]")) { done(); planFromListGo(); return; }
+      if (e.target.closest("[data-async]")) {
+        done(); go("list"); var b = $("#syncBox"), sb = $("#shopSync");
+        if (b && b.hidden && sb) sb.click();
+        if (b) b.scrollIntoView({ block: "center", behavior: "smooth" });
+        toast(t("Create a code, then paste it in the app under Settings → Sync."));
+      }
+    });
+  })();
+  function planFromListGo() {
     var ids = planListIds();
     if (!ids.length) { toast(t("Your shopping list has nothing left to find."), true); return; }
     var sc = planMapScores(), best = Object.keys(sc).sort(function (a, b) { return sc[b].n - sc[a].n || sc[b].s - sc[a].s; })[0];

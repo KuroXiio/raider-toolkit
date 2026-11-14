@@ -10,7 +10,7 @@
   var EMBED = /[?&]embed=1/.test(location.search), PIN = !EMBED && !!T && !/[?&]bar=1/.test(location.search), lastAny = null;
   var DEFPIN = { map: false, route: true, list: true, quests: false, cond: false }, root = document.documentElement;
   var cv = $("cv"), stage = $("stage"), tip = $("tip"), view = { z: 1, dx: 0, dy: 0 }, lastKey = "", pins = null, pinSig = "", out = null, mdata = null;
-  var found = null, picking = false, q = "", addq = "", setOpen = false;
+  var found = null, picking = false, q = "", addq = "", fqq = "", setOpen = false;
 
   // sizes follow the screen: the same share of a 1080p, 1440p, 4K or ultrawide screen, times the size you picked
   function scale() {
@@ -165,7 +165,7 @@
     var s = RT.settings(), l = RT.list(), ids = l.order.filter(function (id) { return l.items[id] && RT.item(id); });
     var here = ids.filter(function (id) { return RT.onMap(id, s.map); }), rest = ids.filter(function (id) { return here.indexOf(id) < 0; });
     $("listtitle").textContent = "Shopping list";
-    var rowOf = function (id) { var x = l.items[id], dn = x.have >= x.need; return '<div class="li' + (dn ? " dn" : "") + '">' + RT.icon(id) + '<span class="nm">' + esc(RT.item(id).n) + '</span><button type="button" data-have="' + esc(id) + '" data-d="-1" aria-label="One fewer">−</button><span class="q">' + x.have + "/" + x.need + '</span><button type="button" data-have="' + esc(id) + '" data-d="1" aria-label="One more">+</button></div>'; };
+    var rowOf = function (id) { var x = l.items[id], dn = x.have >= x.need; return '<div class="li' + (dn ? " dn" : "") + '">' + RT.icon(id) + '<span class="nm">' + esc(RT.item(id).n) + '</span><button type="button" data-have="' + esc(id) + '" data-d="-1" aria-label="One fewer">−</button><span class="q">' + x.have + "/" + x.need + '</span><button type="button" data-have="' + esc(id) + '" data-d="1" aria-label="One more">+</button><button type="button" class="rm" data-del="' + esc(id) + '" aria-label="Remove ' + esc(RT.item(id).n) + ' from your list" title="Remove">×</button></div>'; };
     if (PIN) { var need = hereIds(), b0 = $("listbody"), ph = need.slice(0, 8).map(rowOf).join("") + (need.length > 8 ? '<span class="note" style="padding:0.2rem 0.5rem">+' + (need.length - 8) + " more</span>" : ""); if (b0.__h !== ph) { b0.__h = ph; b0.innerHTML = ph; } return; }
     var h = !ids.length ? '<span class="note" style="padding:0.5rem">Your list is empty. Add an item above, or build it on raidkits.com and turn on sync.</span>' :
       (here.length ? '<span class="k" style="padding:0.4rem 0.5rem 0.2rem">On ' + esc(RT.SHORT[s.map] || "this map") + "</span>" + here.map(rowOf).join("") : "") +
@@ -179,14 +179,17 @@
   /* ---------- quests and keys ---------- */
   function quests() {
     var f = RT.follow(), qs = Object.keys(f.quests).map(RT.quest).filter(Boolean), ks = f.keys.map(RT.key).filter(Boolean), h = "";
-    if (!qs.length && !ks.length) h = '<span class="note">Follow a quest or a key on the Quests and Keys pages of the main window and it shows up here. Keys can also be followed from the map search.</span>' + (EMBED ? "" : '<div class="row acts"><button type="button" class="btn sm" data-act="app">Open Raider Toolkit</button></div>');
+    if (!qs.length && !ks.length) h = '<span class="note">Follow a quest with the search above. Keys are followed from the map search.</span>';
     h += qs.map(function (x) {
       var done = f.quests[x.id].done || [];
-      return '<div><div class="qn">' + esc(x.n) + "</div>" + (x.o || []).map(function (o, i) { var d = done.indexOf(i) > -1; if (d && PIN) return ""; return '<label class="ob' + (d ? " dn" : "") + '"><input type="checkbox" data-obj="' + esc(x.id) + '" data-i="' + i + '"' + (d ? " checked" : "") + "><span>" + esc(o) + "</span></label>"; }).join("") + "</div>";
+      return '<div><div class="qn"><span>' + esc(x.n) + '</span><button type="button" class="rm" data-fq="' + esc(x.id) + '" aria-label="Stop following ' + esc(x.n) + '" title="Stop following">×</button></div>' + (x.o || []).map(function (o, i) { var d = done.indexOf(i) > -1; if (d && PIN) return ""; return '<label class="ob' + (d ? " dn" : "") + '"><input type="checkbox" data-obj="' + esc(x.id) + '" data-i="' + i + '"' + (d ? " checked" : "") + "><span>" + esc(o) + "</span></label>"; }).join("") + "</div>";
     }).join('<div class="hr"></div>');
     if (ks.length) h += (qs.length ? '<div class="hr"></div>' : "") + '<span class="k">Keys</span>' + ks.map(function (k) {
-      return '<div class="cr"><span><b style="font-size:0.98rem">' + esc(k.n) + "</b><br>" + esc(k.door || "") + "</span>" + (Array.isArray(k.pin) ? '<button type="button" class="btn sm nopin" data-key="' + esc(k.id) + '">Show</button>' : "") + "</div>"; }).join("");
+      return '<div class="cr"><span><b style="font-size:0.98rem">' + esc(k.n) + "</b><br>" + esc(k.door || "") + "</span>" + (Array.isArray(k.pin) ? '<button type="button" class="btn sm nopin" data-key="' + esc(k.id) + '">Show</button>' : "") + '<button type="button" class="rm" data-fk="' + esc(k.id) + '" aria-label="Stop following ' + esc(k.n) + '" title="Stop following">×</button></div>'; }).join("");
     var b = $("questbody"); if (b.__h !== h) { b.__h = h; b.innerHTML = h; }
+    var r = fqq ? RT.search(fqq, 40).filter(function (x) { return x.kind === "quest"; }).slice(0, 5) : [];
+    var fh = r.map(function (x) { return '<button type="button" data-fq="' + esc(x.x.id) + '"><span>' + esc(x.x.n) + "</span>" + (f.quests[x.x.id] ? ' <span class="note">following</span>' : "") + "</button>"; }).join("") + (fqq && !r.length ? '<span class="note" style="padding:0.5rem">No quest matches that.</span>' : "");
+    if ($("fqres").__h !== fh) { $("fqres").__h = fh; $("fqres").innerHTML = fh; }
   }
 
   /* ---------- conditions ---------- */
@@ -239,7 +242,7 @@
   }
   function enter() { setOpen = false; document.body.classList.remove("in"); void document.body.offsetWidth; all(); if (PIN) return; requestAnimationFrame(function () { document.body.classList.add("in"); draw(); }); }
   // the bar closed: forget searches and half-made choices, keep only what is pinned
-  function toPinned() { PIN = true; found = null; picking = false; q = ""; $("q").value = ""; addq = ""; $("addq").value = ""; setOpen = false; view = { z: 1, dx: 0, dy: 0 }; document.body.classList.remove("in"); all(); }
+  function toPinned() { PIN = true; found = null; picking = false; q = ""; $("q").value = ""; addq = ""; $("addq").value = ""; fqq = ""; $("fq").value = ""; setOpen = false; view = { z: 1, dx: 0, dy: 0 }; document.body.classList.remove("in"); all(); }
 
   /* ---------- actions ---------- */
   function act(a) {
@@ -274,6 +277,9 @@
     else if (d.key) showKey(d.key);
     else if (d.act) act(d.act);
     else if (d.have) { var x = RT.list().items[d.have]; if (x) { RT.setHave(d.have, x.have + (+d.d)); afterListChange(); } }
+    else if (d.del) { RT.removeItem(d.del); afterListChange(); }
+    else if (d.fq) { RT.toggleQuest(d.fq); fqq = ""; $("fq").value = ""; pinSig = ""; all(); }
+    else if (d.fk) { RT.toggleKey(d.fk); pinSig = ""; all(); }
     else if (d.add) { RT.addItem(d.add, 1); addq = ""; $("addq").value = ""; afterListChange(); }
     else if (d.got) { var y = RT.list().items[d.got]; if (y) { RT.setHave(d.got, y.have + 1); afterListChange(); } else RTRoute.drop(d.got, function () { all(); }); }
     else if (d.drop) { RTRoute.drop(d.drop, function () { all(); }); }
@@ -287,11 +293,13 @@
   document.addEventListener("toggle", function (e) { if (e.target.classList && e.target.classList.contains("more")) route.more = e.target.open; }, true);
   document.addEventListener("change", function (e) {
     var c = e.target;
+    if (c.id === "region") { RT.setSetting("region", c.value); cond(); bar(); return; }
     if (c.id === "mapsel") { RT.setSetting("map", c.value); found = null; q = ""; $("q").value = ""; picking = false; var rt = RT.route(); if (rt && RTMap.mapOf(rt.k) !== c.value) RT.setSetting("mapView", "map"); all(); return; }
     if (c.dataset.obj) { var f = RT.follow(), fq = f.quests[c.dataset.obj]; if (fq) { var i = +c.dataset.i, at = fq.done.indexOf(i); if (c.checked && at < 0) fq.done.push(i); if (!c.checked && at > -1) fq.done.splice(at, 1); RT.saveFollow(f); quests(); } }
   });
   $("q").addEventListener("input", function () { q = this.value.trim(); if (found && found.q !== q) found = null; if (!q) view = { z: 1, dx: 0, dy: 0 }; over(); draw(); });
   $("addq").addEventListener("input", function () { addq = this.value.trim(); list(); });
+  $("fq").addEventListener("input", function () { fqq = this.value.trim(); quests(); });
   document.addEventListener("keydown", function (e) {
     if (e.key !== "Escape") return;
     if (setOpen) { setOpen = false; all(); } else if (picking) act("pickoff"); else if (q || found) clearFound(); else if (addq) { addq = ""; $("addq").value = ""; list(); } else close();
@@ -345,7 +353,8 @@
   });
 
   /* ---------- keep everything fresh ---------- */
-  function mapsel() { var sel = $("mapsel"), o = RT.MAP_ORDER.map(function (k) { return '<option value="' + k + '">' + esc(RT.SHORT[k]) + "</option>"; }).join(""); if (sel.__o !== o) { sel.__o = o; sel.innerHTML = o; } sel.value = RT.settings().map; }
+  function regionsel() { var sel = $("region"), o = (RT.REGIONS || []).map(function (r) { return '<option value="' + r[0] + '">' + esc(r[1]) + "</option>"; }).join(""); if (sel.__o !== o) { sel.__o = o; sel.innerHTML = o; } sel.value = RT.settings().region; }
+  function mapsel() { regionsel(); var sel = $("mapsel"), o = RT.MAP_ORDER.map(function (k) { return '<option value="' + k + '">' + esc(RT.SHORT[k]) + "</option>"; }).join(""); if (sel.__o !== o) { sel.__o = o; sel.innerHTML = o; } sel.value = RT.settings().map; }
   var allWas = all; all = function () { mapsel(); allWas(); };
   window.addEventListener("storage", function () { pinSig = ""; all(); });
   window.addEventListener("resize", function () { layout(); draw(); });

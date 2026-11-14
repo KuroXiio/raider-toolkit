@@ -112,6 +112,12 @@
       });
     });
   }
+  /* One-click connect: opens raidkits.com with this PC's sync code in the part of the address that is never sent to a
+     server (after the #). The site asks before it connects. Makes a code first if sync was off. */
+  function link() {
+    var go = function () { var s = st(); if (!s) throw new Error("Couldn't turn sync on. Check your connection and try again."); return RT.openUrl(RT.SITE + "#connect=" + pretty(s.code)); };
+    return st() ? Promise.resolve().then(go) : create().then(go);
+  }
   function off() { localStorage.removeItem("rtc-sync"); }
   function wipe() { var s = st(); if (!s) return Promise.resolve(); return fetch(API + s.id, { method: "DELETE" }).then(function (r) { if (!r.ok) throw 0; off(); }, function () { throw new Error("Couldn't reach the sync service. Try again in a moment."); }); }
 
@@ -120,12 +126,14 @@
     var s = st(), esc = RT.esc, h = '<div class="h">Sync with raidkits.com</div>';
     if (!s) {
       h += '<p class="note">Keep your shopping list the same here and on raidkits.com, on any PC. Routes you send from the site\'s route planner arrive here by themselves too. It\'s off until you turn it on.</p>';
-      h += '<div class="srow"><div class="sl"><span class="lb">Start syncing</span><small>Makes a new sync code. Then on raidkits.com open your shopping list → Sync, and paste it there.</small></div><div class="sc"><button type="button" class="btn sm go" data-act="sync-new">Create a code</button></div></div>';
+      h += '<div class="srow"><div class="sl"><span class="lb">Connect to raidkits.com</span><small>Opens the site in your browser. Press Connect there and you are done.</small></div><div class="sc"><button type="button" class="btn sm go" data-act="link">Connect</button></div></div>';
+      h += '<div class="srow"><div class="sl"><span class="lb">Or by hand</span><small>Makes a new sync code. Then on raidkits.com open your shopping list → Sync, and paste it there.</small></div><div class="sc"><button type="button" class="btn sm" data-act="sync-new">Create a code</button></div></div>';
       h += '<div class="paste"><label for="scode" class="note">Already have a code from the site or another PC?</label><div class="pr"><input type="text" id="scode" placeholder="RTS-XXXX-XXXX-XXXX-XXXX-XXXX" autocomplete="off" spellcheck="false"><button type="button" class="btn" data-act="sync-join">Connect</button></div></div>';
     } else {
       h += '<div class="srow"><div class="sl"><span class="lb">Your sync code</span><small>Paste it on raidkits.com (shopping list → Sync) or in the app on another PC. Anyone with it can see and change your synced list, so keep it to yourself.</small></div><div class="sc">' +
         (state.syncShow ? '<span class="code">' + esc(pretty(s.code)) + "</span>" : '<span class="code">RTS-••••-••••-••••-••••-' + esc(s.code.slice(16)) + "</span>") +
         '<button type="button" class="btn sm" data-act="sync-show">' + (state.syncShow ? "Hide" : "Show") + '</button><button type="button" class="btn sm" data-act="sync-copy">Copy</button></div></div>';
+      h += '<div class="srow"><div class="sl"><span class="lb">Connect a browser</span><small>Opens raidkits.com in your browser. Press Connect there and that browser uses this list too.</small></div><div class="sc"><button type="button" class="btn sm" data-act="link">Open raidkits.com</button></div></div>';
       h += '<div class="srow"><div class="sl"><span class="lb">Status</span><small>' + (s.err ? '<span class="err">' + esc(s.err) + "</span>" : s.at ? "Synced " + esc(new Date(s.at).toLocaleTimeString()) + ". Changes go out within a few seconds; the app checks for changes from the site every minute." : "Syncing…") + '</small></div><div class="sc"><button type="button" class="btn sm" data-act="sync-now">Sync now</button></div></div>';
       h += '<div class="srow"><div class="sl"><span class="lb">Stop syncing on this PC</span><small>Your list stays here. The synced copy stays for your other devices.</small></div><div class="sc"><button type="button" class="btn sm" data-act="sync-off">Stop</button></div></div>';
       h += '<div class="srow"><div class="sl"><span class="lb">Delete synced data</span><small>Removes the synced copy from the sync service and stops syncing here. Lists on your devices stay.</small></div><div class="sc"><button type="button" class="btn sm" data-act="sync-wipe">' + (state.syncWipe ? "Sure? Press again" : "Delete") + "</button></div></div>";
@@ -135,6 +143,6 @@
     return h;
   }
 
-  window.RTSync = { touched: touched, start: start, run: run, create: create, connect: connect, off: off, wipe: wipe, pretty: pretty, state: st, _clean: clean, _shopToList: shopToList, _listToShop: listToShop };
+  window.RTSync = { touched: touched, start: start, run: run, create: create, connect: connect, link: link, off: off, wipe: wipe, pretty: pretty, state: st, _clean: clean, _shopToList: shopToList, _listToShop: listToShop };
   if (window.RT) RT.syncView = view;
 })();

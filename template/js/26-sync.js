@@ -114,3 +114,54 @@
   if (syncSt()) syncRun();
   document.addEventListener("visibilitychange", function () { if (!document.hidden && syncSt()) syncRun(); });
   setInterval(function () { if (!document.hidden && syncSt()) syncRun(); }, 60000);
+
+  /* ---------- one-click connect from the desktop app ----------
+     The app opens raidkits.com/#connect=<sync code>. That part of the address is never sent to a server, and it is
+     taken out of the address bar and history straight away. Nothing is connected until you press Connect here. */
+  var linkSt = null;
+  function syncItems(v) { var n = {}; ((v && v.g) || []).forEach(function (g) { Object.keys(g.items || {}).forEach(function (k) { n[k] = 1; }); }); return Object.keys(n).length; }
+  function syncFromLink() {
+    var m = location.hash.match(/^#connect=([0-9A-Za-z-]+)/); if (!m) return;
+    var c = syncClean(m[1]), dlg = $("#appLink");
+    try { history.replaceState(null, "", location.pathname + location.search + "#list"); } catch (e) {}
+    if (typeof route === "function") route();
+    if (!c || !dlg || !dlg.showModal) { toast(t("That connect link didn't work. In the app, press Connect again."), true); return; }
+    var cur = syncSt();
+    if (cur && cur.code === c) { toast(t("This browser is already connected to your app."), true); return; }
+    document.body.appendChild(dlg);
+    linkSt = { code: c, keep: "", mine: syncItems({ g: shop.g }), theirs: 0 };
+    syncLinkDraw(); dlg.showModal();
+    syncHash(c).then(function (id) { linkSt.id = id; return fetch(SYNC_API + "/s/" + id, { cache: "no-store" }); })
+      .then(function (r) { return r.ok ? r.json() : null; }).then(function (d) { if (!linkSt) return; linkSt.theirs = d ? syncItems(d.shop) : 0; linkSt.ready = true; syncLinkDraw(); })
+      .catch(function () { if (linkSt) { linkSt.ready = true; syncLinkDraw(); } });
+  }
+  function syncLinkDraw() {
+    var L = linkSt, box = $("#appLinkBody"); if (!L || !box) return;
+    var both = L.mine && L.theirs; if (both && !L.keep) L.keep = "site";
+    var h = "";
+    if (both) h += '<p class="aaq">' + esc(t("Both have a shopping list. Which one do you want to keep?")) + '</p><div class="aaopt">' +
+      '<button type="button" class="aao' + (L.keep === "site" ? " on" : "") + '" data-lkeep="site" aria-pressed="' + (L.keep === "site") + '"><b>' + esc(t("This site's list")) + "</b><span>" + L.mine + " " + esc(t(L.mine === 1 ? "item" : "items")) + "</span></button>" +
+      '<button type="button" class="aao' + (L.keep === "app" ? " on" : "") + '" data-lkeep="app" aria-pressed="' + (L.keep === "app") + '"><b>' + esc(t("The app's list")) + "</b><span>" + L.theirs + " " + esc(t(L.theirs === 1 ? "item" : "items")) + "</span></button></div>";
+    h += '<div class="aabtn"><button type="button" class="btn go orb" data-lgo' + (L.ready && !L.busy ? "" : " disabled") + ">" + esc(t("Connect")) + '</button><button type="button" class="btn orb" data-lno>' + esc(t("Not now")) + "</button></div>" +
+      (L.err ? '<p class="aaq" role="alert" style="color:#ff8a7a">' + esc(L.err) + "</p>" : "");
+    box.innerHTML = h;
+  }
+  document.addEventListener("click", function (e) {
+    var dlg = $("#appLink"); if (!dlg || !dlg.open || !linkSt) return;
+    var k = e.target.closest("[data-lkeep]");
+    if (k) { linkSt.keep = k.dataset.lkeep; syncLinkDraw(); return; }
+    if (e.target === dlg || e.target.closest("[data-lno]") || e.target.closest("[data-lclose]")) { linkSt = null; dlg.close(); return; }
+    if (e.target.closest("[data-lgo]") && linkSt.id) {
+      var L = linkSt; L.busy = true; L.err = ""; syncLinkDraw();
+      // the site's list wins when it is the one you chose, or the only one there is; otherwise the app's
+      var mine = L.keep === "site" || (L.mine && !L.theirs);
+      syncSave({ code: L.code, id: L.id, t: { shop: mine ? Date.now() : 0, route: 0, follow: 0 } });
+      syncRun(true).then(function () {
+        var s = syncSt();
+        if (s && s.err) { L.busy = false; L.err = s.err; syncSave(null); syncLinkDraw(); return; }
+        linkSt = null; dlg.close(); syncRender();
+        toast(t("Connected. Your list is now the same here and in the app, and Send to app goes straight there."), true);
+      });
+    }
+  });
+  syncFromLink(); window.addEventListener("hashchange", syncFromLink);

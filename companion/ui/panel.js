@@ -16,7 +16,7 @@
     search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
     settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
   };
-  var TABS = [["home", "Home"], ["map", "Map and route"], ["list", "Shopping list"], ["quests", "Quests"], ["keys", "Keys"], ["conds", "Map conditions"], ["search", "Search"], ["-"], ["overlay", "In game"], ["settings", "Settings"]];
+  var TABS = [["home", "Home"], ["settings", "Settings"]];   // everything else lives in the in-game bar
   var STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"></path></svg>';
   var X = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>';
   var MAPI = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14"></path></svg>';
@@ -46,7 +46,7 @@
       "<li><span><b>Start ARC Raiders</b> in Borderless or Windowed mode.</span></li>" +
       "<li><span><b>Press <kbd>" + esc(s.hotkey || "your menu keybind") + "</kbd> in game</b> for the bar: the map with item and key search, your route, your list, quests and conditions. Pin the ones you want to keep on screen while you play.</span></li>" +
       "<li><span><kbd>" + esc(s.hotkeyOverlay || "your keybind") + "</kbd> hides pinned widgets completely. This window can stay open, minimized or closed to the tray.</span></li></ol>" +
-      '<div class="acts"><button type="button" class="btn go" data-act="intro-done">Got it</button><button type="button" class="btn" data-goto="overlay">In-game settings</button><button type="button" class="btn" data-goto="settings:sync">Turn on sync</button></div></div>';
+      '<div class="acts"><button type="button" class="btn go" data-act="intro-done">Got it</button><button type="button" class="btn" data-goto="settings:game">In-game settings</button><button type="button" class="btn" data-goto="settings:sync">Turn on sync</button></div></div>';
   }
   function listView() {
     var s = RT.settings(), l = RT.list(), ids = l.order.filter(function (id) { return l.items[id] && RT.item(id); }), p = RT.progress(), h = '<div class="wrapc">';
@@ -88,28 +88,25 @@
   /* Map and route: the same widgets as the in-game bar, docked. Search, plan a route by picking your spawn, play it stop by stop. */
   function mapView() { return '<iframe class="map" title="Map, route, list and quests" src="hub.html?embed=1' + (state.mapSrc || "") + '"></iframe>'; }
 
-  /* ---------- Home: what you have, and the three steps ---------- */
+  /* ---------- Home: the one thing to do (open the bar), what you have, and one place to bring things in ---------- */
   function homeView() {
     var s = RT.settings(), l = RT.list(), n = l.order.filter(function (id) { return l.items[id] && RT.item(id); }).length, left = l.order.filter(function (id) { var x = l.items[id]; return x && RT.item(id) && x.have < x.need; }).length;
     var sy = window.RTSync && RTSync.state(), rt = RT.route(), f = state.focus;
-    var h = '<div class="home"><h1 class="tt">Raider Toolkit</h1><p class="lead">Your shopping list, a route to get it, and both on screen while you play.</p><div class="steps">';
-    h += '<section class="step"><span class="num">1</span><h2>Your list</h2><p class="big">' + (n ? left + " of " + n + (n === 1 ? " item" : " items") + " still needed" : "Nothing on it yet") + '</p>' +
-      '<p class="note">' + (sy ? (sy.err ? '<span class="err">' + esc(sy.err) + "</span>" : "Synced with raidkits.com. Change it there or here, both stay the same.") : "Build it here, or use the one you already have on raidkits.com.") + "</p>" +
-      '<div class="acts"><button type="button" class="btn' + (n ? "" : " go") + '" data-goto="list">' + (n ? "Open list" : "Add items") + "</button>" + (sy ? "" : '<button type="button" class="btn" data-act="home-imp">Get it from raidkits.com</button>') + "</div></section>";
-    h += '<section class="step"><span class="num">2</span><h2>Your route</h2><p class="big">' + (rt ? esc(rt.n || (RT.mapName(RTMapName(rt.k)) + " route")) : "No route yet") + "</p>" +
-      '<p class="note">' + (rt ? esc(RT.mapName(RTMapName(rt.k))) + " · stop " + Math.min(RT.routeAt() + 1, rt.stops.length + 1) + " of " + (rt.stops.length + 1) + "." : "Pick where you spawn on the map and the app plans the stops for what is on your list.") + "</p>" +
-      '<div class="acts"><button type="button" class="btn' + (n && !rt ? " go" : "") + '" data-goto="map">' + (rt ? "Open route" : "Plan a route") + "</button>" + (rt ? '<button type="button" class="btn" data-act="route-clear">Remove</button>' : "") + "</div></section>";
-    h += '<section class="step"><span class="num">3</span><h2>In the game</h2><p class="big">Press <kbd>' + esc(s.hotkey || "not set") + "</kbd></p>" +
-      '<p class="note">Opens the bar over ARC Raiders: map, route, list, quests. Pin a widget and it stays on screen while you play. Use Borderless or Windowed mode.' + (f ? (f[0] ? ' <span class="ok">ARC Raiders is in front right now.</span>' : "") : "") + "</p>" +
-      '<div class="acts"><button type="button" class="btn" data-act="menu">Try the bar now</button><button type="button" class="btn" data-goto="overlay">In-game settings</button></div></section></div>';
-    h += '<section class="imp" id="homeimp"><h2>Bring your list or route over from raidkits.com</h2>' +
-      '<p class="note">Paste any of these and the app works out which one it is.</p>' +
-      '<div class="pr"><input type="text" id="himp" placeholder="Sync code, Share list link or Send to app link" autocomplete="off" spellcheck="false" aria-label="Sync code, Share list link or Send to app link"><button type="button" class="btn go" data-act="home-go">Import</button></div>' +
-      (state.homeMsg ? '<p class="' + (state.homeOk ? "ok" : "err") + '" role="status">' + esc(state.homeMsg) + "</p>" : "") +
-      '<dl class="where"><div><dt>Sync code <span class="rec">best</span></dt><dd>Keeps the list the same on the site and here, and routes arrive by themselves. On raidkits.com: Shopping list → <b>Sync</b> → copy the code.' + (sy ? "" : ' Or <button type="button" class="link" data-act="sync-new-home">make a code here</button> and paste it on the site.') + "</dd></div>" +
-      "<div><dt>Send to app link</dt><dd>One route, once. On raidkits.com: Maps → Plan a route → <b>Send to app</b>.</dd></div>" +
-      "<div><dt>Share list link</dt><dd>One list, once. On raidkits.com: Shopping list → <b>Share list</b>.</dd></div></dl>" +
-      '<p class="note"><button type="button" class="link" data-url="' + RT.SITE + '">Open raidkits.com</button>' + (sy ? ' · <button type="button" class="link" data-goto="settings:sync">Sync settings</button>' : "") + "</p></section></div>";
+    var h = '<section class="pnl hero2"><span class="tagk">In the game</span><h1>Press <kbd>' + esc(s.hotkey || "not set") + "</kbd> while you play</h1>" +
+      "<p>It opens the bar over ARC Raiders with your map, route, shopping list, quests and conditions. Pin the ones you want to keep on screen.</p>" +
+      '<div class="acts"><button type="button" class="btn go" data-act="menu">Open the bar</button><span class="state">' + (f && f[0] ? '<span class="dot on"></span>ARC Raiders is in front' : "Works on the desktop too, to set things up") + "</span></div></section>";
+    h += '<div class="tiles"><button type="button" class="tile2" data-act="menu"><span class="tagk">Shopping list</span><b>' + (n ? left + " left to find" : "Empty") + "</b><small>" + (n ? n + (n === 1 ? " item" : " items") + " on it" : "Add items in the bar") + "</small></button>" +
+      '<button type="button" class="tile2" data-act="menu"><span class="tagk">Route</span><b>' + (rt ? esc(rt.n || RT.mapName(RTMapName(rt.k))) : "None yet") + "</b><small>" + (rt ? "Stop " + Math.min(RT.routeAt() + 1, rt.stops.length + 1) + " of " + (rt.stops.length + 1) : "Pick your spawn in the bar") + "</small></button>" +
+      '<button type="button" class="tile2" data-goto="settings:sync"><span class="tagk">raidkits.com</span><b>' + (sy ? (sy.err ? "Problem" : "Connected") : "Not connected") + "</b><small>" + (sy ? (sy.err ? esc(sy.err) : "Same list here and on the site") : "Connect below") + "</small></button></div>";
+    h += '<section class="pnl imp2" id="homeimp"><h2>' + (sy ? "Connected to raidkits.com" : "Use your list and routes from raidkits.com") + "</h2>" +
+      (sy ? '<p class="note" style="margin:0">Your shopping list is the same here and on the site. Press <b>Send to app</b> in the site\'s route planner and the route shows up in the bar.</p><div class="acts"><button type="button" class="btn" data-act="link">Connect another browser</button></div>'
+          : '<p class="note" style="margin:0">One click: your browser opens the site, you press Connect there, done.</p><div class="acts"><button type="button" class="btn go" data-act="link">Connect to raidkits.com</button></div>') +
+      (state.homeMsg ? '<p class="' + (state.homeOk ? "ok" : "err") + '" role="status" style="margin:0">' + esc(state.homeMsg) + "</p>" : "") +
+      "<details" + (state.homeHelp ? " open" : "") + "><summary>Or paste a sync code or a link by hand</summary>" +
+      '<div class="pr"><input type="text" id="himp" placeholder="Sync code, Share list link or Send to app link" autocomplete="off" spellcheck="false" aria-label="Sync code, Share list link or Send to app link"><button type="button" class="btn" data-act="home-go">Import</button></div>' +
+      '<dl class="where"><div><dt>Sync code</dt><dd>Shopping list → <b>Sync</b> on raidkits.com.</dd></div>' +
+      "<div><dt>Send to app link</dt><dd>Maps → Plan a route → <b>Send to app</b>. One route, once.</dd></div>" +
+      "<div><dt>Share list link</dt><dd>Shopping list → <b>Share list</b>. One list, once.</dd></div></dl></details></section>";
     return h;
   }
 
@@ -210,7 +207,7 @@
   var SPOTS = [["tl", "Top left"], ["tc", "Top centre"], ["tr", "Top right"], ["ml", "Left"], ["", ""], ["mr", "Right"], ["bl", "Bottom left"], ["bc", "Bottom centre"], ["br", "Bottom right"]];
   var SPOT_POS = { tl: { x: 0.012, y: 0.1 }, tc: { x: 0, y: 0.1 }, tr: { x: 0.012, y: 0.1 }, ml: { x: 0.012, y: 0 }, mr: { x: 0.012, y: 0 }, bl: { x: 0.012, y: 0.24 }, bc: { x: 0, y: 0.16 }, br: { x: 0.012, y: 0.24 } };
   /* ---------- settings: short groups, every row the same shape (what it is on the left, the control on the right) ---------- */
-  var SSECT = [["map", "Map and route"], ["keys", "Keybinds"], ["sync", "Sync"], ["updates", "Updates and data"], ["about", "About and legal"]];
+  var SSECT = [["game", "In game"], ["keys", "Keybinds"], ["sync", "Sync"], ["updates", "Updates and data"], ["about", "About and legal"]];
   var HK = [["hotkey", "Open or close the in-game bar", "The bar with the map, route, list and quests over the game. Works everywhere."], ["hotkeyOverlay", "Show or hide pinned widgets", "Works everywhere."],
     ["k:route", "Show or hide your route", ""], ["k:next", "Next stop (stop done)", ""], ["k:prev", "Back one stop", ""], ["k:route", "", ""]].slice(0, 5);
   function hkVal(id) { var s = RT.settings(); return id.indexOf("k:") === 0 ? (s.keys || {})[id.slice(2)] || "" : s[id] || ""; }
@@ -227,20 +224,16 @@
   }
   function settingsView() {
     if (state.doc) return '<button type="button" class="back" data-act="doc-back">‹ Back to settings</button><pre class="doc" id="doc">Loading…</pre>';
-    var sec = state.sset || "map";
+    var sec = state.sset || "game";
     var h = '<h1 class="tt">Settings</h1><div class="snav" role="tablist" aria-label="Settings">' + SSECT.map(function (x) { return '<button type="button" role="tab" data-sset="' + x[0] + '" aria-selected="' + (sec === x[0]) + '">' + x[1] + "</button>"; }).join("") + '</div><div class="sbox">';
-    h += ({ overlay: setOverlay, layout: setLayout, map: setMap, keys: setKeys, sync: setSync, updates: setUpdates, about: setAbout }[sec] || setMap)();
+    h += ({ game: overlayView, map: setMap, keys: setKeys, sync: setSync, updates: setUpdates, about: setAbout }[sec] || overlayView)();
     return h + "</div>";
   }
   /* the In game page: how the bar works, and the few things worth changing about it */
   function overlayView() {
     var s = RT.settings(), f = state.focus, hb = s.hub || {}, pin = hb.pin || { route: true, list: true }, sz = hb.size || 1;
     var W = [["map", "Map"], ["route", "Route"], ["list", "Shopping list"], ["quests", "Quests and keys"], ["cond", "Map condition"]];
-    var h = '<h1 class="tt">In game</h1><div class="sbox"><div class="how">' +
-      "<div><b>The bar</b><kbd>" + esc(s.hotkey || "not set") + "</kbd> opens it over the game: map, route, list, quests and conditions. Esc or the same key goes back to the game.</div>" +
-      "<div><b>Pinned widgets</b>Press the pin on a widget and it stays on screen while you play, where you dragged it. Clicks go straight through it to the game.</div>" +
-      "<div><b>Out of the way</b><kbd>" + esc(s.hotkeyOverlay || "not set") + "</kbd> hides pinned widgets. They also hide by themselves when you leave the game.</div></div>";
-    h += srow("Try it", "Opens the bar on your desktop, so you can set it up without starting the game.", '<button type="button" class="btn sm go" data-act="menu">Open the bar</button>');
+    var h = '<p class="note">Pinned widgets stay on screen while you play, where you dragged them in the bar. <kbd class="kbd">' + esc(s.hotkeyOverlay || "not set") + "</kbd> hides them.</p>";
     h += '<div class="h">Pinned widgets</div>';
     h += W.map(function (x) { return srow(x[1], x[0] === "route" ? "Your next stop and what to pick up there." : x[0] === "list" ? "What you still need on this map." : x[0] === "map" ? "Your pins, or your route when you have one." : x[0] === "quests" ? "Objectives and keys you follow." : "What is active on your map, and for how long.", sw("pin:" + x[0], !!pin[x[0]], "Keep " + x[1] + " on screen while you play")); }).join("");
     h += '<div class="h">Look</div>';
@@ -249,7 +242,7 @@
     h += srow("Size", "Of the bar and its widgets. They already follow your screen's resolution and shape.", '<div class="seg2">' + [[0.85, "Small"], [1, "Medium"], [1.2, "Large"]].map(function (x) { return '<button type="button" data-hubsize="' + x[0] + '" aria-pressed="' + (Math.abs(sz - x[0]) < 0.01) + '">' + x[1] + "</button>"; }).join("") + "</div>");
     h += srow("See-through", "How solid pinned widgets are over the game.", slider("bg", 0.3, 1, 0.05, s.bg, Math.round(s.bg * 100) + "%"));
     h += '<p class="note">Play in Borderless or Windowed mode so the bar and pinned widgets can show on top of the game. To move a widget, open the bar and drag it by its top edge.</p>';
-    return h + "</div>";
+    return h;
   }
   function setMap() {
     var s = RT.settings(), rt = RT.route(), L = s.layers;
@@ -323,6 +316,18 @@
       '<p class="note">You can read them again any time in Settings → Legal, and in the app\'s install folder (the legal folder).</p></div>';
   }
 
+  /* shown once after the agreement (and once to people updating from an earlier version) unless sync is already on */
+  function connectView() {
+    var sent = state.linkSent;
+    return '<div class="gate cn"><span class="tagk">One step, or skip it</span><h1>Connect to raidkits.com</h1>' +
+      '<p class="lead2">The shopping list you build on the site becomes the list you see in the game, and routes you send from the site arrive here by themselves.</p>' +
+      (sent ? '<div class="pnl wait"><b>Your browser opened raidkits.com.</b><span>Press <b>Connect</b> there, then come back here.</span></div><div class="acts"><button type="button" class="btn go" data-act="cn-done">Done</button><button type="button" class="btn" data-act="cn-link">Open it again</button></div>'
+        : '<ol class="cnsteps"><li><span>Press <b>Connect</b>. Your browser opens raidkits.com.</span></li><li><span>Press <b>Connect</b> there. That is all.</span></li></ol>' +
+          '<div class="acts"><button type="button" class="btn go" data-act="cn-link">Connect</button><button type="button" class="btn" data-act="cn-done">Skip for now</button></div>') +
+      (state.linkErr ? '<p class="err" role="alert">' + esc(state.linkErr) + "</p>" : "") +
+      '<p class="note">Nothing is sent until you press Connect. No account, name or e-mail: the two are tied together by a random code that stays on your devices. You can connect, or stop, any time in Settings → Sync, or paste lists and routes by hand instead.</p></div>';
+  }
+
   RT.invoke("store_build").then(function (v) { state.store = !!v; if (v) render(); }, function () {});
 
   /* ---------- report a problem: goes to the same private Discord channel as the site's form ---------- */
@@ -361,14 +366,10 @@
   });
 
   /* ---------- drawing ---------- */
-  function navHtml() { return TABS.map(function (t) { return t[0] === "-" ? '<span class="sep"></span>' : '<button type="button" role="tab" data-tab="' + t[0] + '" aria-selected="' + (tab === t[0]) + '" title="' + t[1] + '"><svg viewBox="0 0 24 24" aria-hidden="true">' + IC[t[0]] + "</svg><span>" + t[1] + "</span></button>"; }).join(""); }
+  function navHtml() { return TABS.map(function (t) { return '<button type="button" role="tab" data-tab="' + t[0] + '" aria-selected="' + (tab === t[0]) + '">' + t[1] + "</button>"; }).join(""); }
   /* the bottom of the sidebar: whether the overlay is on, and the two keybinds worth remembering */
   function foot() {
-    var s = RT.settings();
-    var html = '<span class="st"><span class="dot' + (s.overlay ? " on" : "") + '"></span>Pinned widgets ' + (s.overlay ? "on" : "off") + (s.overlay && s.gameOnly ? " · in game only" : "") + "</span>" +
-      '<button type="button" data-act="ov-toggle">' + (s.overlay ? "Hide pinned widgets" : "Show pinned widgets") + "</button>" +
-      "<span>In-game bar <kbd>" + esc(s.hotkey || "not set") + "</kbd></span>" +
-      '<button type="button" class="rpb" data-act="report"><i aria-hidden="true"></i>Report a problem</button>';
+    var html = '<button type="button" data-act="report">Report a problem</button><button type="button" data-url="' + RT.SITE + '">raidkits.com</button><button type="button" data-url="https://discord.gg/NE3ughZTxn">Discord</button>' + (state.version ? '<span class="ver">v' + esc(state.version) + "</span>" : "");
     if ($("sfoot").__h !== html) { $("sfoot").__h = html; $("sfoot").innerHTML = html; }
   }
   function updPill() { var up = JSON.parse(localStorage.getItem("rtc-update") || "null"), b = $("upd"); b.hidden = !up; if (up) b.textContent = "Update " + up.version + " ›"; }
@@ -380,6 +381,7 @@
     view.classList.toggle("full", ok && !req && tab === "map");
     if (req) { document.body.classList.add("gate"); view.innerHTML = requiredView(req); return; }
     if (!ok) { view.innerHTML = agreementView(); return; }
+    if (!localStorage.getItem("rtc-connect-seen") && window.RTSync && !RTSync.state() || state.linkSent) { document.body.classList.add("gate"); view.innerHTML = connectView(); return; }
     $("nav").innerHTML = navHtml(); banner(); updPill(); foot();
     if (!RT.data()) { view.innerHTML = state.loadErr ? '<p class="err" style="margin-top:14px">Couldn\'t load the game data from raidkits.com. Check your internet connection.</p><button type="button" class="btn" data-act="retry">Try again</button>' : '<p class="note" style="margin-top:14px">Loading data from raidkits.com…</p>'; return; }
     if (tab === "map") { var mk = (state.mapN || 0) + "|" + (state.mapSrc || ""); if (!view.querySelector("iframe") || view.dataset.src !== mk) { view.innerHTML = mapView(); view.dataset.src = mk; } return; }   // don't reload the map on every redraw
@@ -414,9 +416,10 @@
     tab = b.dataset.tab; state.capture = ""; state.doc = null; state.resetAsk = false; if (tab === "map") state.mapSrc = ""; if (tab === "overlay") focusNow(); view.scrollTop = 0; render();
     var fi = { search: "q", quests: "qq", keys: "kq" }[tab]; if (fi && $(fi) && !state.sel) $(fi).focus();
   });
-  $("sfoot").addEventListener("click", function (e) { var b = e.target.closest("[data-act]"); if (b && b.dataset.act === "report") { rpOpen(); return; } if (b && b.dataset.act === "ov-toggle") { RT.setSetting("overlay", !RT.settings().overlay); render(); } });
+  $("sfoot").addEventListener("click", function (e) { var b = e.target.closest("[data-act]"); if (b && b.dataset.act === "report") { rpOpen(); return; } var u = e.target.closest("[data-url]"); if (u) { RT.openUrl(u.dataset.url); return; } if (b && b.dataset.act === "ov-toggle") { RT.setSetting("overlay", !RT.settings().overlay); render(); } });
   $("upd").addEventListener("click", function () { tab = "settings"; state.sset = "updates"; render(); var u = view.querySelector('[data-act="install"]'); if (u) { u.scrollIntoView({ block: "center" }); u.focus(); } });
 
+  view.addEventListener("toggle", function (e) { if (e.target.closest && e.target.closest("#homeimp")) state.homeHelp = e.target.open; }, true);
   view.addEventListener("click", function (e) {
     var t = e.target.closest("button"); if (!t) return;
     var d = t.dataset;
@@ -450,12 +453,14 @@
       case "privacy-ok": RT.privacySeen(); render(); break;
       case "accept": if (state.agree) { RT.accept(); state.doc = null; tab = "home"; render(); } break;
       case "decline": RT.invoke("quit_app"); break;
-      case "home-imp": if ($("himp")) { $("himp").focus(); $("homeimp").scrollIntoView({ block: "nearest", behavior: "smooth" }); } break;
+      case "cn-done": localStorage.setItem("rtc-connect-seen", "1"); state.linkSent = false; state.linkErr = ""; tab = "home"; render(); break;
+      case "cn-link": t.disabled = true; state.linkErr = ""; RTSync.link().then(function () { localStorage.setItem("rtc-connect-seen", "1"); state.linkSent = true; render(); }, function (er) { state.linkErr = er.message || String(er); render(); }); break;
+      case "link": t.disabled = true; RTSync.link().then(function () { state.homeOk = true; state.homeMsg = state.syncMsg = "Your browser opened raidkits.com. Press Connect there."; state.syncMsgOk = true; render(); }, function (er) { state.homeOk = state.syncMsgOk = false; state.homeMsg = state.syncMsg = er.message || String(er); render(); }); break;
       case "sync-new-home": t.disabled = true; RTSync.create().then(function () { state.syncShow = true; tab = "settings"; state.sset = "sync"; state.syncMsgOk = true; state.syncMsg = "Sync is on. Now paste the code on raidkits.com: Shopping list → Sync."; render(); }, function (er) { state.homeOk = false; state.homeMsg = er.message; render(); }); break;
       case "home-go":
         var txt = ($("himp").value || "").trim(), done = function (ok, msg) { state.homeOk = ok; state.homeMsg = msg; render(); };
         if (!txt) { done(false, "Paste a sync code or a link from raidkits.com first."); break; }
-        if (/app-route=/.test(txt)) { try { var hr = RT.importRoute(txt); if (hr) { RT.setSetting("mapView", "route"); RT.setSetting("lastView", "route"); state.homeMsg = ""; tab = "map"; render(); } else done(false, "That Send to app link didn't have a route in it."); } catch (er3) { done(false, er3.message); } break; }
+        if (/app-route=/.test(txt)) { try { var hr = RT.importRoute(txt); if (hr) { RT.setSetting("mapView", "route"); RT.setSetting("lastView", "route"); done(true, "Route added: " + hr.stops.length + " stops. Open the bar to see it on the map."); } else done(false, "That Send to app link didn't have a route in it."); } catch (er3) { done(false, er3.message); } break; }
         if (window.RTSync && RTSync._clean(txt)) { t.disabled = true; RTSync.connect(txt).then(function () { done(true, "Connected. Your list now follows raidkits.com, and routes you send from there arrive by themselves."); }, function (er4) { done(false, er4.message); }); break; }
         t.disabled = true; RT.importShare(txt, false).then(function () { done(true, "List added. It's under Shopping list."); }, function () { done(false, "That isn't a sync code or a link from raidkits.com. The three kinds are listed below."); });
         break;
@@ -579,7 +584,7 @@
     if (!document.activeElement || !/^(q|qq|kq|addq|imp|rimp|rimp2|scode|himp)$/.test(document.activeElement.id)) render(); else { banner(); updPill(); }
   });
   if (window.__TAURI__) window.__TAURI__.event.listen("check-updates", function () { if (!RT.accepted() || localStorage.getItem("rtc-required")) return; tab = "settings"; state.sset = "updates"; state.doc = null; checkNow(); setTimeout(function () { var u = view.querySelector('[data-act="check"]'); if (u) u.scrollIntoView({ block: "center" }); }, 50); });
-  if (window.__TAURI__) window.__TAURI__.app.getVersion().then(function (v) { state.version = v; if (tab === "settings") render(); });
+  if (window.__TAURI__) window.__TAURI__.app.getVersion().then(function (v) { state.version = v; foot(); if (tab === "settings") render(); });
   render();
   setInterval(function () { if (!RT.accepted()) return; if (tab === "conds") render(true); else banner(); }, 1000);
   RT.load().then(function () { render(); }, function () { state.loadErr = true; render(); });

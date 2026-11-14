@@ -35,7 +35,7 @@
   /* TERMS_VERSION: the licence agreement the user must accept. Raise it only when a change affects what users agree to
      (see README); the app then blocks until they accept. PRIVACY_VERSION: raise it when the privacy policy changes;
      the app then shows a one-time notice, without blocking. */
-  var TERMS_VERSION = "2026-11-10.3", PRIVACY_VERSION = "2026-11-12.2";
+  var TERMS_VERSION = "2026-11-10.3", PRIVACY_VERSION = "2026-11-14.1";
 
   function read(k, d) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } }
   function write(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} if (window.RTSync) RTSync.touched(k); }

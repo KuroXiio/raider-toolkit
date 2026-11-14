@@ -1,7 +1,7 @@
 RAIDER TOOLKIT COMPANION
 PRIVACY POLICY
 
-Last updated: 12 November 2026
+Last updated: 14 November 2026
 
 OVERVIEW
 - No account, no analytics, no tracking, no ads, no crash reports.
@@ -32,6 +32,7 @@ SYNC WITH RAIDKITS.COM (OPTIONAL)
 Sync is off until you turn it on (Settings > Sync in the app, or Sync on the site's shopping list). Then your shopping list and Have counts, the route you sent from the site's route planner, and the quests and keys you follow are saved on Raider Toolkit's sync service, so the app, the site and your other computers show the same list.
 - How it is labelled: sync uses a code made on your device, such as RTS-7K2Q-…. The code itself never leaves your devices. Only a SHA-256 hash of it is sent, and that hash is the only label your data has. No name, e-mail address, account, IP address or anything about your computer is stored with it. Without the code nobody, the developer included, can tell whose list it is.
 - Keep the code to yourself: anyone who has it can see and change your synced list.
+- Connect button: "Connect to raidkits.com" opens the site in your browser with your code in the part of the address after the # sign. Browsers never send that part to any server; the site reads it on your computer, removes it from the address bar and history, and connects only after you press Connect there.
 - Where: a Cloudflare Worker with a Cloudflare database (Cloudflare, Inc., a US company; see https://www.cloudflare.com/privacypolicy/). Like any web service, Cloudflare receives your IP address when the app or the site talks to it, and handles it under its own policy; the sync service itself does not store it.
 - When: the app sends changes a few seconds after you make them and checks for changes every minute while it runs.
 - How long: until you press "Delete synced data", which removes it straight away, or 180 days after the last change, when it is deleted by itself. "Stop syncing on this PC" only stops this computer; the synced copy stays for your other devices until you delete it.

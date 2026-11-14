@@ -192,10 +192,57 @@
   iframe.map { flex: 1; width: 100%; border: 0; background: #0c0916; }
   body.gate nav.side, body.gate .cond { display: none; }
   .gate h1 { font-family: var(--display); font-weight: 800; font-size: 26px; margin: 18px 0 6px; }
-  .gate { max-width: 620px; }
+  div.gate { max-width: 620px; }
   .gate .res { margin: 8px 0; border: 1px solid var(--line); border-radius: 12px; padding: 4px; }
   .gate .kind { color: var(--mint); }
   label.chk.agree { align-items: flex-start; padding: 8px 0; } label.chk.agree input { margin-top: 2px; }
+
+  /* ---------- the main window: one calm column, in the site's colours (navy panels, cream main button) ---------- */
+  html, body, .panel { background: #0c0916; }
+  .panel { background: radial-gradient(900px 420px at 50% -120px, rgba(47,62,224,.22), transparent 70%), #0c0916; }
+  header.top { display: flex; align-items: center; gap: 12px; padding: 14px 22px; flex-shrink: 0; }
+  header.top .lg { width: 34px; height: 34px; border-radius: 9px; }
+  header.top .brand { display: flex; flex-direction: column; line-height: 1.1; } header.top .brand b { font: 800 18px var(--display); } header.top .brand small { font: 500 10px var(--mono); letter-spacing: .22em; text-transform: uppercase; color: var(--faint); }
+  header.top .grow { flex: 1; }
+  .tabs { display: flex; gap: 4px; padding: 4px; border-radius: 12px; background: rgba(255,255,255,.05); }
+  .tabs button { height: 36px; padding: 0 16px; border: 0; border-radius: 9px; background: transparent; color: var(--dim); font-weight: 600; font-size: 14px; }
+  .tabs button:hover { color: var(--fg); } .tabs button[aria-selected="true"] { background: #1b2247; color: var(--fg); }
+  #view { padding: 8px 22px 22px; }
+  #view > * { max-width: 760px; margin-left: auto; margin-right: auto; }
+  footer.sfoot { flex-direction: row; align-items: center; justify-content: center; gap: 18px; padding: 10px 22px 12px; border-top: 1px solid var(--line); flex-shrink: 0; }
+  footer.sfoot button { height: auto; border: 0; background: transparent; color: var(--dim); font-size: 13px; font-weight: 500; padding: 2px 0; } footer.sfoot button:hover { color: var(--fg); text-decoration: underline; }
+  footer.sfoot .ver { color: var(--faint); font: 500 11px var(--mono); }
+  body.gate header.top .tabs, body.gate footer.sfoot { display: none; }
+  .btn.go { background: #efe6d2; border-color: #efe6d2; color: #14183a; } .btn.go:hover { background: #fff6e2; }
+  .pnl { border-radius: 18px; border: 1px solid rgba(255,255,255,.1); background: #131a36; padding: 24px; }
+  .tagk { font: 500 11px var(--mono); letter-spacing: .2em; text-transform: uppercase; color: var(--mint); }
+  .hero2 { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+  .hero2 h1 { margin: 0; font: 800 30px/1.15 var(--display); display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+  .hero2 h1 kbd { font: 700 17px var(--mono); padding: 6px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,.22); background: rgba(255,255,255,.06); white-space: nowrap; }
+  .hero2 p { margin: 0; color: #c9c5dc; font-size: 15px; line-height: 1.55; max-width: 560px; }
+  .hero2 .acts { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 8px; }
+  .hero2 .btn { height: 46px; padding: 0 22px; font-size: 15px; border-radius: 12px; }
+  .hero2 .state { font-size: 13px; color: var(--dim); display: flex; align-items: center; gap: 8px; }
+  .tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+  .tile2 { display: flex; flex-direction: column; gap: 4px; padding: 16px 18px; border-radius: 16px; border: 1px solid rgba(255,255,255,.1); background: #131a36; text-align: left; color: inherit; transition: border-color .15s, transform .12s; }
+  button.tile2:hover { border-color: rgba(239,230,210,.5); } button.tile2:active { transform: scale(.985); }
+  .tile2 b { font: 800 19px/1.2 var(--display); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .tile2 small { color: var(--dim); font-size: 13px; }
+  .imp2 { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+  .imp2 h2 { margin: 0; font: 800 18px var(--display); }
+  .imp2 .pr { display: flex; gap: 8px; } .imp2 .pr input { flex: 1; min-width: 0; height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,.14); background: rgba(0,0,0,.28); color: var(--fg); font: 14px var(--mono); }
+  .imp2 .pr input:focus { outline: 0; border-color: #efe6d2; } .imp2 .pr .btn { height: 44px; padding: 0 20px; border-radius: 12px; font-size: 14px; }
+  .imp2 details summary { cursor: pointer; color: var(--dim); font-size: 13px; } .imp2 details[open] summary { margin-bottom: 8px; }
+  @media (max-width: 620px) { .tiles { grid-template-columns: 1fr; } .hero2 h1 { font-size: 24px; } }
+  .snav { margin-top: 4px; }
+  .imp2 .acts { display: flex; gap: 8px; } .imp2 .acts .btn { height: 44px; padding: 0 20px; border-radius: 12px; font-size: 14px; }
+  .imp2 details .pr { margin-bottom: 10px; }
+  #view > div.gate.cn { max-width: 560px; margin: 0 auto; padding-top: 28px; display: flex; flex-direction: column; gap: 14px; }
+  .gate.cn h1 { margin: 0; font-size: 30px; } .gate.cn .lead2 { margin: 0; font-size: 16px; line-height: 1.55; color: #c9c5dc; }
+  .cnsteps { margin: 0; padding: 0; list-style: none; counter-reset: cn; display: grid; gap: 10px; }
+  .cnsteps li { counter-increment: cn; display: grid; grid-template-columns: 30px 1fr; gap: 12px; align-items: center; font-size: 15px; }
+  .cnsteps li::before { content: counter(cn); width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: #1b2247; font: 700 13px var(--mono); }
+  .gate.cn .acts { display: flex; gap: 10px; } .gate.cn .acts .btn { height: 46px; padding: 0 24px; font-size: 15px; border-radius: 12px; }
+  .pnl.wait { display: flex; flex-direction: column; gap: 4px; padding: 18px 20px; } .pnl.wait span { color: #c9c5dc; }
   /* a narrow window: the sidebar shrinks to its icons */
   @media (max-width: 760px) {
     nav.side { width: 60px; padding: 12px 8px; }
@@ -218,13 +265,11 @@
   </form>
 </div>
 <div class="panel">
-  <div class="body">
-    <nav class="side" aria-label="Sections"><div id="nav" role="tablist" style="display:contents"></div><span class="grow"></span><button type="button" class="upd" id="upd" hidden></button><div class="sfoot" id="sfoot"></div></nav>
-    <section class="main">
-      <div class="cond" id="cond"></div>
-      <div id="view"></div>
-    </section>
-  </div>
+  <header class="top"><img class="lg" src="icon.png" alt=""><div class="brand"><b>Raider Toolkit</b><small>Companion</small></div><span class="grow"></span>
+    <button type="button" class="upd" id="upd" hidden></button><div id="nav" class="tabs" role="tablist" aria-label="Sections"></div></header>
+  <div id="cond" hidden></div>
+  <div id="view"></div>
+  <footer class="sfoot" id="sfoot"></footer>
 </div>
 <script src="data.js"></script>
 <script src="sync.js"></script>

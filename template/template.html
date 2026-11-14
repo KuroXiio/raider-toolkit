@@ -238,6 +238,17 @@
     <div class="chips" id="useChips" style="margin-top:10px"></div>
     <p class="countline" id="countLine"></p>
     <div class="results" id="results"></div>
+    <dialog id="appAsk" class="idlg appask" aria-labelledby="appAskT"><button type="button" class="dx" data-aclose aria-label="Close">×</button>
+      <div class="aab"><h3 id="appAskT" data-i18n="Where do you want your route?">Where do you want your route?</h3>
+        <div class="aaopt">
+          <button type="button" class="aao" data-ahere><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 3 6.5v13L9 17l6 2.5 6-2.5v-13L15 6.5 9 4zM9 4v13M15 6.5v13"/></svg><b data-i18n="On this site">On this site</b><span data-i18n="Plan it on the map here.">Plan it on the map here.</span></button>
+          <button type="button" class="aao" data-async><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg><b data-i18n="In the game">In the game</b><span data-i18n="On screen while you play, with the free Windows app.">On screen while you play, with the free Windows app.</span></button>
+        </div>
+        <div class="aaf"><label class="aano"><input type="checkbox" id="appAskNo"> <span data-i18n="Don't ask again">Don't ask again</span></label><a href="https://apps.microsoft.com/detail/9NVWVPNN94NF" target="_blank" rel="noopener" data-i18n="Get the app">Get the app</a></div></div></dialog>
+    <dialog id="appLink" class="idlg appask" aria-labelledby="appLinkT"><button type="button" class="dx" data-lclose aria-label="Close">×</button>
+      <div class="aab"><h3 id="appLinkT" data-i18n="Connect this browser to your app?">Connect this browser to your app?</h3>
+        <p data-i18n="Your shopping list here and in Raider Toolkit Companion become one list, and routes you send go straight to the app.">Your shopping list here and in Raider Toolkit Companion become one list, and routes you send go straight to the app.</p>
+        <div id="appLinkBody" style="display:contents"></div></div></dialog>
     <dialog id="itemDlg" class="idlg" aria-label="Item details"><button type="button" class="dx" data-dclose aria-label="Close">×</button><div id="itemDlgBody"></div><div class="dbar" id="itemDlgBar"></div></dialog>
     <div class="more"><button class="btn orb" id="moreBtn" type="button" hidden data-i18n="Show more">Show more</button></div>
   </div>
@@ -302,7 +313,7 @@
         <li>Only four things ever leave your browser through this site, and only when you choose to: a problem report you send, ARCTracker syncs if you link your account, a like you give a recommended skill build, and your shopping list if you turn on sync with the desktop app.</li>
         <li>Fonts, icons and map images are served from this site. The only other things a page fetches are the visit counter script from Cloudflare, the like counts on the skill tree page, from the site's own relay, and the Microsoft Store badge image on the home page, from Microsoft.</li>
       </ul>
-      <p class="dim">Last updated 13 November 2026.</p>
+      <p class="dim">Last updated 14 November 2026.</p>
     </section>
     <section class="panel ib"><h3 data-i18n="Who runs the site">Who runs the site</h3>
       <p>I'm <b>Kuro</b>, a private person in Sweden, and Raider Toolkit is my hobby project. I decide how the site handles personal data, which makes me the data controller under the EU General Data Protection Regulation (GDPR).</p>
@@ -325,6 +336,7 @@
     <section class="panel ib"><h3 data-i18n="Sync with the desktop app (optional)">Sync with the desktop app (optional)</h3>
       <p>If you turn on <b>Sync</b> on the Shopping list page (or in the Raider Toolkit Companion app), your shopping list and Have counts, the route you send to the app, and the quests and keys you follow in the app are saved on the site's sync service, a Cloudflare Worker with Cloudflare storage, so every browser and PC you connect sees the same list.</p>
       <p>Sync uses a code made on your device, such as RTS-7K2Q-…. The code itself never leaves your devices: only a SHA-256 hash of it is sent, and that hash is the only label your data has. No name, e-mail address, account or IP address is stored with it, and without the code nobody, me included, can tell whose list it is. Anyone who has your code can see and change your synced list, so keep it to yourself.</p>
+      <p><b>Connecting from the app:</b> the app's Connect button opens this site with your code in the part of the address after the # sign. Browsers never send that part to a server. The site reads it in your browser, takes it out of the address bar and history straight away, and connects only after you press Connect.</p>
       <p><b>Why:</b> you asked for it by turning sync on (consent, GDPR Art. 6(1)(a)). <b>How long:</b> until you press <b>Delete synced data</b>, which removes it straight away, or 180 days after the last change, when it is deleted by itself. <b>Stop syncing here</b> only stops this browser; the synced copy stays for your other devices until you delete it.</p>
     </section>
     <section class="panel ib"><h3 data-i18n="Hosting and other services">Hosting and other services</h3>
