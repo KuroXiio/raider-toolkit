@@ -93,6 +93,24 @@ fn show_quiet(w: &tauri::WebviewWindow) {
     let _ = w.show();
 }
 
+/// Hides a window that show_quiet() showed. Goes to Windows directly for the same reason.
+#[cfg(windows)]
+fn hide_quiet(w: &tauri::WebviewWindow) {
+    use windows_sys::Win32::UI::WindowsAndMessaging::{ShowWindow, SW_HIDE};
+    match w.hwnd() {
+        Ok(h) => unsafe {
+            ShowWindow(h.0 as _, SW_HIDE);
+        },
+        Err(_) => {
+            let _ = w.hide();
+        }
+    }
+}
+#[cfg(not(windows))]
+fn hide_quiet(w: &tauri::WebviewWindow) {
+    let _ = w.hide();
+}
+
 /// The window in front right now, unless it is one of ours (0 then). Only its handle is kept, to give the keyboard back to it.
 #[cfg(windows)]
 fn front_handle() -> isize {
@@ -157,16 +175,25 @@ fn apply_visibility(app: &AppHandle) {
     if let Some(w) = app.get_webview_window("menu") {
         let visible = w.is_visible().unwrap_or(false);
         if show && !visible {
-            let _ = w.set_ignore_cursor_events(true);
-            if let Ok(Some(m)) = w.current_monitor() {
-                let _ = w.set_size(*m.size());
-                let _ = w.set_position(*m.position());
-            }
-            show_quiet(&w);
-            let _ = w.set_always_on_top(false);
-            let _ = w.set_always_on_top(true);
+            // show_quiet() calls Windows directly, so tao still believes this window is hidden. Any tao call that
+            // updates the window's flags afterwards (always-on-top, click-through, ...) rewrites the style from that
+            // belief and hides the window again, which made the pins blink twice a second. So: do every tao call
+            // first, all on the main thread (where they run straight away, in order), and show the window last.
+            let w = w.clone();
+            let _ = app.run_on_main_thread(move || {
+                let _ = w.set_ignore_cursor_events(true);
+                if let Ok(Some(m)) = w.current_monitor() {
+                    let _ = w.set_size(*m.size());
+                    let _ = w.set_position(*m.position());
+                }
+                let _ = w.set_always_on_top(false);
+                let _ = w.set_always_on_top(true);
+                show_quiet(&w);
+            });
         } else if !show && visible {
-            let _ = w.hide();
+            // shown behind tao's back, so hide it the same way (tao's hide() is a no-op while it thinks it's hidden)
+            let w = w.clone();
+            let _ = app.run_on_main_thread(move || hide_quiet(&w));
         }
     }
 }
@@ -229,12 +256,14 @@ fn set_menu(app: &AppHandle, open: Option<bool>) {
             }
         }
         let _ = app.emit("menu-open", true);
-        let _ = w.set_ignore_cursor_events(false);
         if let Ok(Some(m)) = w.current_monitor() {
             let _ = w.set_size(*m.size());
             let _ = w.set_position(*m.position());
         }
+        // show through tao first, so tao knows the window is visible before its flags change; otherwise
+        // set_ignore_cursor_events would hide the pinned layer for a moment as the bar opens
         let _ = w.show();
+        let _ = w.set_ignore_cursor_events(false);
         let _ = w.set_always_on_top(false);
         let _ = w.set_always_on_top(true);
         let _ = w.set_focus();
