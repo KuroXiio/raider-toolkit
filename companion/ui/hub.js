@@ -4,11 +4,11 @@
 (function () {
   "use strict";
   var esc = RT.esc, $ = function (id) { return document.getElementById(id); }, T = window.__TAURI__;
-  var WIDS = ["map", "route", "list", "quests", "cond"];
+  var WIDS = ["map", "route", "list", "quests", "cond", "notes"];
   // Three ways this page runs: the bar over the game (you can click everything), pinned (the bar is closed: only the
   // pinned widgets stay over the game and every click goes through), and docked inside the main window (embed).
   var EMBED = /[?&]embed=1/.test(location.search), PIN = !EMBED && !!T && !/[?&]bar=1/.test(location.search), lastAny = null;
-  var DEFPIN = { map: false, route: true, list: true, quests: false, cond: false }, root = document.documentElement;
+  var DEFPIN = { map: false, route: true, list: true, quests: false, cond: false, notes: false }, root = document.documentElement;
   var cv = $("cv"), stage = $("stage"), tip = $("tip"), view = { z: 1, dx: 0, dy: 0 }, lastKey = "", pins = null, pinSig = "", out = null, mdata = null;
   var found = null, picking = false, q = "", addq = "", fqq = "", setOpen = false;
 
@@ -26,6 +26,7 @@
     if (k === "route") return !!RT.route();
     if (k === "list") return hereIds().length > 0;
     if (k === "quests") { var f = RT.follow(); return Object.keys(f.quests).length + f.keys.length > 0; }
+    if (k === "notes") { var n = notes(); return !!(n.pages[n.at] && n.pages[n.at].t.trim()); }
     return true;
   }
   function hereIds() { var s = RT.settings(), l = RT.list(); return l.order.filter(function (id) { var x = l.items[id]; return x && RT.item(id) && x.have < x.need && RT.onMap(id, s.map); }); }
@@ -52,12 +53,13 @@
     if (k === "route") return [m, Math.min(H - el.offsetHeight - 70, top + mapH + 18)];
     if (k === "list") return [W - m - w, top];
     if (k === "quests") return [W - m - w, Math.min(H - el.offsetHeight - 70, top + listH + 18)];
+    if (k === "notes") return [(W - w) / 2, Math.min(H - el.offsetHeight - 70, H * 0.5)];
     // conditions: the middle of the screen, or the gap between the map and the list when the screen is narrow
     var l = m + $("w-map").offsetWidth + 14, r = W - m - $("w-list").offsetWidth - 14;
     return [Math.max(l, Math.min(r - w, (W - w) / 2)), top];
   }
   function layout() {
-    var h = hub();
+    var h = hub(), keep = null;
     WIDS.forEach(function (k) {
       var el = $("w-" + k), on = EMBED || (PIN ? !!h.pin[k] && has(k) : !!h.open[k]);
       el.classList.toggle("on", on); el.classList.toggle("pinned", !!h.pin[k] && !EMBED);
@@ -66,7 +68,10 @@
       var p = h.pos[k], xy = p && !(k === "map" && h.big) ? [p.x * innerWidth, p.y * innerHeight] : defPos(k, el);
       var x = Math.max(8, Math.min(innerWidth - el.offsetWidth - 8, xy[0])), y = Math.max(8, Math.min(innerHeight - 60, xy[1]));
       el.style.left = Math.round(x) + "px"; el.style.top = Math.round(y) + "px";
+      // the bar is where a widget's place is decided: remember it, so the pinned widget sits on the very same spot
+      if (!PIN && on && !p && !(k === "map" && h.big) && innerWidth > 200) { keep = keep || {}; keep[k] = { x: x / innerWidth, y: y / innerHeight }; }
     });
+    if (keep) saveHub(function (hh) { Object.keys(keep).forEach(function (k) { if (!hh.pos[k]) hh.pos[k] = keep[k]; }); });
     var cog = $("cog").getBoundingClientRect(), set = $("set");
     set.style.left = Math.round(Math.max(8, Math.min(innerWidth - set.offsetWidth - 8, cog.right - set.offsetWidth))) + "px"; set.style.top = Math.round(cog.bottom + 18) + "px";
     set.classList.toggle("on", setOpen);
@@ -88,11 +93,20 @@
       var sp = picking ? RTMap.spawns(data) : null;
       var o = { key: k, pins: on ? { list: [], keys: pins.keys || [], quests: [], ext: pins.ext || [] } : pins, layers: s.layers, r: 6, cluster: 26, view: view, dim: 0.9, dash: RTMap.dash(), route: on ? rt : null, at: RT.routeAt(),
         found: found && found.pts.length ? found : null, spawns: sp,
-        fit: sp && sp.length > 1 ? sp : found && found.pts.length ? (found.pts.length > 1 ? found.pts : null) : on ? [rt.spawn].concat(rt.stops.map(function (x) { return x.p; })).concat(rt.end ? [rt.end.p] : []) : RTMap.extent(pins) };
+        fit: sp && sp.length > 1 ? sp : found && found.pts.length ? (found.pts.length > 1 ? found.pts : null) : on ? leg(rt) : RTMap.extent(pins) };
       if (found && found.pts.length === 1 && view.z === 1 && !found.zoomed) { found.zoomed = 1; var f = RTMap.files(k); view = { z: 2.4, dx: found.pts[0][0] - f.w / 2, dy: found.pts[0][1] - f.h / 2 }; o.view = view; o.fit = null; }
       RTMap.draw(cv, o); out = o.out;
     });
   }
+  // playing a route: the map shows the stretch from where you are to the next stop, not the whole route
+  function leg(rt) {
+    var at = RT.routeAt(), pts = [rt.spawn].concat(rt.stops.map(function (x) { return x.p; })).concat(rt.end ? [rt.end.p] : []);
+    var to = Math.min(at + 1, pts.length - 1), from = Math.max(0, to - 1);
+    if (legAt !== at + "|" + rt.k) { legAt = at + "|" + rt.k; view.z = 1; view.dx = 0; view.dy = 0; }
+    return [pts[from], pts[to]];
+  }
+  var legAt = "";
+  function keyOf(a) { var k = (RT.settings().keys || {})[a]; return k ? "<kbd>" + esc(k) + "</kbd>" : ""; }
   function over() {
     var h = "", s = RT.settings(), rt = RT.route();
     if (picking) h += '<div id="banner"><span>Tap where you spawned</span><button type="button" class="btn sm" data-act="pickoff">Cancel</button></div>';
@@ -145,7 +159,8 @@
         esc(stop ? stop.w || "Stop " + (at + 1) : (rt.end && rt.end.n) || "Extract") + "</b></div></div>";
       if (stop && stop.ids && stop.ids.length) h += '<div class="chips" aria-label="Found one? Tap it">' + stop.ids.map(function (id) {
         var x = RT.list().items[id]; return '<button type="button" class="chipb" data-got="' + esc(id) + '" title="Found one? Tap to count it">' + RT.icon(id) + esc((RT.item(id) || {}).n || id) + (x ? " <em>" + x.have + "/" + x.need + "</em>" : "") + "</button>"; }).join("") + "</div>";
-      h += '<div class="row acts"><button type="button" class="btn" data-act="prev" aria-label="Previous stop"' + (at ? "" : " disabled") + '>‹</button><button type="button" class="btn go" style="flex:1" data-act="' + (last ? "end" : "next") + '">' + (last ? "Finish route" : "Next stop ›") + "</button></div>";
+      h += '<div class="row acts"><button type="button" class="btn" data-act="prev" aria-label="Previous stop"' + (at ? "" : " disabled") + '>‹</button><button type="button" class="btn go" style="flex:1" data-act="' + (last ? "end" : "next") + '">' + (last ? "Finish route" : "Next stop ›" + (keyOf("next") ? " " + keyOf("next") : "")) + "</button></div>";
+      if (PIN && (keyOf("next") || keyOf("prev"))) h += '<div class="kh">' + (keyOf("next") ? "<span>" + keyOf("next") + " next stop</span>" : "") + (keyOf("prev") ? "<span>" + keyOf("prev") + " back</span>" : "") + "</div>";
       h += '<details class="more"' + (route.more ? " open" : "") + "><summary>Change route</summary><div>";
       if (rt.own) {
         var its = rt.items || [];
@@ -207,6 +222,29 @@
     var b = $("condbody"); if (b.__h !== h) { b.__h = h; b.innerHTML = h; }
   }
 
+  /* ---------- notes: free text on pages, kept on this PC only ---------- */
+  var nedit = -1;
+  function notes() {
+    var n; try { n = JSON.parse(localStorage.getItem("rtc-notes")); } catch (e) {}
+    if (!n || !Array.isArray(n.pages) || !n.pages.length) n = { pages: [{ n: "Notes", t: "" }], at: 0 };
+    n.at = Math.max(0, Math.min(n.pages.length - 1, n.at | 0));
+    return n;
+  }
+  function saveNotes(n) { localStorage.setItem("rtc-notes", JSON.stringify(n)); }
+  function notesView() {
+    var n = notes(), pg = n.pages[n.at];
+    var th = n.pages.map(function (p, i) {
+      return i === nedit ? '<input type="text" id="nname" maxlength="24" value="' + esc(p.n) + '" aria-label="Page name">'
+        : '<button type="button" role="tab" data-npage="' + i + '" aria-selected="' + (i === n.at) + '" title="' + (i === n.at ? "Click again to rename" : "") + '">' + esc(p.n) + "</button>";
+    }).join("") + (n.pages.length < 12 ? '<button type="button" data-nadd aria-label="New page" title="New page">+</button>' : "") + '<span class="sp"></span>' +
+      (n.pages.length > 1 ? '<button type="button" data-ndel aria-label="Delete this page" title="Delete this page">' + (ndel ? "Sure?" : "Delete") + "</button>" : "");
+    var tb = $("ntabs"); if (tb.__h !== th) { tb.__h = th; tb.innerHTML = th; var nn = $("nname"); if (nn) { nn.focus(); nn.select(); } }
+    var ta = $("note"); if (document.activeElement !== ta && ta.value !== pg.t) ta.value = pg.t;
+    var vh = "<b>" + esc(pg.n) + "</b>" + esc(pg.t), nv = $("noteview"); if (nv.__h !== vh) { nv.__h = vh; nv.innerHTML = vh; }
+  }
+  var ndel = false;
+  function nameDone(save) { var nn = $("nname"); if (nn && save && nedit > -1) { var n = notes(); if (n.pages[nedit]) { n.pages[nedit].n = nn.value.trim() || "Notes"; saveNotes(n); } } nedit = -1; notesView(); }
+
   /* ---------- quick settings ---------- */
   function settings() {
     var s = RT.settings(), looks = [[0.5, "See-through"], [0.8, "Balanced"], [0.96, "Solid"]], sizes = [[0.85, "Small"], [1, "Medium"], [1.2, "Large"]], hz = hub().size || 1;
@@ -230,7 +268,7 @@
     rsig = sig;
   }
   function all() {
-    routeWatch(); scale(); mode(); bar(); over(); route(); list(); quests(); cond(); settings(); layout(); draw();
+    routeWatch(); scale(); mode(); bar(); over(); route(); list(); quests(); cond(); notesView(); settings(); layout(); draw();
     // tell the app whether anything is pinned, so it knows to keep this window over the game once the bar closes
     if (T && !EMBED) { var h = hub(), any = WIDS.some(function (k) { return h.pin[k] && has(k); }); if (any !== lastAny) { lastAny = any; RT.invoke("set_pins", { on: any }); } }
   }
@@ -242,7 +280,7 @@
   }
   function enter() { setOpen = false; document.body.classList.remove("in"); void document.body.offsetWidth; all(); if (PIN) return; var show = function () { if (!PIN && !document.body.classList.contains("in")) { document.body.classList.add("in"); draw(); } }; requestAnimationFrame(show); setTimeout(show, 60); }
   // the bar closed: forget searches and half-made choices, keep only what is pinned
-  function toPinned() { PIN = true; found = null; picking = false; q = ""; $("q").value = ""; addq = ""; $("addq").value = ""; fqq = ""; $("fq").value = ""; setOpen = false; view = { z: 1, dx: 0, dy: 0 }; document.body.classList.remove("in"); all(); }
+  function toPinned() { PIN = true; found = null; picking = false; q = ""; $("q").value = ""; addq = ""; $("addq").value = ""; fqq = ""; $("fq").value = ""; setOpen = false; nedit = -1; ndel = false; view = { z: 1, dx: 0, dy: 0 }; document.body.classList.remove("in"); all(); }
 
   /* ---------- actions ---------- */
   function act(a) {
@@ -277,6 +315,9 @@
     else if (d.key) showKey(d.key);
     else if (d.act) act(d.act);
     else if (d.have) { var x = RT.list().items[d.have]; if (x) { RT.setHave(d.have, x.have + (+d.d)); afterListChange(); } }
+    else if (d.npage != null) { var n1 = notes(), i1 = +d.npage; ndel = false; if (i1 === n1.at) nedit = i1; else { n1.at = i1; saveNotes(n1); nedit = -1; } all(); }
+    else if (d.nadd != null) { var n2 = notes(); n2.pages.push({ n: "Page " + (n2.pages.length + 1), t: "" }); n2.at = n2.pages.length - 1; saveNotes(n2); nedit = n2.at; ndel = false; all(); }
+    else if (d.ndel != null) { if (!ndel) { ndel = true; notesView(); } else { var n3 = notes(); n3.pages.splice(n3.at, 1); n3.at = Math.max(0, n3.at - 1); saveNotes(n3); ndel = false; all(); } }
     else if (d.del) { RT.removeItem(d.del); afterListChange(); }
     else if (d.fq) { RT.toggleQuest(d.fq); fqq = ""; $("fq").value = ""; pinSig = ""; all(); }
     else if (d.fk) { RT.toggleKey(d.fk); pinSig = ""; all(); }
@@ -300,8 +341,12 @@
   $("q").addEventListener("input", function () { q = this.value.trim(); if (found && found.q !== q) found = null; if (!q) view = { z: 1, dx: 0, dy: 0 }; over(); draw(); });
   $("addq").addEventListener("input", function () { addq = this.value.trim(); list(); });
   $("fq").addEventListener("input", function () { fqq = this.value.trim(); quests(); });
+  $("note").addEventListener("input", function () { var n = notes(); n.pages[n.at].t = this.value.slice(0, 20000); saveNotes(n); var nv = $("noteview"); nv.__h = ""; });
+  $("ntabs").addEventListener("keydown", function (e) { if (e.target.id !== "nname") return; if (e.key === "Enter") { e.preventDefault(); nameDone(true); } else if (e.key === "Escape") { e.stopPropagation(); nameDone(false); } });
+  $("ntabs").addEventListener("focusout", function (e) { if (e.target.id === "nname") nameDone(true); });
   document.addEventListener("keydown", function (e) {
     if (e.key !== "Escape") return;
+    if (document.activeElement && document.activeElement.id === "note") { document.activeElement.blur(); return; }
     if (setOpen) { setOpen = false; all(); } else if (picking) act("pickoff"); else if (q || found) clearFound(); else if (addq) { addq = ""; $("addq").value = ""; list(); } else close();
   });
 

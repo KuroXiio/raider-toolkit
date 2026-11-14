@@ -232,10 +232,10 @@
   /* the In game page: how the bar works, and the few things worth changing about it */
   function overlayView() {
     var s = RT.settings(), f = state.focus, hb = s.hub || {}, pin = hb.pin || { route: true, list: true }, sz = hb.size || 1;
-    var W = [["map", "Map"], ["route", "Route"], ["list", "Shopping list"], ["quests", "Quests and keys"], ["cond", "Map condition"]];
+    var W = [["map", "Map"], ["route", "Route"], ["list", "Shopping list"], ["quests", "Quests and keys"], ["cond", "Map condition"], ["notes", "Notes"]];
     var h = '<p class="note">Pinned widgets stay on screen while you play, where you dragged them in the bar. <kbd class="kbd">' + esc(s.hotkeyOverlay || "not set") + "</kbd> hides them.</p>";
     h += '<div class="h">Pinned widgets</div>';
-    h += W.map(function (x) { return srow(x[1], x[0] === "route" ? "Your next stop and what to pick up there." : x[0] === "list" ? "What you still need on this map." : x[0] === "map" ? "Your pins, or your route when you have one." : x[0] === "quests" ? "Objectives and keys you follow." : "What is active on your map, and for how long.", sw("pin:" + x[0], !!pin[x[0]], "Keep " + x[1] + " on screen while you play")); }).join("");
+    h += W.map(function (x) { return srow(x[1], x[0] === "route" ? "Your next stop and what to pick up there." : x[0] === "list" ? "What you still need on this map." : x[0] === "map" ? "Your pins, or your route when you have one." : x[0] === "quests" ? "Objectives and keys you follow." : x[0] === "notes" ? "The note page you have open." : "What is active on your map, and for how long.", sw("pin:" + x[0], !!pin[x[0]], "Keep " + x[1] + " on screen while you play")); }).join("");
     var ps = state.pin;
     h += '<div class="h">Check</div>';
     h += srow("Test pinned widgets", "Shows them for 10 seconds right now, over whatever is on screen. If you see them here but not in the game, the game is in exclusive Fullscreen or isn't being recognised (see below).", '<button type="button" class="btn sm" data-act="pin-test">Show for 10 seconds</button>');
@@ -534,7 +534,7 @@
     if (t.dataset.set === "onlyMap" || t.dataset.set === "autoUpdate" || t.dataset.set === "gameOnly") RT.setSetting(t.dataset.set, t.checked);
     if (t.dataset.set && t.dataset.set.indexOf("layer:") === 0) { var sl = RT.settings(); sl.layers[t.dataset.set.slice(6)] = t.checked; RT.setSetting("layers", sl.layers); }
     if (t.id === "smap") { RT.setSetting("map", t.value); render(); }
-    if ((t.dataset.set || "").indexOf("pin:") === 0) { var hp = RT.settings().hub, pk = t.dataset.set.slice(4); if (!hp.pin) hp.pin = { map: false, route: true, list: true, quests: false, cond: false }; hp.pin[pk] = t.checked; if (t.checked) hp.open[pk] = true; RT.setSetting("hub", hp); return; }
+    if ((t.dataset.set || "").indexOf("pin:") === 0) { var hp = RT.settings().hub, pk = t.dataset.set.slice(4); if (!hp.pin) hp.pin = { map: false, route: true, list: true, quests: false, cond: false, notes: false }; hp.pin[pk] = t.checked; if (t.checked) hp.open[pk] = true; RT.setSetting("hub", hp); return; }
     if (t.dataset.part) { var s = RT.settings(); s.parts[t.dataset.part] = t.checked; RT.setSetting("parts", s.parts); }
     if (t.dataset.obj) { var f = RT.follow(), q = f.quests[t.dataset.obj]; if (q) { var i = +t.dataset.i, k = q.done.indexOf(i); if (t.checked && k < 0) q.done.push(i); if (!t.checked && k > -1) q.done.splice(k, 1); RT.saveFollow(f); render(); } }
   });

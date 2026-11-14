@@ -14,7 +14,7 @@ WHO IS RESPONSIBLE
 Kuro, a private individual in Sweden, makes the app and is the data controller under the EU General Data Protection Regulation (GDPR). Contact: Discord user kuro_1, or the Raider Toolkit Discord (https://discord.gg/NE3ughZTxn).
 
 WHAT IS SAVED ON YOUR COMPUTER
-The app saves your settings (keybinds, overlay layout and sizes, region, chosen map), your shopping list, the quests and keys you follow and a copy of the downloaded data, so it works offline and remembers your choices. This is stored on your computer, in the app's data folders (%LOCALAPPDATA%\com.raidkits.companion, and the main window's size and place in %APPDATA%\com.raidkits.companion). It is never sent anywhere, except what sync sends if you turn it on. Uninstalling the app and deleting those folders removes it.
+The app saves your settings (keybinds, overlay layout and sizes, region, chosen map), your shopping list, the quests and keys you follow, the notes you write in the Notes widget (these never leave your computer, also with sync on) and a copy of the downloaded data, so it works offline and remembers your choices. This is stored on your computer, in the app's data folders (%LOCALAPPDATA%\com.raidkits.companion, and the main window's size and place in %APPDATA%\com.raidkits.companion). It is never sent anywhere, except what sync sends if you turn it on. Uninstalling the app and deleting those folders removes it.
 
 WHAT THE APP DOWNLOADS
 - https://raidkits.com/bot.json: the public Raider Toolkit data (items, keys, quests, map conditions). Checked when the app starts and about every 30 minutes, downloaded again when it is more than 6 hours old.

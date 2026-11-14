@@ -18,7 +18,7 @@
     mapView: "map",                        // the map widget: "map", "route" (the route you sent from the site) or "min" (just the header)
     floor: "u",                            // Stella Montis: "u" upper or "l" lower floor
     layers: { list: true, keys: true, quests: true, ext: true },   // what the maps show
-    keys: { route: "Ctrl+Shift+R", next: "Ctrl+Shift+N", prev: "Ctrl+Shift+P", mapsize: "Ctrl+Shift+J" },   // only active while the game or this app is in front
+    keys: { route: "Ctrl+Shift+R", next: "F7", prev: "F6", mapsize: "" },   // only active while the game or this app is in front
     gameOnly: true,                        // show the overlay only while ARC Raiders (or this app) is the window in front
     widgets: {},                           // parts unpinned into their own window: { items: { pinned: false, pos: {...}, size: { w, h } } } (size in em)
     listMax: 8,                            // items shown by the list part while it is pinned in the overlay
@@ -28,14 +28,14 @@
     bg: 0.8,                               // opacity of the overlay's background, 0.3 to 1
     pos: { a: "tr", x: 0.012, y: 0.1 },    // anchored to a corner or edge, offsets as a share of the screen
     panelBg: 0.95,                         // opacity of the panel's background
-    hub: { open: { map: true, route: true, list: true, quests: false, cond: false }, pin: { map: false, route: true, list: true, quests: false, cond: false }, pos: {}, big: false, size: 1 },   // the in-game bar: open widgets, the ones kept on screen while you play, where they sit (share of the screen), size
+    hub: { open: { map: true, route: true, list: true, quests: false, cond: false, notes: false }, pin: { map: false, route: true, list: true, quests: false, cond: false, notes: false }, pos: {}, big: false, size: 1 },   // the in-game bar: open widgets, the ones kept on screen while you play, where they sit (share of the screen), size
   };
   var SECTIONS = { map: "Map, with your pins and route", route: "Your route: the next stop and what to look for", cond: "Condition on your map, with a countdown", prog: "List progress", items: "Items you still need",
     quests: "Quests you follow", keys: "Keys you follow, and where they go", maps: "Other maps with a condition right now" };
   /* TERMS_VERSION: the licence agreement the user must accept. Raise it only when a change affects what users agree to
      (see README); the app then blocks until they accept. PRIVACY_VERSION: raise it when the privacy policy changes;
      the app then shows a one-time notice, without blocking. */
-  var TERMS_VERSION = "2026-11-10.3", PRIVACY_VERSION = "2026-11-14.1";
+  var TERMS_VERSION = "2026-11-10.3", PRIVACY_VERSION = "2026-11-14.2";
 
   function read(k, d) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } }
   function write(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} if (window.RTSync) RTSync.touched(k); }
@@ -64,6 +64,10 @@
     Object.keys(DEFAULTS).forEach(function (k) { if (s[k] === undefined) s[k] = JSON.parse(JSON.stringify(DEFAULTS[k])); });
     Object.keys(DEFAULTS.parts).forEach(function (k) { if (s.parts[k] === undefined) s.parts[k] = DEFAULTS.parts[k]; });
     ["layers", "keys"].forEach(function (g) { Object.keys(DEFAULTS[g]).forEach(function (k) { if (s[g][k] === undefined) s[g][k] = DEFAULTS[g][k]; }); });
+    // the earlier three-key defaults for next and previous stop become single F keys (yours stay if you changed them)
+    if (s.keys.next === "Ctrl+Shift+N") s.keys.next = DEFAULTS.keys.next;
+    if (s.keys.prev === "Ctrl+Shift+P") s.keys.prev = DEFAULTS.keys.prev;
+    if (s.keys.mapsize === "Ctrl+Shift+J") s.keys.mapsize = "";
     s.order = (Array.isArray(s.order) ? s.order : []).filter(function (k) { return SECTIONS[k]; });
     DEFAULTS.order.forEach(function (k) { if (s.order.indexOf(k) < 0) s.order.push(k); });
     return s;
@@ -215,7 +219,7 @@
     settings: settings, setSetting: setSetting, DEFAULTS: DEFAULTS, SECTIONS: SECTIONS, TERMS_VERSION: TERMS_VERSION,
     versionLess: versionLess, onMap: onMap, follow: follow, saveFollow: saveFollow, toggleQuest: toggleQuest, toggleKey: toggleKey, quest: quest, key: key, mapUrl: mapUrl, widget: widget, setWidget: setWidget,
     binds: binds, route: route, setRoute: setRoute, routeAt: routeAt, setRouteAt: setRouteAt, importRoute: importRoute,
-    reset: function () { ["rtc-sync", "rtc-settings", "rtc-list", "rtc-follow", "rtc-placed", "rtc-hotkey-err", "rtc-update", "rtc-route", "rtc-route-at"].forEach(function (k) { localStorage.removeItem(k); }); },
+    reset: function () { ["rtc-sync", "rtc-settings", "rtc-list", "rtc-follow", "rtc-placed", "rtc-hotkey-err", "rtc-update", "rtc-route", "rtc-route-at", "rtc-notes"].forEach(function (k) { localStorage.removeItem(k); }); },
     accepted: function () { var a = read("rtc-accepted", null); return !!(a && a.v === TERMS_VERSION); },
     acceptedAt: function () { var a = read("rtc-accepted", null); return a && a.at; },
     accept: function () { write("rtc-accepted", { v: TERMS_VERSION, at: new Date().toISOString() }); write("rtc-privacy-seen", PRIVACY_VERSION); },
