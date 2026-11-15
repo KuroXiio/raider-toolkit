@@ -1645,9 +1645,12 @@ a:focus-visible, summary:focus-visible { outline: 2px solid var(--mint); outline
 .happ li { display: flex; gap: 10px; align-items: flex-start; color: #d6d3e6; }
 .happ li::before { content: ""; flex: none; width: 8px; height: 8px; margin-top: 8px; border-radius: 50%; background: var(--mint); }
 .happ .cta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-.happ .cta .msb { display: inline-block; line-height: 0; border-radius: 10px; transition: transform .15s ease, filter .15s ease; }
-.happ .cta .msb img { height: 60px; width: auto; display: block; }
-.happ .cta .msb:hover { transform: translateY(-1px); filter: brightness(1.12); }
+.happ .cta .msb { display: inline-flex; align-items: center; gap: 14px; height: 64px; padding: 0 26px 0 20px; border-radius: 14px; background: #efe6d2; color: #14183a; text-decoration: none; transition: transform .15s ease, background .15s ease; }
+.happ .cta .msb svg { width: 32px; height: 32px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.happ .cta .msb span { display: flex; flex-direction: column; line-height: 1.1; text-align: left; }
+.happ .cta .msb small { font-size: 12px; letter-spacing: .04em; opacity: .75; }
+.happ .cta .msb b { font-family: var(--f-display, inherit); font-size: 21px; font-weight: 800; letter-spacing: -.01em; }
+.happ .cta .msb:hover { transform: translateY(-1px); background: #fff6e2; }
 .happ .cta .msb:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 .happ .appbox > div > small { display: block; margin-top: 14px; color: var(--dim); font-size: .8rem; line-height: 1.5; }
 .appshot { --rad: 16px; position: relative; aspect-ratio: 16 / 10; border-radius: var(--rad); overflow: hidden; border: 1px solid rgba(255,255,255,.12); background: #0b0f26; }
