@@ -436,14 +436,16 @@ for o in list(out)+list(mods.values())+weapons:
         if not o['ve']: o.pop('ve')
 events += [{'id':'frigate','n':'Frigate','cat':'major','new':1},{'id':'redirection','n':'Redirection','cat':'major','new':1}]
 weapons.append({'id':'stiletto','n':'Stiletto','t':'Battle Rifle','r':'Uncommon','wip':1,'tiers':[],'slots':{},
-  'facts':['Added in update 2.0 (Frozen Trail).','Light ammo, 16-round magazine, semi-automatic (preview figures).','Drops with its blueprint from containers, lockers, weapon cases and raider caches.'],
-  'src':'AllThings.how, Oct 9 2026; TimeSaver, Oct 8 2026'})
+  'facts':['Added in update 2.0 (Frozen Trail).','Light ammo, 16-round magazine, semi-automatic (preview figures).','Drops with its blueprint from containers, lockers, weapon cases and raider caches.','Weight lowered from 7 to 6 in update 2.6.0.'],
+  'src':'AllThings.how, Oct 9 2026; TimeSaver, Oct 8 2026; Live Update 2.6.0 notes, Nov 17 2026'})
 weapons.append({'id':'bantam','n':'Bantam','t':'Hand Cannon','r':'Uncommon','wip':1,'tiers':[],'slots':{},
   'facts':['Added in update 2.0 (Frozen Trail).','Snub-nosed revolver that uses heavy ammo.'],
   'src':'KeenGamer patch notes, Oct 8 2026; TimeSaver, Oct 8 2026'})
 # ---- map condition rotation (estimated). Observed hour by hour (UTC, Europe servers) from
 # thearcraiders.wiki/events, 5 Nov 2026 14:00 to 7 Nov 2026 07:00. Most events repeat every 25 hours,
 # so the site loops this cycle. When Embark changes the rotation, record a fresh run here and update EV_REC/EV_PATCH.
+# 2.6.0 (17 Nov 2026) removed Beachcombing from Riven Tides and put Cold Snap back in the major rotation:
+# Beachcombing slots are blanked below until a fresh run is recorded.
 EV_T0='2026-11-05T14:00:00Z'; EV_REC='2026-11-05'; EV_PATCH='2.3.0'; EV_PER=25
 EV_RAW={
  'dam':"Electromagnetic Storm,Matriarch,ARC Frigate,-,Harvester,Matriarch,ARC Frigate,-,-,Night Raid,-,Uncovered Caches,Uncovered Caches,-,ARC Frigate,-,Prospecting Probes,-,ARC Frigate,Matriarch,-,ARC Frigate,Uncovered Caches,-,ARC Frigate,Electromagnetic Storm,Matriarch,ARC Frigate,-,Harvester,Matriarch,ARC Frigate,ARC Frigate,-,Night Raid,-,Uncovered Caches,Uncovered Caches,-,ARC Frigate,-,Prospecting Probes",
@@ -451,7 +453,7 @@ EV_RAW={
  'space':"ARC Frigate,-,Close Scrutiny,ARC Frigate,-,-,Harvester,Matriarch,Matriarch,-,ARC Frigate,Night Raid,ARC Frigate,Night Raid,Launch Tower Loot,-,Matriarch,Launch Tower Loot,-,ARC Frigate,Uncovered Caches,Night Raid,ARC Frigate,Harvester + Hidden Bunker,Matriarch,ARC Frigate,-,Electromagnetic Storm,ARC Frigate,-,-,Harvester,Harvester,Matriarch,-,ARC Frigate,Night Raid,ARC Frigate,Night Raid,Launch Tower Loot,-,Matriarch",
  'gate':"Harvester,-,Harvester,Matriarch,Hurricane,ARC Frigate,Prospecting Probes,-,-,ARC Frigate,Matriarch,-,-,Matriarch,-,Uncovered Caches,ARC Frigate,-,-,Night Raid,-,Locked Gate,Matriarch,ARC Frigate,-,Harvester,-,Harvester,Matriarch,-,ARC Frigate,Locked Gate + Prospecting Probes,Prospecting Probes,-,ARC Frigate,Matriarch,-,-,Matriarch,-,Uncovered Caches,ARC Frigate",
  'stella':"-,Night Raid,-,Night Raid,-,Night Raid,-,Night Raid,Night Raid,-,Night Raid,-,Night Raid,-,Night Raid,-,Night Raid,-,Night Raid,-,Night Raid,-,Night Raid,-,Night Raid,-,Night Raid,-,Night Raid,-,Night Raid,-,-,Night Raid,-,Night Raid,-,Night Raid,-,Night Raid,-,Night Raid",
- 'riven':"Night Raid,Beachcombing,-,-,Beachcombing,-,Night Raid,Beachcombing,Beachcombing,-,Prospecting Probes,Beachcombing,-,-,Beachcombing,-,-,Beachcombing,-,Prospecting Probes,Beachcombing,-,-,Beachcombing,-,Night Raid,Beachcombing,-,-,Beachcombing,-,Night Raid,Night Raid,Beachcombing,-,Prospecting Probes,Beachcombing,-,-,Beachcombing,-,-",
+ 'riven':"Night Raid,-,-,-,-,-,Night Raid,-,-,-,Prospecting Probes,-,-,-,-,-,-,-,-,Prospecting Probes,-,-,-,-,-,Night Raid,-,-,-,-,-,Night Raid,Night Raid,-,-,Prospecting Probes,-,-,-,-,-,-",
  'pendola':"-,-,-,-,-,-,-,ARC Frigate,ARC Frigate,-,-,ARC Frigate + Redirection,-,ARC Frigate,-,Night Raid,-,ARC Frigate,-,-,ARC Frigate + Redirection,-,-,Redirection,-,Redirection,-,-,-,-,-,-,-,ARC Frigate,-,-,ARC Frigate,-,ARC Frigate,-,Night Raid,-",
 }
 ev={'t0':EV_T0,'per':EV_PER,'rec':EV_REC,'patch':EV_PATCH,'src':'thearcraiders.wiki','m':{}}
